@@ -15,6 +15,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ImprintWindow;
+import simplestJavaIDEpackage.mainUserInput.Terminal.ConsolePane;
 
 import java.awt.BorderLayout;
 
@@ -180,12 +181,13 @@ public class MainUserInput {
 		}
 
 		// Output
-		JTextArea textPane = new JTextArea();
-		textPane.setEditable(false);
-		JScrollPane scrollPane = new JScrollPane(textPane);
-		bottomPanel.add(scrollPane, BorderLayout.CENTER);
-		textPane.setForeground(new Color(255, 255, 255));
-		textPane.setBackground(new Color(0, 0, 0));
+		bottomPanel.add(new ConsolePane(), BorderLayout.CENTER);
+//		JTextArea textPane = new JTextArea();
+//		textPane.setEditable(false);
+//		JScrollPane scrollPane = new JScrollPane(textPane);
+//		bottomPanel.add(scrollPane, BorderLayout.CENTER);
+//		textPane.setForeground(new Color(255, 255, 255));
+//		textPane.setBackground(new Color(0, 0, 0));
 
 		// Manage Button interactions
 		btnShowAllCode.addActionListener(new ActionListener() {
@@ -211,7 +213,7 @@ public class MainUserInput {
 		});
 		btnSaveAndRun.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				saveAndRun(textPane, codingArea, codingFile);
+				//saveAndRun(textPane, codingArea, codingFile);
 				btnSave.setEnabled(false);
 			}
 		});
