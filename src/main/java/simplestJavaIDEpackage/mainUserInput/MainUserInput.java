@@ -3,11 +3,7 @@ package simplestJavaIDEpackage.mainUserInput;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-
 import javax.swing.JFrame;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -15,28 +11,40 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ImprintWindow;
-import simplestJavaIDEpackage.mainUserInput.Terminal.ConsolePane;
+import simplestJavaIDEpackage.mainUserInput.Terminal.AppendTask;
+import simplestJavaIDEpackage.mainUserInput.Terminal.Command;
+import simplestJavaIDEpackage.mainUserInput.Terminal.CommandListener;
+import simplestJavaIDEpackage.mainUserInput.Terminal.ProtectedDocumentFilter;
+import simplestJavaIDEpackage.mainUserInput.Terminal.Terminal;
 
 import java.awt.BorderLayout;
-
-import javax.swing.BoxLayout;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.AbstractDocument;
 
-import java.awt.Color;
 import java.awt.Dimension;
-import javax.swing.JTextField;
 import javax.swing.JLabel;
 
-public class MainUserInput {
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.text.BadLocationException;
+
+public class MainUserInput implements CommandListener, Terminal {
 
 	private JFrame frmSimplestJavaIDE;
-	private JTextField textField;
+	private JTextArea textArea;
+	private int userInputStart = 0;
+	private Command cmd;
 
 	/**
 	 * Launch the application.
@@ -65,7 +73,6 @@ public class MainUserInput {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize(CodingFile codingFile) {
-
 		// Main Window
 		frmSimplestJavaIDE = new JFrame("Simplest Java IDE");
 		frmSimplestJavaIDE.setSize(1080, 720);
@@ -77,13 +84,13 @@ public class MainUserInput {
 		frmSimplestJavaIDE.getContentPane().add(bottomPanel, BorderLayout.PAGE_END);
 		bottomPanel.setPreferredSize(new Dimension(200, 216));
 		bottomPanel.setLayout(new BorderLayout(0, 0));
-		
+
 		JPanel panelForButtonsAndInput = new JPanel();
 		bottomPanel.add(panelForButtonsAndInput, BorderLayout.LINE_START);
 		panelForButtonsAndInput.setMaximumSize(new Dimension(284, 181));
 		panelForButtonsAndInput.setMinimumSize(new Dimension(284, 181));
 		panelForButtonsAndInput.setPreferredSize(new Dimension(284, 181));
-		panelForButtonsAndInput.setLayout(new BorderLayout(0,0));
+		panelForButtonsAndInput.setLayout(new BorderLayout(0, 0));
 
 		JPanel panelButtonsLeft = new JPanel();
 		panelForButtonsAndInput.add(panelButtonsLeft, BorderLayout.NORTH);
@@ -91,29 +98,14 @@ public class MainUserInput {
 		panelButtonsLeft.setMinimumSize(new Dimension(284, 111));
 		panelButtonsLeft.setPreferredSize(new Dimension(284, 111));
 		panelButtonsLeft.setLayout(null);
-		
+
 		JPanel panelButtonsRight = new JPanel();
 		panelForButtonsAndInput.add(panelButtonsRight, BorderLayout.SOUTH);
 		panelButtonsRight.setMaximumSize(new Dimension(284, 111));
 		panelButtonsRight.setMinimumSize(new Dimension(284, 111));
 		panelButtonsRight.setPreferredSize(new Dimension(284, 111));
 		panelButtonsRight.setLayout(null);
-		
-		textField = new JTextField();
-		textField.setBounds(6, 58, 272, 47);
-		panelButtonsRight.add(textField);
-		textField.setColumns(10);
-		textField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					codingFile.is = new ByteArrayInputStream(textField.getText().getBytes("UTF-8"));
-				} catch (UnsupportedEncodingException e1) {
-					e1.printStackTrace();
-				}
-				textField.setText(null);
-			}
-		});
-		
+
 		JLabel lblNewLabel = new JLabel("User Input:");
 		lblNewLabel.setBounds(6, 30, 272, 16);
 		panelButtonsRight.add(lblNewLabel);
@@ -181,13 +173,40 @@ public class MainUserInput {
 		}
 
 		// Output
-		bottomPanel.add(new ConsolePane(), BorderLayout.CENTER);
-//		JTextArea textPane = new JTextArea();
-//		textPane.setEditable(false);
-//		JScrollPane scrollPane = new JScrollPane(textPane);
-//		bottomPanel.add(scrollPane, BorderLayout.CENTER);
-//		textPane.setForeground(new Color(255, 255, 255));
-//		textPane.setBackground(new Color(0, 0, 0));
+
+		cmd = new Command(this);
+
+		textArea = new JTextArea(20, 30);
+		((AbstractDocument) textArea.getDocument()).setDocumentFilter(new ProtectedDocumentFilter(this));
+		bottomPanel.add(new JScrollPane(textArea));
+
+		InputMap im = textArea.getInputMap(JComponent.WHEN_FOCUSED);
+		ActionMap am = textArea.getActionMap();
+
+		Action oldAction = am.get("insert-break");
+		am.put("insert-break", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int range = textArea.getCaretPosition() - userInputStart;
+				try {
+					String text = textArea.getText(userInputStart, range).trim();
+					System.out.println("[" + text + "]");
+					userInputStart += range;
+					if (!cmd.isRunning()) {
+						cmd.execute(text);
+					} else {
+						try {
+							cmd.send(text + "\n");
+						} catch (IOException ex) {
+							appendText("!! Failed to send command to process: " + ex.getMessage() + "\n");
+						}
+					}
+				} catch (BadLocationException ex) {
+					Logger.getLogger(MainUserInput.class.getName()).log(Level.SEVERE, null, ex);
+				}
+				oldAction.actionPerformed(e);
+			}
+		});
 
 		// Manage Button interactions
 		btnShowAllCode.addActionListener(new ActionListener() {
@@ -213,7 +232,7 @@ public class MainUserInput {
 		});
 		btnSaveAndRun.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//saveAndRun(textPane, codingArea, codingFile);
+				saveAndRun(textArea, codingArea, codingFile);
 				btnSave.setEnabled(false);
 			}
 		});
@@ -225,16 +244,50 @@ public class MainUserInput {
 		});
 	}
 
+	@Override
+	public void commandOutput(String text) {
+		SwingUtilities.invokeLater(new AppendTask(this, text));
+	}
+
+	@Override
+	public void commandFailed(Exception exp) {
+		SwingUtilities.invokeLater(new AppendTask(this, "Command failed - " + exp.getMessage()));
+	}
+
+	@Override
+	public void commandCompleted(String cmd, int result) {
+		appendText("\n> " + cmd + " exited with " + result + "\n");
+		appendText("\n");
+	}
+
+	protected void updateUserInputPos() {
+		int pos = textArea.getCaretPosition();
+		textArea.setCaretPosition(textArea.getText().length());
+		userInputStart = pos;
+
+	}
+
+	@Override
+	public int getUserInputStart() {
+		return userInputStart;
+	}
+
+	@Override
+	public void appendText(String text) {
+		textArea.append(text);
+		updateUserInputPos();
+	}
+
 	public void save(RSyntaxTextArea codingArea, CodingFile codingFile) {
 		codingFile.writeCodeToVariable(codingArea.getText());
 		codingFile.saveToFile();
-		
+
 	}
 
 	public void run(JTextArea outputTextPane, CodingFile codingFile) throws IOException {
-		CommandExecuter ce = new CommandExecuter();
-		ce.run("javac " + codingFile.getAbsolutePath(), outputTextPane, codingFile);
-		ce.run("java " + "-cp " + codingFile.getClassPath(), outputTextPane, codingFile);
+//		CommandExecuter ce = new CommandExecuter(outputTextPane);
+//		ce.run("javac " + codingFile.getAbsolutePath());
+//		ce.run("java " + "-cp " + codingFile.getClassPath());
 	}
 
 	public void saveAndRun(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile) {
