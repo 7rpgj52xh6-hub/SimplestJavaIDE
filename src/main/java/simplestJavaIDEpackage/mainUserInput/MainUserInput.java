@@ -18,6 +18,8 @@ import simplestJavaIDEpackage.mainUserInput.Terminal.ProtectedDocumentFilter;
 import simplestJavaIDEpackage.mainUserInput.Terminal.Terminal;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -177,16 +179,22 @@ public class MainUserInput implements CommandListener, Terminal {
 		cmd = new Command(this);
 
 		textArea = new JTextArea(20, 30);
+		textArea.setBackground(Color.BLACK);
+		textArea.setForeground(Color.WHITE);
 		((AbstractDocument) textArea.getDocument()).setDocumentFilter(new ProtectedDocumentFilter(this));
 		bottomPanel.add(new JScrollPane(textArea));
 
+		@SuppressWarnings("unused")
 		InputMap im = textArea.getInputMap(JComponent.WHEN_FOCUSED);
 		ActionMap am = textArea.getActionMap();
 
 		Action oldAction = am.get("insert-break");
 		am.put("insert-break", new AbstractAction() {
+			private static final long serialVersionUID = 5489224113004830522L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				//HIER WIRD AUSGEFÜHRT WAS IN DER CMD STEHT
 				int range = textArea.getCaretPosition() - userInputStart;
 				try {
 					String text = textArea.getText(userInputStart, range).trim();
@@ -256,7 +264,7 @@ public class MainUserInput implements CommandListener, Terminal {
 
 	@Override
 	public void commandCompleted(String cmd, int result) {
-		appendText("\n> " + cmd + " exited with " + result + "\n");
+		//appendText("\n> " + cmd + " exited with " + result + "\n");
 		appendText("\n");
 	}
 
@@ -284,18 +292,29 @@ public class MainUserInput implements CommandListener, Terminal {
 
 	}
 
-	public void run(JTextArea outputTextPane, CodingFile codingFile) throws IOException {
-//		CommandExecuter ce = new CommandExecuter(outputTextPane);
-//		ce.run("javac " + codingFile.getAbsolutePath());
-//		ce.run("java " + "-cp " + codingFile.getClassPath());
+	public void run(String command) throws IOException, BadLocationException {
+		if (!cmd.isRunning()) {
+			cmd.execute(command);
+		} else {
+			try {
+				cmd.send(command + "\n");
+			} catch (IOException ex) {
+				appendText("!! Failed to send command to process: " + ex.getMessage() + "\n");
+			}
+		}
 	}
 
 	public void saveAndRun(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile) {
-		outputTextPane.setText("");
 		save(codingArea, codingFile);
 		try {
-			run(outputTextPane, codingFile);
+			outputTextPane.setText("");
+			run("java --version");
+			//run("javac " + codingFile.getAbsolutePath());
+			//run("java " + "-cp " + codingFile.getClassPath());
 		} catch (IOException e) {
+			// TODO Automatisch generierter Erfassungsblock
+			e.printStackTrace();
+		} catch (BadLocationException e) {
 			// TODO Automatisch generierter Erfassungsblock
 			e.printStackTrace();
 		}
