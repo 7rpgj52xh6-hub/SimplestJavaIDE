@@ -3,6 +3,8 @@ package simplestJavaIDEpackage.mainUserInput;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import javax.swing.JFrame;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -141,6 +143,31 @@ public class MainUserInput implements CommandListener, Terminal {
 
 			}
 		});
+			codingArea.addKeyListener(new KeyListener() {
+				@Override
+				public void keyPressed(KeyEvent e) {
+					boolean windowsCTRLpressed = ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0);
+					boolean macOSCTRLpressed = ((e.getModifiers() & KeyEvent.VK_META) != 0);
+					if  ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
+						save(codingArea, codingFile);
+						btnSave.setEnabled(false);
+					}
+
+				}
+
+				@Override
+				public void keyReleased(KeyEvent arg0) {
+					// TODO Automatisch generierter Methodenstub
+					
+				}
+
+				@Override
+				public void keyTyped(KeyEvent arg0) {
+					// TODO Automatisch generierter Methodenstub
+					
+				}
+		    });
+		
 		RTextScrollPane codingAreaScrollPane = new RTextScrollPane(codingArea);
 		frmSimplestJavaIDE.getContentPane().add(codingAreaScrollPane, BorderLayout.CENTER);
 		// Load Code if possible
@@ -275,7 +302,8 @@ public class MainUserInput implements CommandListener, Terminal {
 
 	}
 
-	public void runCommand(String command, JButton runButton, JButton compileButton) throws IOException, BadLocationException {
+	public void runCommand(String command, JButton runButton, JButton compileButton)
+			throws IOException, BadLocationException {
 		if (!cmd.isRunning()) {
 			cmd.execute(command, runButton, compileButton);
 		} else {
@@ -287,7 +315,8 @@ public class MainUserInput implements CommandListener, Terminal {
 		}
 	}
 
-	public void compile(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile, JButton runButton, JButton compileButton) {
+	public void compile(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile, JButton runButton,
+			JButton compileButton) {
 		try {
 			runCommand("javac " + codingFile.getAbsolutePath(), runButton, compileButton);
 		} catch (IOException | BadLocationException e) {
@@ -296,9 +325,11 @@ public class MainUserInput implements CommandListener, Terminal {
 		}
 	}
 
-	public void runApplication(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile, JButton runButton, JButton compileButton) {
+	public void runApplication(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile,
+			JButton runButton, JButton compileButton) {
 		try {
-			runCommand("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName(), runButton, compileButton);
+			runCommand("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName(), runButton,
+					compileButton);
 		} catch (IOException | BadLocationException e) {
 			// TODO Automatisch generierter Erfassungsblock
 			e.printStackTrace();
