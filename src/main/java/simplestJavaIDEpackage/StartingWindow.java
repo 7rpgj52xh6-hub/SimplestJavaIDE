@@ -55,7 +55,7 @@ public class StartingWindow {
 	private void initialize() {
 
 		frmSimplestjavaide = new JFrame();
-		frmSimplestjavaide.setTitle("SimplestJavaIDE Alpha v1.0");
+		frmSimplestjavaide.setTitle("SimplestJavaIDE Alpha v1.1");
 		frmSimplestjavaide.setBounds(100, 100, 450, 300);
 		frmSimplestjavaide.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmSimplestjavaide.setResizable(false);

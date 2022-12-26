@@ -1,35 +1,49 @@
 package simplestJavaIDEpackage.mainUserInput.Terminal;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.StringJoiner;
+
+import javax.swing.JButton;
 
 public class ProcessRunner extends Thread {
 	private List<String> cmds;
     private CommandListener listener;
-
     private Process process;
+    private JButton runButton, compileButton;
 
-    public ProcessRunner(CommandListener listener, List<String> cmds) {
+    public ProcessRunner(CommandListener listener, List<String> cmds, JButton runButton, JButton compileButton) {
         this.cmds = cmds;
         this.listener = listener;
+        this.runButton = runButton;
+        this.compileButton = compileButton;
         start();
     }
 
-    @Override
     public void run() {
         try {
-            System.out.println("cmds = " + cmds);
             ProcessBuilder pb = new ProcessBuilder(cmds);
             pb.redirectErrorStream();
             process = pb.start();
-            StreamReader reader = new StreamReader(listener, process.getInputStream());
+            InputStream is = process.getInputStream();
+            InputStream errs = process.getErrorStream();
+            StreamReader reader = new StreamReader(listener, is);
+            if (errs.read() != -1) {
+            	StreamReader errorReader = new StreamReader(listener, errs);
+            	errorReader.join();
+            	System.out.println("Es gibt Fehler!");
+            	runButton.setEnabled(false);
+            	compileButton.setEnabled(false);
+            }
             // Need a stream writer...
 
             int result = process.waitFor();
 
             // Terminate the stream writer
             reader.join();
+         
+            //TODO Change UI Bevaviour if Errors occur
 
             StringJoiner sj = new StringJoiner(" ");
             cmds.stream().forEach((cmd) -> {

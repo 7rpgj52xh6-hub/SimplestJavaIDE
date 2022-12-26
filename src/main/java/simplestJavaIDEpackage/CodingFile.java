@@ -77,7 +77,7 @@ public class CodingFile {
 	}
 	
 	public String getClassPath() {
-		return getAbsolutePath().replace(this.className, "").replace(".java", "") + " " + this.className;
+		return getAbsolutePath().replace(this.className, "").replace(".java", "");
 		
 	}
 
@@ -152,6 +152,10 @@ public class CodingFile {
 			substring = substring.replaceAll("(?m)^\\s*\\r?\\n|\\r?\\n\\s*(?!.*\\r?\\n)", "");
 			code = substring;
 		}
+	}
+
+	public String getClassName() {
+		return this.className;
 	}
 
 }

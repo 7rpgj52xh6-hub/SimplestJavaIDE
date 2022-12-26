@@ -24,4 +24,14 @@ public class StreamReader extends Thread {
             exp.printStackTrace();
         }
     }
+    
+    public int checkIfStreamIsEmpty() {
+    	try {
+			return is.read();
+		} catch (IOException e) {
+			// TODO Automatisch generierter Erfassungsblock
+			e.printStackTrace();
+		}
+		return 69;
+    }
 }

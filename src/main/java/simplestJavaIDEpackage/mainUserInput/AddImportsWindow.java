@@ -17,7 +17,7 @@ import javax.swing.JButton;
 
 public class AddImportsWindow {
 
-	private JFrame frame;
+	private JFrame frmImportWindow;
 
 	/**
 	 * Launch the application.
@@ -27,7 +27,7 @@ public class AddImportsWindow {
 			public void run() {
 				try {
 					AddImportsWindow window = new AddImportsWindow(codingFile);
-					window.frame.setVisible(true);
+					window.frmImportWindow.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -46,32 +46,32 @@ public class AddImportsWindow {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize(CodingFile codingFile) {
-		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setResizable(false);
+		frmImportWindow = new JFrame();
+		frmImportWindow.setBounds(100, 100, 640, 360);
+		frmImportWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmImportWindow.setResizable(false);
 
-		RSyntaxTextArea codingArea = new RSyntaxTextArea(20, 60);
-		codingArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-		codingArea.setCodeFoldingEnabled(true);
-		RTextScrollPane codingAreaScrollPane = new RTextScrollPane(codingArea);
-		frame.getContentPane().add(codingAreaScrollPane, BorderLayout.CENTER);
-		codingArea.setText(codingFile.getImports());
+		RSyntaxTextArea importArea = new RSyntaxTextArea(20, 60);
+		importArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+		importArea.setCodeFoldingEnabled(true);
+		RTextScrollPane importAreaScrollPane = new RTextScrollPane(importArea);
+		frmImportWindow.getContentPane().add(importAreaScrollPane, BorderLayout.CENTER);
+		importArea.setText(codingFile.getImports());
 
-		JButton btnSaveAndClose = new JButton("Save and close");
+		JButton btnSaveAndClose = new JButton("Save imports and close");
 		btnSaveAndClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String importsText = codingArea.getText();
+				String importsText = importArea.getText();
 				if (!importsText.contains("import")) {
 					codingFile.setImports("");
 				} else {
-					codingFile.setImports(codingArea.getText());
+					codingFile.setImports(importArea.getText());
 				}
-				frame.dispose();
+				frmImportWindow.dispose();
 			}
 
 		});
-		frame.getContentPane().add(btnSaveAndClose, BorderLayout.SOUTH);
+		frmImportWindow.getContentPane().add(btnSaveAndClose, BorderLayout.SOUTH);
 	}
 
 }

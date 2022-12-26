@@ -18,8 +18,6 @@ import simplestJavaIDEpackage.mainUserInput.Terminal.ProtectedDocumentFilter;
 import simplestJavaIDEpackage.mainUserInput.Terminal.Terminal;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -33,8 +31,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
 
 import java.awt.Dimension;
-import javax.swing.JLabel;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -84,61 +80,41 @@ public class MainUserInput implements CommandListener, Terminal {
 		// Structure of main window
 		JPanel bottomPanel = new JPanel();
 		frmSimplestJavaIDE.getContentPane().add(bottomPanel, BorderLayout.PAGE_END);
-		bottomPanel.setPreferredSize(new Dimension(200, 216));
+		bottomPanel.setPreferredSize(new Dimension(200, 168));
 		bottomPanel.setLayout(new BorderLayout(0, 0));
 
-		JPanel panelForButtonsAndInput = new JPanel();
-		bottomPanel.add(panelForButtonsAndInput, BorderLayout.LINE_START);
-		panelForButtonsAndInput.setMaximumSize(new Dimension(284, 181));
-		panelForButtonsAndInput.setMinimumSize(new Dimension(284, 181));
-		panelForButtonsAndInput.setPreferredSize(new Dimension(284, 181));
-		panelForButtonsAndInput.setLayout(new BorderLayout(0, 0));
-
-		JPanel panelButtonsLeft = new JPanel();
-		panelForButtonsAndInput.add(panelButtonsLeft, BorderLayout.NORTH);
-		panelButtonsLeft.setMaximumSize(new Dimension(284, 111));
-		panelButtonsLeft.setMinimumSize(new Dimension(284, 111));
-		panelButtonsLeft.setPreferredSize(new Dimension(284, 111));
-		panelButtonsLeft.setLayout(null);
-
-		JPanel panelButtonsRight = new JPanel();
-		panelForButtonsAndInput.add(panelButtonsRight, BorderLayout.SOUTH);
-		panelButtonsRight.setMaximumSize(new Dimension(284, 111));
-		panelButtonsRight.setMinimumSize(new Dimension(284, 111));
-		panelButtonsRight.setPreferredSize(new Dimension(284, 111));
-		panelButtonsRight.setLayout(null);
-
-		JLabel lblNewLabel = new JLabel("User Input:");
-		lblNewLabel.setBounds(6, 30, 272, 16);
-		panelButtonsRight.add(lblNewLabel);
+		JPanel panelButtons = new JPanel();
+		bottomPanel.add(panelButtons, BorderLayout.LINE_START);
+		panelButtons.setPreferredSize(new Dimension(278, 168));
+		panelButtons.setLayout(null);
 
 		// Buttons
 		JButton btnSave = new JButton("Save");
-		btnSave.setBounds(6, 41, 130, 29);
+		btnSave.setBounds(6, 48, 130, 36);
 		btnSave.setEnabled(false);
-		panelButtonsLeft.add(btnSave);
-
-		JButton btnSaveAndRun = new JButton("Save & Run");
-		btnSaveAndRun.setBounds(6, 76, 130, 29);
-		panelButtonsLeft.add(btnSaveAndRun);
+		panelButtons.add(btnSave);
 
 		JButton btnAddImports = new JButton("Add imports");
-		btnAddImports.setBounds(6, 6, 130, 29);
-		panelButtonsLeft.add(btnAddImports);
+		btnAddImports.setBounds(6, 6, 130, 36);
+		panelButtons.add(btnAddImports);
 
 		JButton btnHelp = new JButton("Help");
 		btnHelp.setIcon(null);
-		btnHelp.setBounds(142, 41, 130, 29);
-		panelButtonsLeft.add(btnHelp);
-
-		JButton btnClose = new JButton("Close");
-		btnClose.setIcon(null);
-		btnClose.setBounds(142, 76, 130, 29);
-		panelButtonsLeft.add(btnClose);
+		btnHelp.setBounds(142, 48, 130, 36);
+		panelButtons.add(btnHelp);
 
 		JButton btnShowAllCode = new JButton("View full code");
-		btnShowAllCode.setBounds(142, 6, 130, 29);
-		panelButtonsLeft.add(btnShowAllCode);
+		btnShowAllCode.setBounds(142, 6, 130, 36);
+		panelButtons.add(btnShowAllCode);
+
+		JButton btnRun = new JButton("Run");
+		btnRun.setBounds(142, 90, 130, 72);
+		btnRun.setEnabled(false);
+		panelButtons.add(btnRun);
+
+		JButton btnCompile = new JButton("Compile");
+		btnCompile.setBounds(6, 90, 130, 72);
+		panelButtons.add(btnCompile);
 
 		// Coding input and load code if code is not null (from loading file)
 		RSyntaxTextArea codingArea = new RSyntaxTextArea(20, 60);
@@ -149,6 +125,8 @@ public class MainUserInput implements CommandListener, Terminal {
 			public void changedUpdate(DocumentEvent arg0) {
 				codingFile.isSaved = false;
 				btnSave.setEnabled(true);
+				btnCompile.setEnabled(true);
+				btnRun.setEnabled(false);
 			}
 
 			@Override
@@ -175,12 +153,8 @@ public class MainUserInput implements CommandListener, Terminal {
 		}
 
 		// Output
-
 		cmd = new Command(this);
-
 		textArea = new JTextArea(20, 30);
-		textArea.setBackground(Color.BLACK);
-		textArea.setForeground(Color.WHITE);
 		((AbstractDocument) textArea.getDocument()).setDocumentFilter(new ProtectedDocumentFilter(this));
 		bottomPanel.add(new JScrollPane(textArea));
 
@@ -194,14 +168,14 @@ public class MainUserInput implements CommandListener, Terminal {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//HIER WIRD AUSGEFÜHRT WAS IN DER CMD STEHT
+				// HIER WIRD AUSGEFÜHRT WAS IN DER CMD STEHT
 				int range = textArea.getCaretPosition() - userInputStart;
 				try {
 					String text = textArea.getText(userInputStart, range).trim();
 					System.out.println("[" + text + "]");
 					userInputStart += range;
 					if (!cmd.isRunning()) {
-						cmd.execute(text);
+						cmd.execute(text, btnRun, btnCompile);
 					} else {
 						try {
 							cmd.send(text + "\n");
@@ -216,16 +190,11 @@ public class MainUserInput implements CommandListener, Terminal {
 			}
 		});
 
-		// Manage Button interactions
+		// Manage interactions
 		btnShowAllCode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				save(codingArea, codingFile);
 				ShowFullCodeWindow.main(null, codingFile.getWholeCode());
-			}
-		});
-		btnClose.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				frmSimplestJavaIDE.dispose();
 			}
 		});
 		btnHelp.addActionListener(new ActionListener() {
@@ -238,16 +207,30 @@ public class MainUserInput implements CommandListener, Terminal {
 				AddImportsWindow.main(null, codingFile);
 			}
 		});
-		btnSaveAndRun.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				saveAndRun(textArea, codingArea, codingFile);
-				btnSave.setEnabled(false);
-			}
-		});
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				save(codingArea, codingFile);
 				btnSave.setEnabled(false);
+			}
+		});
+		btnRun.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// RUN AND SAVE
+				save(codingArea, codingFile);
+				textArea.append("Running Application...\n");
+				runApplication(textArea, codingArea, codingFile, btnRun, btnCompile);
+				btnSave.setEnabled(false);
+			}
+		});
+		btnCompile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// COMPILE AND SAVE
+				save(codingArea, codingFile);
+				compile(textArea, codingArea, codingFile, btnRun, btnCompile);
+				textArea.append("Compiling Code...!\n");
+				btnSave.setEnabled(false);
+				btnRun.setEnabled(true);
+				btnCompile.setEnabled(false);
 			}
 		});
 	}
@@ -264,7 +247,7 @@ public class MainUserInput implements CommandListener, Terminal {
 
 	@Override
 	public void commandCompleted(String cmd, int result) {
-		//appendText("\n> " + cmd + " exited with " + result + "\n");
+		// appendText("\n> " + cmd + " exited with " + result + "\n");
 		appendText("\n");
 	}
 
@@ -292,9 +275,9 @@ public class MainUserInput implements CommandListener, Terminal {
 
 	}
 
-	public void run(String command) throws IOException, BadLocationException {
+	public void runCommand(String command, JButton runButton, JButton compileButton) throws IOException, BadLocationException {
 		if (!cmd.isRunning()) {
-			cmd.execute(command);
+			cmd.execute(command, runButton, compileButton);
 		} else {
 			try {
 				cmd.send(command + "\n");
@@ -304,19 +287,22 @@ public class MainUserInput implements CommandListener, Terminal {
 		}
 	}
 
-	public void saveAndRun(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile) {
-		save(codingArea, codingFile);
+	public void compile(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile, JButton runButton, JButton compileButton) {
 		try {
-			outputTextPane.setText("");
-			run("java --version");
-			//run("javac " + codingFile.getAbsolutePath());
-			//run("java " + "-cp " + codingFile.getClassPath());
-		} catch (IOException e) {
-			// TODO Automatisch generierter Erfassungsblock
-			e.printStackTrace();
-		} catch (BadLocationException e) {
+			runCommand("javac " + codingFile.getAbsolutePath(), runButton, compileButton);
+		} catch (IOException | BadLocationException e) {
 			// TODO Automatisch generierter Erfassungsblock
 			e.printStackTrace();
 		}
 	}
+
+	public void runApplication(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile, JButton runButton, JButton compileButton) {
+		try {
+			runCommand("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName(), runButton, compileButton);
+		} catch (IOException | BadLocationException e) {
+			// TODO Automatisch generierter Erfassungsblock
+			e.printStackTrace();
+		}
+	}
+
 }

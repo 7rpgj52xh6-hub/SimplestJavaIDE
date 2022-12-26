@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.JButton;
+
 public class Command {
 	private CommandListener listener;
     private ProcessRunner runner;
@@ -19,7 +21,7 @@ public class Command {
 
     }
 
-    public void execute(String cmd) {
+    public void execute(String cmd, JButton runButton, JButton compileButton) {
 
         if (!cmd.trim().isEmpty()) {
 
@@ -61,7 +63,7 @@ public class Command {
 
             }
 
-            runner = new ProcessRunner(listener, values);
+            runner = new ProcessRunner(listener, values, runButton, compileButton);
 
         }
 
