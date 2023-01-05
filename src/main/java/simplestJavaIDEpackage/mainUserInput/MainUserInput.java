@@ -79,7 +79,7 @@ public class MainUserInput implements CommandListener, Terminal {
 	 */
 	private void initialize(CodingFile codingFile) {
 		// Main Window
-		frmSimplestJavaIDE = new JFrame("Simplest Java IDE");
+		frmSimplestJavaIDE = new JFrame("Simplest Java IDE - " + codingFile.getAbsolutePath());
 		frmSimplestJavaIDE.setSize(1080, 720);
 		frmSimplestJavaIDE.setMinimumSize(new Dimension(1080, 720));
 		frmSimplestJavaIDE.getContentPane().setLayout(new BorderLayout(0, 0));
@@ -130,6 +130,11 @@ public class MainUserInput implements CommandListener, Terminal {
 		codingArea.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void changedUpdate(DocumentEvent arg0) {
+				// Do nothing
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
 				codingFile.isSaved = false;
 				btnSave.setEnabled(true);
 				btnCompile.setEnabled(true);
@@ -137,15 +142,11 @@ public class MainUserInput implements CommandListener, Terminal {
 			}
 
 			@Override
-			public void insertUpdate(DocumentEvent e) {
-				// Do Nothing
-
-			}
-
-			@Override
 			public void removeUpdate(DocumentEvent e) {
-				// Do Nothing
-
+				codingFile.isSaved = false;
+				btnSave.setEnabled(true);
+				btnCompile.setEnabled(true);
+				btnRun.setEnabled(false);
 			}
 		});
 		codingArea.addKeyListener(new KeyListener() {
@@ -234,7 +235,7 @@ public class MainUserInput implements CommandListener, Terminal {
 					codeMode = CodeMode.STANDARD;
 					btnShowAllCode.setText("Code-Mode: Short");
 					codingArea.setText(null);
-					codingArea.append(codingFile.getCode(codeMode));
+					codingArea.append(codingFile.getCode(codeMode).replaceFirst("\n", ""));
 				}
 			}
 		});
@@ -313,7 +314,6 @@ public class MainUserInput implements CommandListener, Terminal {
 	public void save(RSyntaxTextArea codingArea, CodingFile codingFile) {
 		codingFile.writeAllCodeToArray(codingArea.getText(), codeMode);
 		codingFile.saveToFile();
-
 	}
 
 	public void runCommand(String command, JButton runButton, JButton compileButton)

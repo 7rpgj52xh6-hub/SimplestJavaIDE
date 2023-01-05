@@ -48,7 +48,7 @@ public class AddImportsWindow {
 	private void initialize(CodingFile codingFile) {
 		frmImportWindow = new JFrame();
 		frmImportWindow.setBounds(100, 100, 640, 360);
-		frmImportWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmImportWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frmImportWindow.setResizable(false);
 
 		RSyntaxTextArea importArea = new RSyntaxTextArea(20, 60);
