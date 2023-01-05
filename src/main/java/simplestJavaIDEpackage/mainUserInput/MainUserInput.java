@@ -12,6 +12,7 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import simplestJavaIDEpackage.CodingFile;
+import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.mainUserInput.Terminal.AppendTask;
 import simplestJavaIDEpackage.mainUserInput.Terminal.Command;
@@ -27,6 +28,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -45,6 +47,8 @@ public class MainUserInput implements CommandListener, Terminal {
 	private JTextArea textArea;
 	private int userInputStart = 0;
 	private Command cmd;
+
+	private CodeMode codeMode;
 
 	/**
 	 * Launch the application.
@@ -66,6 +70,7 @@ public class MainUserInput implements CommandListener, Terminal {
 	 * Create the application.
 	 */
 	public MainUserInput(CodingFile savefile) {
+		codeMode = CodeMode.STANDARD;
 		initialize(savefile);
 	}
 
@@ -105,7 +110,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		btnHelp.setBounds(142, 48, 130, 36);
 		panelButtons.add(btnHelp);
 
-		JButton btnShowAllCode = new JButton("View full code");
+		JToggleButton btnShowAllCode = new JToggleButton("Code-Mode: Short");
 		btnShowAllCode.setBounds(142, 6, 130, 36);
 		panelButtons.add(btnShowAllCode);
 
@@ -143,31 +148,31 @@ public class MainUserInput implements CommandListener, Terminal {
 
 			}
 		});
-			codingArea.addKeyListener(new KeyListener() {
-				@Override
-				public void keyPressed(KeyEvent e) {
-					boolean windowsCTRLpressed = ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0);
-					boolean macOSCTRLpressed = ((e.getModifiers() & KeyEvent.VK_META) != 0);
-					if  ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
-						save(codingArea, codingFile);
-						btnSave.setEnabled(false);
-					}
-
+		codingArea.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				boolean windowsCTRLpressed = ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0);
+				boolean macOSCTRLpressed = ((e.getModifiers() & KeyEvent.VK_META) != 0);
+				if ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
+					save(codingArea, codingFile);
+					btnSave.setEnabled(false);
 				}
 
-				@Override
-				public void keyReleased(KeyEvent arg0) {
-					// TODO Automatisch generierter Methodenstub
-					
-				}
+			}
 
-				@Override
-				public void keyTyped(KeyEvent arg0) {
-					// TODO Automatisch generierter Methodenstub
-					
-				}
-		    });
-		
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				// TODO Automatisch generierter Methodenstub
+
+			}
+
+			@Override
+			public void keyTyped(KeyEvent arg0) {
+				// TODO Automatisch generierter Methodenstub
+
+			}
+		});
+
 		RTextScrollPane codingAreaScrollPane = new RTextScrollPane(codingArea);
 		frmSimplestJavaIDE.getContentPane().add(codingAreaScrollPane, BorderLayout.CENTER);
 		// Load Code if possible
@@ -175,7 +180,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		while (loadingEnabled) {
 			if (codingFile.isFinishedProcessing) {
 				loadingEnabled = false;
-				codingArea.setText(codingFile.getCode());
+				codingArea.setText(codingFile.getCode(codeMode));
 			}
 		}
 
@@ -199,7 +204,6 @@ public class MainUserInput implements CommandListener, Terminal {
 				int range = textArea.getCaretPosition() - userInputStart;
 				try {
 					String text = textArea.getText(userInputStart, range).trim();
-					System.out.println("[" + text + "]");
 					userInputStart += range;
 					if (!cmd.isRunning()) {
 						cmd.execute(text, btnRun, btnCompile);
@@ -221,7 +225,17 @@ public class MainUserInput implements CommandListener, Terminal {
 		btnShowAllCode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				save(codingArea, codingFile);
-				ShowFullCodeWindow.main(null, codingFile.getWholeCode());
+				if (codeMode == CodeMode.STANDARD) {
+					codeMode = CodeMode.EXTENDED;
+					btnShowAllCode.setText("Code-Mode: Full");
+					codingArea.setText(null);
+					codingArea.append(codingFile.getCode(codeMode));
+				} else {
+					codeMode = CodeMode.STANDARD;
+					btnShowAllCode.setText("Code-Mode: Short");
+					codingArea.setText(null);
+					codingArea.append(codingFile.getCode(codeMode));
+				}
 			}
 		});
 		btnHelp.addActionListener(new ActionListener() {
@@ -297,7 +311,7 @@ public class MainUserInput implements CommandListener, Terminal {
 	}
 
 	public void save(RSyntaxTextArea codingArea, CodingFile codingFile) {
-		codingFile.writeCodeToVariable(codingArea.getText());
+		codingFile.writeAllCodeToArray(codingArea.getText(), codeMode);
 		codingFile.saveToFile();
 
 	}
