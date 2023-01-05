@@ -44,7 +44,7 @@ public class ImprintWindow {
 		frmSimplestjavaideImprint.setTitle("SimplestJavaIDE - Imprint");
 		frmSimplestjavaideImprint.setAlwaysOnTop(true);
 		frmSimplestjavaideImprint.setBounds(100, 100, 450, 300);
-		frmSimplestjavaideImprint.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmSimplestjavaideImprint.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frmSimplestjavaideImprint.setResizable(false);
 		
 		JLabel lblCredits = new JLabel("<html>\n\t<body style=\"text-align:center\">\n\t\t© Daniel Trageser 2022 <br>\n\t\tContact: daniel.trageser@outlook.com<br>\n\t\t<br>\n\t\tSimplestJavaIDE is designed for usage in german vocational schools <br> in topics which have the goal to teach java without touching objects, classes etc. <br>\n\t\t<br>\n\t\tExample usage: 11th grade in Fachoberschule Informationstechnik Hessen<br>\n\t</body>\n</hml>");
