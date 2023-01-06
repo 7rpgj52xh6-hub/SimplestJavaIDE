@@ -121,7 +121,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		btnHelp.setBounds(142, 48, 130, 36);
 		panelButtons.add(btnHelp);
 
-		JToggleButton btnShowAllCode = new JToggleButton("Code-Mode: Short");
+		JToggleButton btnShowAllCode = new JToggleButton("Advanced Mode");
 		btnShowAllCode.setBounds(142, 6, 130, 36);
 		panelButtons.add(btnShowAllCode);
 
@@ -239,12 +239,10 @@ public class MainUserInput implements CommandListener, Terminal {
 				save(codingArea, codingFile);
 				if (codeMode == CodeMode.STANDARD) {
 					codeMode = CodeMode.EXTENDED;
-					btnShowAllCode.setText("Code-Mode: Full");
 					codingArea.setText(null);
 					codingArea.append(codingFile.getCode(codeMode));
 				} else {
 					codeMode = CodeMode.STANDARD;
-					btnShowAllCode.setText("Code-Mode: Short");
 					codingArea.setText(null);
 					codingArea.append(codingFile.getCode(codeMode).replaceFirst("\n", ""));
 				}
