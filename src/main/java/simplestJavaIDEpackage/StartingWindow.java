@@ -11,13 +11,19 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import simplestJavaIDEpackage.mainUserInput.MainUserInput;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 import javax.swing.JLabel;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 
 public class StartingWindow {
 
@@ -52,11 +58,19 @@ public class StartingWindow {
 	private void initialize() {
 
 		frmSimplestjavaide = new JFrame();
-		frmSimplestjavaide.setTitle("SimplestJavaIDE Alpha v1.2");
-		frmSimplestjavaide.setBounds(100, 100, 450, 300);
+		frmSimplestjavaide.setTitle("SimplestJavaIDE Alpha v1.3");
+		frmSimplestjavaide.setBounds(100, 100, 450, 298);
 		frmSimplestjavaide.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmSimplestjavaide.setResizable(false);
-		
+
+		// Set Icon
+		try {
+			frmSimplestjavaide.setIconImage(ImageIO.read(new File("resources/favicon.png")));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 		JPanel panel = new JPanel();
 		frmSimplestjavaide.getContentPane().add(panel, BorderLayout.NORTH);
 
@@ -108,22 +122,40 @@ public class StartingWindow {
 						MainUserInput.main(null, codingFile);
 						frmSimplestjavaide.dispose();
 					} else {
-						//File aleady exists. Opening File instead
+						// File aleady exists. Opening File instead
 						File file1 = fileChooser.getSelectedFile();
 						CodingFile codingFile = new CodingFile(file1, false); // isNewFile = true
 						MainUserInput.main(null, codingFile);
 						frmSimplestjavaide.dispose();
 					}
-					
+
 				}
 			}
 		});
 		panel.add(btnNewApplication, BorderLayout.NORTH);
+
+		JPanel panelCenter = new JPanel();
+		frmSimplestjavaide.getContentPane().add(panelCenter, BorderLayout.CENTER);
+
 		
-		JLabel lblNewLabel = new JLabel("<html>\n\t<body style=\"text-align:center;\">\n\t\t<h2> SimplestJavaIDE</h2>\n\t\t<h4>Code in Java without worrying about classes!</h4>\n\t</body>\n</html>\n\t\t", SwingConstants.CENTER);
-		frmSimplestjavaide.getContentPane().add(lblNewLabel, BorderLayout.CENTER);
+		panelCenter.setLayout(new BorderLayout(0, 0));
 		
+		try {
+			JLabel lblIcon;
+			lblIcon = new JLabel(new ImageIcon(ImageIO.read(new File("resources/favicon.png")).getScaledInstance(128, 128, 0)));
+			lblIcon.setText("");
+			Border margin = new EmptyBorder(10,10,10,10);
+			lblIcon.setBorder(margin);
+			panelCenter.add(lblIcon, BorderLayout.WEST);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		JLabel lblText = new JLabel(
+				"<html>\r\n\t<body style=\"text-align: center; margin:15px\">\r\n\t\t<h2> SimplestJavaIDE</h2>\r\n\t\t<h4>Code in Java without worrying about classes!</h4>\r\n\t\t<br>\r\n\t</body>\r\n</html>", SwingConstants.CENTER);
+		panelCenter.add(lblText, BorderLayout.EAST);
 		
+
 	}
 
 }

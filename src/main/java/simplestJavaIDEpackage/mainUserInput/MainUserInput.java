@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 import java.io.IOException;
 import javax.swing.JFrame;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -37,6 +38,8 @@ import javax.swing.text.AbstractDocument;
 import java.awt.Dimension;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.text.BadLocationException;
@@ -83,6 +86,14 @@ public class MainUserInput implements CommandListener, Terminal {
 		frmSimplestJavaIDE.setSize(1080, 720);
 		frmSimplestJavaIDE.setMinimumSize(new Dimension(1080, 720));
 		frmSimplestJavaIDE.getContentPane().setLayout(new BorderLayout(0, 0));
+		
+		// Set Icon
+		try {
+			frmSimplestJavaIDE.setIconImage(ImageIO.read(new File("resources/favicon.png")));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		// Structure of main window
 		JPanel bottomPanel = new JPanel();
