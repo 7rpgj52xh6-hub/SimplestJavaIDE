@@ -16,7 +16,10 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.JLabel;
@@ -24,6 +27,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import java.awt.FlowLayout;
 
 public class StartingWindow {
 
@@ -59,7 +63,7 @@ public class StartingWindow {
 
 		frmSimplestjavaide = new JFrame();
 		frmSimplestjavaide.setTitle("SimplestJavaIDE Alpha v1.3");
-		frmSimplestjavaide.setBounds(100, 100, 450, 298);
+		frmSimplestjavaide.setBounds(100, 100, 359, 298);
 		frmSimplestjavaide.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmSimplestjavaide.setResizable(false);
 
@@ -71,8 +75,9 @@ public class StartingWindow {
 			e1.printStackTrace();
 		}
 
-		JPanel panel = new JPanel();
-		frmSimplestjavaide.getContentPane().add(panel, BorderLayout.NORTH);
+		JPanel panelAppButtons = new JPanel();
+		panelAppButtons.setPreferredSize(new Dimension(0,40));
+		frmSimplestjavaide.getContentPane().add(panelAppButtons, BorderLayout.NORTH);
 
 		JButton btnHelp = new JButton("Help");
 		btnHelp.addActionListener(new ActionListener() {
@@ -81,9 +86,11 @@ public class StartingWindow {
 			}
 		});
 		frmSimplestjavaide.getContentPane().add(btnHelp, BorderLayout.SOUTH);
+		panelAppButtons.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
 		JButton btnOpenExistingCode = new JButton("Open existing code");
-		panel.add(btnOpenExistingCode, BorderLayout.NORTH);
+		btnOpenExistingCode.setPreferredSize(new Dimension(155,30));
+		panelAppButtons.add(btnOpenExistingCode);
 		btnOpenExistingCode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
@@ -100,6 +107,8 @@ public class StartingWindow {
 		});
 
 		JButton btnNewApplication = new JButton("Code new application");
+		btnNewApplication.setPreferredSize(new Dimension(155,30));
+		panelAppButtons.add(btnNewApplication);
 		btnNewApplication.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
@@ -132,12 +141,9 @@ public class StartingWindow {
 				}
 			}
 		});
-		panel.add(btnNewApplication, BorderLayout.NORTH);
 
 		JPanel panelCenter = new JPanel();
 		frmSimplestjavaide.getContentPane().add(panelCenter, BorderLayout.CENTER);
-
-		
 		panelCenter.setLayout(new BorderLayout(0, 0));
 		
 		try {
@@ -152,7 +158,7 @@ public class StartingWindow {
 			e1.printStackTrace();
 		}
 		JLabel lblText = new JLabel(
-				"<html>\r\n\t<body style=\"text-align: center; margin:15px\">\r\n\t\t<h2> SimplestJavaIDE</h2>\r\n\t\t<h4>Code in Java without worrying about classes!</h4>\r\n\t\t<br>\r\n\t</body>\r\n</html>", SwingConstants.CENTER);
+				"<html>\r\n\t<body style=\"text-align: center; margin:15px\">\r\n\t\t<h2> SimplestJavaIDE</h2>\r\n\t\t<h4>Code in Java without classes!</h4>\r\n\t\t<br>\r\n\t</body>\r\n</html>", SwingConstants.CENTER);
 		panelCenter.add(lblText, BorderLayout.EAST);
 		
 
