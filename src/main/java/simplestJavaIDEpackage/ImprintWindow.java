@@ -53,7 +53,7 @@ public class ImprintWindow {
 		
 		//Set Icon
 		try {
-			frmSimplestjavaideImprint.setIconImage(ImageIO.read(new File("resources/favicon.png")));
+			frmSimplestjavaideImprint.setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

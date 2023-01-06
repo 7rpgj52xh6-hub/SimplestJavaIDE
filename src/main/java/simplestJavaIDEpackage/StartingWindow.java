@@ -65,7 +65,7 @@ public class StartingWindow {
 
 		// Set Icon
 		try {
-			frmSimplestjavaide.setIconImage(ImageIO.read(new File("resources/favicon.png")));
+			frmSimplestjavaide.setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -142,7 +142,7 @@ public class StartingWindow {
 		
 		try {
 			JLabel lblIcon;
-			lblIcon = new JLabel(new ImageIcon(ImageIO.read(new File("resources/favicon.png")).getScaledInstance(128, 128, 0)));
+			lblIcon = new JLabel(new ImageIcon(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")).getScaledInstance(128, 128, 0)));
 			lblIcon.setText("");
 			Border margin = new EmptyBorder(10,10,10,10);
 			lblIcon.setBorder(margin);

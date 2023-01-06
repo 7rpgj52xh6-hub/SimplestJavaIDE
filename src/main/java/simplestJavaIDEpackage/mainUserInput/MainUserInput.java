@@ -89,7 +89,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		
 		// Set Icon
 		try {
-			frmSimplestJavaIDE.setIconImage(ImageIO.read(new File("resources/favicon.png")));
+			frmSimplestJavaIDE.setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
