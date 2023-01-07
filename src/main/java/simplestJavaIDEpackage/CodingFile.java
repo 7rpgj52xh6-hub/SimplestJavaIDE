@@ -33,6 +33,7 @@ public class CodingFile {
 		getClassNameFromFile(sf.getName());
 		if (!isNewFile) {
 			loadCodeFromFile(sf);
+			fullCode.set(1, "public class " + this.className + " {"); // Set class stump
 			isFinishedProcessing = true;
 		} else {
 			fullCode.set(3, "System.out.println(\"Hello World\");");
@@ -158,22 +159,8 @@ public class CodingFile {
 		return this.fullCode.get(0).toString();
 	}
 
-	public void getClassNameFromWholeCode() {
-		if (fullCode.get(3).toString().contains("public")) {
-			String[] tmpContents1 = fullCode.get(3).toString().split("public");
-			if (tmpContents1[1].contains("class")) {
-				String[] tmpContents2 = tmpContents1[1].split("class");
-				if (tmpContents2[1].contains(" ")) {
-					String[] tmpContents3 = tmpContents2[1].split(" ");
-					this.className = tmpContents3[1];
-					fullCode.set(1, "public class " + className + " {");
-				}
-			}
-		}
-	}
-
 	public void loadCodeFromFile(File file) {
-
+		// TODO FIX
 		String sCurrentLine;
 		StringBuilder contentBuilder = new StringBuilder();
 		try (BufferedReader br = new BufferedReader(new FileReader(file.getAbsolutePath()))) {
