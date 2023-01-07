@@ -1,6 +1,7 @@
 package simplestJavaIDEpackage.mainUserInput;
 
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -109,31 +110,39 @@ public class MainUserInput implements CommandListener, Terminal {
 
 		// Buttons
 		JButton btnSave = new JButton("Save");
-		btnSave.setBounds(6, 48, 130, 36);
+		btnSave.setBounds(6, 90, 86, 72);
 		btnSave.setEnabled(false);
 		panelButtons.add(btnSave);
 
 		JButton btnAddImports = new JButton("Add imports");
-		btnAddImports.setBounds(6, 6, 130, 36);
+		btnAddImports.setBounds(6, 6, 131, 36);
 		panelButtons.add(btnAddImports);
 
 		JButton btnHelp = new JButton("Help");
 		btnHelp.setIcon(null);
-		btnHelp.setBounds(142, 48, 130, 36);
+		btnHelp.setBounds(184, 48, 86, 36);
 		panelButtons.add(btnHelp);
 
 		JButton btnShowAllCode = new JButton("Mode: Standard");
-		btnShowAllCode.setBounds(142, 6, 130, 36);
+		btnShowAllCode.setBounds(140, 6, 131, 36);
 		panelButtons.add(btnShowAllCode);
 
 		JButton btnRun = new JButton("Run");
-		btnRun.setBounds(142, 90, 130, 72);
+		btnRun.setBounds(184, 90, 86, 72);
 		btnRun.setEnabled(false);
 		panelButtons.add(btnRun);
 
 		JButton btnCompile = new JButton("Compile");
-		btnCompile.setBounds(6, 90, 130, 72);
+		btnCompile.setBounds(95, 90, 86, 72);
 		panelButtons.add(btnCompile);
+
+		JButton btnZoomIn = new JButton("Zoom +");
+		btnZoomIn.setBounds(6, 48, 86, 36);
+		panelButtons.add(btnZoomIn);
+
+		JButton btnZoomOut = new JButton("Zoom -");
+		btnZoomOut.setBounds(95, 48, 86, 36);
+		panelButtons.add(btnZoomOut);
 
 		// Coding input and load code if code is not null (from loading file)
 		RSyntaxTextArea codingArea = new RSyntaxTextArea(20, 60);
@@ -170,7 +179,6 @@ public class MainUserInput implements CommandListener, Terminal {
 					save(codingArea, codingFile);
 					btnSave.setEnabled(false);
 				}
-
 			}
 
 			@Override
@@ -224,10 +232,12 @@ public class MainUserInput implements CommandListener, Terminal {
 					btnSave.setEnabled(false);
 				}
 			}
+
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				// do nothing
 			}
+
 			@Override
 			public void keyTyped(KeyEvent arg0) {
 				// do noting
@@ -337,7 +347,15 @@ public class MainUserInput implements CommandListener, Terminal {
 		});
 		btnAddImports.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				AddImportsWindow.main(null, codingFile);
+				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.EXTENDED) {
+					AddImportsWindow.main(codingFile, codingArea.getText(), codeMode, codingArea.getFont());
+				} else if (codeMode == CodeMode.FULL) {
+					AddImportsWindow.main(codingFile, codingAreaClassMode.getText(), codeMode, codingAreaClassMode.getFont());
+				} else {
+					// TODO Correct error handling
+				}
+				save(codingArea, codingFile); // Also save other code
+				btnSave.setEnabled(false);
 			}
 		});
 		btnSave.addActionListener(new ActionListener() {
@@ -364,6 +382,46 @@ public class MainUserInput implements CommandListener, Terminal {
 				btnSave.setEnabled(false);
 				btnRun.setEnabled(true);
 				btnCompile.setEnabled(false);
+			}
+		});
+		btnZoomIn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// Add Zoom
+				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.EXTENDED) {
+					Font font = codingArea.getFont();
+					if (font.getSize() <= 45) {
+						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+					}
+				} else if (codeMode == CodeMode.FULL) {
+					Font font = codingAreaClassMode.getFont();
+					if (font.getSize() <= 45) {
+						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+					}
+				} else {
+					// TODO Correct error handling
+				}
+			}
+		});
+		btnZoomOut.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// Subtract Zoom
+				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.EXTENDED) {
+					Font font = codingArea.getFont();
+					if (font.getSize() >= 4) {
+						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+					}
+				} else if (codeMode == CodeMode.FULL) {
+					Font font = codingAreaClassMode.getFont();
+					if (font.getSize() >= 4){
+						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+					}
+				} else {
+					// TODO Correct error handling
+				}
 			}
 		});
 	}
@@ -440,5 +498,4 @@ public class MainUserInput implements CommandListener, Terminal {
 			e.printStackTrace();
 		}
 	}
-
 }
