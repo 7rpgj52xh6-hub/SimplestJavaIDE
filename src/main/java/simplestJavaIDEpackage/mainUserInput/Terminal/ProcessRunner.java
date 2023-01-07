@@ -9,58 +9,58 @@ import javax.swing.JButton;
 
 public class ProcessRunner extends Thread {
 	private List<String> cmds;
-    private CommandListener listener;
-    private Process process;
-    private JButton runButton, compileButton;
+	private CommandListener listener;
+	private Process process;
+	private JButton runButton, compileButton;
 
-    public ProcessRunner(CommandListener listener, List<String> cmds, JButton runButton, JButton compileButton) {
-        this.cmds = cmds;
-        this.listener = listener;
-        this.runButton = runButton;
-        this.compileButton = compileButton;
-        start();
-    }
+	public ProcessRunner(CommandListener listener, List<String> cmds, JButton runButton, JButton compileButton) {
+		this.cmds = cmds;
+		this.listener = listener;
+		this.runButton = runButton;
+		this.compileButton = compileButton;
+		start();
+	}
 
-    public void run() {
-        try {
-            ProcessBuilder pb = new ProcessBuilder(cmds);
-            pb.redirectErrorStream();
-            process = pb.start();
-            InputStream is = process.getInputStream();
-            InputStream errs = process.getErrorStream();
-            StreamReader reader = new StreamReader(listener, is);
-            if (errs.read() != -1) {
-            	StreamReader errorReader = new StreamReader(listener, errs);
-            	errorReader.join();
-            	System.out.println("Es gibt Fehler!");
-            	runButton.setEnabled(false);
-            	compileButton.setEnabled(false);
-            }
-            // Need a stream writer...
+	public void run() {
+		try {
+			ProcessBuilder pb = new ProcessBuilder(cmds);
+			pb.redirectErrorStream();
+			process = pb.start();
+			InputStream is = process.getInputStream();
+			InputStream errs = process.getErrorStream();
+			StreamReader reader = new StreamReader(listener, is);
+			if (errs.read() != -1) {
+				StreamReader errorReader = new StreamReader(listener, errs);
+				errorReader.join();
+				System.out.println("Es gibt Fehler!");
+				runButton.setEnabled(false);
+				compileButton.setEnabled(false);
+			}
+			// Need a stream writer...
 
-            int result = process.waitFor();
+			int result = process.waitFor();
 
-            // Terminate the stream writer
-            reader.join();
-         
-            //TODO Change UI Bevaviour if Errors occur
+			// Terminate the stream writer
+			reader.join();
 
-            StringJoiner sj = new StringJoiner(" ");
-            cmds.stream().forEach((cmd) -> {
-                sj.add(cmd);
-            });
+			// TODO Change UI Bevaviour if Errors occur
 
-            listener.commandCompleted(sj.toString(), result);
-        } catch (Exception exp) {
-            exp.printStackTrace();
-            listener.commandFailed(exp);
-        }
-    }
+			StringJoiner sj = new StringJoiner(" ");
+			cmds.stream().forEach((cmd) -> {
+				sj.add(cmd);
+			});
 
-    public void write(String text) throws IOException {
-        if (process != null && process.isAlive()) {
-            process.getOutputStream().write(text.getBytes());
-            process.getOutputStream().flush();
-        }
-    }
+			listener.commandCompleted(sj.toString(), result);
+		} catch (Exception exp) {
+			exp.printStackTrace();
+			listener.commandFailed(exp);
+		}
+	}
+
+	public void write(String text) throws IOException {
+		if (process != null && process.isAlive()) {
+			process.getOutputStream().write(text.getBytes());
+			process.getOutputStream().flush();
+		}
+	}
 }

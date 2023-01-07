@@ -12,7 +12,6 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
-import simplestJavaIDEpackage.CodingFile;
 
 public class ShowFullCodeWindow {
 
@@ -58,7 +57,7 @@ public class ShowFullCodeWindow {
 		frame.getContentPane().add(codingAreaScrollPane, BorderLayout.CENTER);
 		
 		JButton btnClose = new JButton("Close");
-		btnClose.addActionListener(new ActionListener () {
+		btnClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frame.dispose();
 			}

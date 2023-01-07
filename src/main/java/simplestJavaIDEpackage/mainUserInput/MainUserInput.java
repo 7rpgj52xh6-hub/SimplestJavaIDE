@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.File;
 import java.io.IOException;
 import javax.swing.JFrame;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -86,7 +85,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		frmSimplestJavaIDE.setSize(1080, 720);
 		frmSimplestJavaIDE.setMinimumSize(new Dimension(1080, 720));
 		frmSimplestJavaIDE.getContentPane().setLayout(new BorderLayout(0, 0));
-		
+
 		// Set Icon
 		try {
 			frmSimplestJavaIDE.setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
