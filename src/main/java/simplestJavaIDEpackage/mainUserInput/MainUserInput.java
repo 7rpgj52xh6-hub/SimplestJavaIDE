@@ -162,8 +162,8 @@ public class MainUserInput implements CommandListener, Terminal {
 		codingArea.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				boolean windowsCTRLpressed = ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0);
-				boolean macOSCTRLpressed = ((e.getModifiers() & KeyEvent.VK_META) != 0);
+				boolean windowsCTRLpressed = ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0);
+				boolean macOSCTRLpressed = ((e.getModifiersEx() & KeyEvent.VK_META) != 0);
 				if ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
 					save(codingArea, codingFile);
 					btnSave.setEnabled(false);
