@@ -7,6 +7,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import javax.swing.JFrame;
+
+import org.fife.rsta.ac.LanguageSupportFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
@@ -28,7 +30,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -42,6 +43,7 @@ import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.text.BadLocationException;
+import java.awt.CardLayout;
 
 public class MainUserInput implements CommandListener, Terminal {
 
@@ -90,7 +92,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		try {
 			frmSimplestJavaIDE.setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
+			// TODO Correct error handling
 			e1.printStackTrace();
 		}
 
@@ -120,7 +122,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		btnHelp.setBounds(142, 48, 130, 36);
 		panelButtons.add(btnHelp);
 
-		JToggleButton btnShowAllCode = new JToggleButton("Advanced Mode");
+		JButton btnShowAllCode = new JButton("Mode: Standard");
 		btnShowAllCode.setBounds(142, 6, 130, 36);
 		panelButtons.add(btnShowAllCode);
 
@@ -173,19 +175,69 @@ public class MainUserInput implements CommandListener, Terminal {
 
 			@Override
 			public void keyReleased(KeyEvent arg0) {
-				// TODO Automatisch generierter Methodenstub
-
+				// do nothing
 			}
 
 			@Override
 			public void keyTyped(KeyEvent arg0) {
-				// TODO Automatisch generierter Methodenstub
-
+				// do nothing
 			}
 		});
 
-		RTextScrollPane codingAreaScrollPane = new RTextScrollPane(codingArea);
-		frmSimplestJavaIDE.getContentPane().add(codingAreaScrollPane, BorderLayout.CENTER);
+		// Copied for full class mode
+		// Coding input and load code if code is not null (from loading file)
+		RSyntaxTextArea codingAreaClassMode = new RSyntaxTextArea(20, 60);
+		LanguageSupportFactory.get().register(codingAreaClassMode);
+		codingAreaClassMode.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+		codingAreaClassMode.setCodeFoldingEnabled(true);
+		codingAreaClassMode.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				// Copy to original text area
+				codingArea.setText(null);
+				codingArea.append(codingAreaClassMode.getText());
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				codingFile.isSaved = false;
+				btnSave.setEnabled(true);
+				btnCompile.setEnabled(true);
+				btnRun.setEnabled(false);
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				codingFile.isSaved = false;
+				btnSave.setEnabled(true);
+				btnCompile.setEnabled(true);
+				btnRun.setEnabled(false);
+			}
+		});
+		codingAreaClassMode.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				boolean windowsCTRLpressed = ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0);
+				boolean macOSCTRLpressed = ((e.getModifiersEx() & KeyEvent.VK_META) != 0);
+				if ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
+					save(codingArea, codingFile);
+					btnSave.setEnabled(false);
+				}
+			}
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				// do nothing
+			}
+			@Override
+			public void keyTyped(KeyEvent arg0) {
+				// do noting
+			}
+		});
+
+		// Coding Panel without code completion for standard and extended mode
+		JPanel codingPanel = new JPanel(new BorderLayout(0, 0));
+		RTextScrollPane codingScrollPane = new RTextScrollPane(codingArea);
+		codingPanel.add(codingScrollPane, BorderLayout.CENTER);
 		// Load Code if possible
 		boolean loadingEnabled = true;
 		while (loadingEnabled) {
@@ -194,6 +246,16 @@ public class MainUserInput implements CommandListener, Terminal {
 				codingArea.setText(codingFile.getCode(codeMode));
 			}
 		}
+		// Coding Panel with code completion for standard and extended mode
+		JPanel codingClassModePanel = new JPanel(new BorderLayout(0, 0));
+		RTextScrollPane codingClassModeScrollPane = new RTextScrollPane(codingAreaClassMode);
+		codingClassModePanel.add(codingClassModeScrollPane, BorderLayout.CENTER);
+
+		// Panel to house both coding panels
+		JPanel codingAreaPanel = new JPanel(new CardLayout());
+		codingAreaPanel.add(codingPanel, "1");
+		codingAreaPanel.add(codingClassModePanel, "2");
+		frmSimplestJavaIDE.getContentPane().add(codingAreaPanel, BorderLayout.CENTER);
 
 		// Output
 		cmd = new Command(this);
@@ -201,7 +263,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		((AbstractDocument) textArea.getDocument()).setDocumentFilter(new ProtectedDocumentFilter(this));
 		bottomPanel.add(new JScrollPane(textArea));
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings("unused") // TODO Why does it not work without "im"?
 		InputMap im = textArea.getInputMap(JComponent.WHEN_FOCUSED);
 		ActionMap am = textArea.getActionMap();
 
@@ -211,7 +273,6 @@ public class MainUserInput implements CommandListener, Terminal {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// HIER WIRD AUSGEFÜHRT WAS IN DER CMD STEHT
 				int range = textArea.getCaretPosition() - userInputStart;
 				try {
 					String text = textArea.getText(userInputStart, range).trim();
@@ -222,10 +283,12 @@ public class MainUserInput implements CommandListener, Terminal {
 						try {
 							cmd.send(text + "\n");
 						} catch (IOException ex) {
+							// TODO Correct error handling
 							appendText("!! Failed to send command to process: " + ex.getMessage() + "\n");
 						}
 					}
 				} catch (BadLocationException ex) {
+					// TODO Correct error handling
 					Logger.getLogger(MainUserInput.class.getName()).log(Level.SEVERE, null, ex);
 				}
 				oldAction.actionPerformed(e);
@@ -235,15 +298,35 @@ public class MainUserInput implements CommandListener, Terminal {
 		// Manage interactions
 		btnShowAllCode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				CardLayout layout = (CardLayout) codingAreaPanel.getLayout();
 				save(codingArea, codingFile);
-				if (codeMode == CodeMode.STANDARD) {
+				switch (codeMode) {
+				case STANDARD:
+					// Change to extended mode
 					codeMode = CodeMode.EXTENDED;
+					btnShowAllCode.setText("Mode: Extended");
 					codingArea.setText(null);
 					codingArea.append(codingFile.getCode(codeMode));
-				} else {
+					break;
+				case EXTENDED:
+					// Change to full mode
+					codeMode = CodeMode.FULL;
+					btnShowAllCode.setText("Mode: Full");
+					layout.show(codingAreaPanel, "2");
+					codingAreaClassMode.setText(null);
+					codingAreaClassMode.append(codingFile.getCode(codeMode));
+					break;
+				case FULL:
+					// Change to standard mode
 					codeMode = CodeMode.STANDARD;
+					btnShowAllCode.setText("Mode: Standard");
+					layout.show(codingAreaPanel, "1");
 					codingArea.setText(null);
 					codingArea.append(codingFile.getCode(codeMode).replaceFirst("\n", ""));
+					break;
+				default:
+					// TODO Correct error handling
+					break;
 				}
 			}
 		});
@@ -297,7 +380,6 @@ public class MainUserInput implements CommandListener, Terminal {
 
 	@Override
 	public void commandCompleted(String cmd, int result) {
-		// appendText("\n> " + cmd + " exited with " + result + "\n");
 		appendText("\n");
 	}
 
@@ -332,6 +414,7 @@ public class MainUserInput implements CommandListener, Terminal {
 			try {
 				cmd.send(command + "\n");
 			} catch (IOException ex) {
+				// TODO Correct error handling
 				appendText("!! Failed to send command to process: " + ex.getMessage() + "\n");
 			}
 		}
@@ -342,7 +425,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		try {
 			runCommand("javac " + codingFile.getAbsolutePath(), runButton, compileButton);
 		} catch (IOException | BadLocationException e) {
-			// TODO Automatisch generierter Erfassungsblock
+			// TODO Correct error handling
 			e.printStackTrace();
 		}
 	}
@@ -353,7 +436,7 @@ public class MainUserInput implements CommandListener, Terminal {
 			runCommand("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName(), runButton,
 					compileButton);
 		} catch (IOException | BadLocationException e) {
-			// TODO Automatisch generierter Erfassungsblock
+			// TODO Correct error handling
 			e.printStackTrace();
 		}
 	}

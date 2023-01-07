@@ -19,7 +19,7 @@ public class CodingFile {
 	public InputStream is;
 
 	public enum CodeMode {
-		STANDARD, EXTENDED
+		STANDARD, EXTENDED, FULL
 	}
 
 	CodingFile(File sf, Boolean isNewFile) {
@@ -42,12 +42,19 @@ public class CodingFile {
 		savefile = sf;
 	}
 
-	private String getSplitUpExtendedCode(String extendedCode) {
+	private String getStandardCodeFromFullOrExtended(String extendedCode) {
+		if (extendedCode.contains("public class")) {
+			String toBeDeleted = extendedCode.substring(extendedCode.indexOf("public class"),
+					extendedCode.indexOf("\n"));
+			extendedCode = extendedCode.replace(toBeDeleted, "").replaceFirst("\n", "").replaceFirst("(?s)(.*)" + "}",
+					"$1" + "");
+		}
 		if (extendedCode.contains("public static void main(String[] args){")) {
-			String[] extendedCodeSplits = extendedCode.split("\\Qpublic static void main(String[] args){\\E");
-			return extendedCodeSplits[1].replaceFirst("(?s)(.*)" + "}", "$1" + "");
+			return extendedCode.replace("public static void main(String[] args){", "").replaceFirst("(?s)(.*)" + "}",
+					"$1" + "");
 		} else {
-			return extendedCode.replaceFirst("(?s)(.*)" + "}", "$1" + "");
+			// TODO Correct error handling
+			return "Error";
 		}
 
 	}
@@ -81,10 +88,16 @@ public class CodingFile {
 	}
 
 	public String getCode(CodeMode codeMode) {
-		if (codeMode == CodeMode.EXTENDED) {
-			return this.getExtendedCode();
-		} else {
+		switch (codeMode) {
+		case STANDARD:
 			return this.getWrittenCode(0);
+		case EXTENDED:
+			return this.getExtendedCode();
+		case FULL:
+			return this.getWholeCode();
+		default:
+			// TODO Correct error handling
+			return null;
 		}
 	}
 
@@ -123,7 +136,6 @@ public class CodingFile {
 	}
 
 	private String getExtendedCode() {
-		System.out.println(getWrittenCode(1).trim());
 		return this.fullCode.get(2).toString() + "\n\t" + getWrittenCode(1).trim() + "\n"
 				+ this.fullCode.get(4).toString().replaceFirst("(?s)(.*)" + "\\t", "$1" + "");
 	}
@@ -131,9 +143,9 @@ public class CodingFile {
 	private String getWholeCode() {
 		if (this.fullCode.get(0).toString().contains("import")) { // different if imports exist (additional new line)
 			return fullCode.get(0).toString() + "\n" + fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString()
-					+ "\n" + getWrittenCode(2) + "\n" + fullCode.get(4).toString() + "\n" + fullCode.get(5).toString();
+					+ getWrittenCode(2) + "\n" + fullCode.get(4).toString() + "\n" + fullCode.get(5).toString();
 		} else {
-			return fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString() + "\n" + getWrittenCode(2) + "\n"
+			return fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString() + getWrittenCode(2) + "\n"
 					+ fullCode.get(4).toString() + "\n" + fullCode.get(5).toString();
 		}
 	}
@@ -190,7 +202,7 @@ public class CodingFile {
 			fullCode.set(1, "public class " + this.className + " {"); // set class stump
 		}
 
-		setWrittenCode(getSplitUpExtendedCode(wholeCode).replaceFirst("(?s)(.*)" + "}", "$1" + "")
+		setWrittenCode(getStandardCodeFromFullOrExtended(wholeCode).replaceFirst("(?s)(.*)" + "}", "$1" + "")
 				.replaceAll("(?m)^\\s*\\r?\\n|\\r?\\n\\s*(?!.*\\r?\\n)", "")); // set written code with last } deleted
 	}
 
@@ -199,11 +211,19 @@ public class CodingFile {
 	}
 
 	public void writeAllCodeToArray(String text, CodeMode codeMode) {
-		if (codeMode == CodeMode.EXTENDED) {
-			setWrittenCode(getSplitUpExtendedCode(text));
-		} else {
+		switch (codeMode) {
+		case EXTENDED:
+			setWrittenCode(getStandardCodeFromFullOrExtended(text));
+			break;
+		case STANDARD:
 			setWrittenCode(text);
+			break;
+		case FULL:
+			setWrittenCode(getStandardCodeFromFullOrExtended(text));
+			break;
+		default:
+			// TODO Correct error handling
+			break;
 		}
 	}
-
 }

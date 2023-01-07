@@ -21,6 +21,7 @@ public class StreamReader extends Thread {
 				listener.commandOutput(Character.toString((char) value));
 			}
 		} catch (IOException exp) {
+			// TODO Correct error handling
 			exp.printStackTrace();
 		}
 	}
@@ -29,7 +30,7 @@ public class StreamReader extends Thread {
 		try {
 			return is.read();
 		} catch (IOException e) {
-			// TODO Automatisch generierter Erfassungsblock
+			// TODO Correct error handling
 			e.printStackTrace();
 		}
 		return 69;

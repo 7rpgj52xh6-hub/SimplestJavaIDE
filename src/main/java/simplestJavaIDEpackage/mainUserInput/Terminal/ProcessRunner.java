@@ -32,7 +32,7 @@ public class ProcessRunner extends Thread {
 			if (errs.read() != -1) {
 				StreamReader errorReader = new StreamReader(listener, errs);
 				errorReader.join();
-				System.out.println("Es gibt Fehler!");
+				//TODO Correct error handling
 				runButton.setEnabled(false);
 				compileButton.setEnabled(false);
 			}
