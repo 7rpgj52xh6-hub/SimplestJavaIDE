@@ -43,21 +43,32 @@ public class CodingFile {
 		savefile = sf;
 	}
 
-	private String getStandardCodeFromFullOrExtended(String extendedCode) {
-		if (extendedCode.contains("public class")) {
-			String toBeDeleted = extendedCode.substring(extendedCode.indexOf("public class"),
-					extendedCode.indexOf("\n"));
-			extendedCode = extendedCode.replace(toBeDeleted, "").replaceFirst("\n", "").replaceFirst("(?s)(.*)" + "}",
-					"$1" + "");
-		}
-		if (extendedCode.contains("public static void main(String[] args){")) {
-			return extendedCode.replace("public static void main(String[] args){", "").replaceFirst("(?s)(.*)" + "}",
-					"$1" + "");
+	private String trim(String str) {
+		return str.replaceAll("(?m)^\\s+$", "").replaceAll("(?m)^\\n", "");
+	}
+
+	private String deleteMainFuctionCodeFromCode(String code) {
+		System.out.println("Main Function delete:\n" + code);
+		if (code.contains("public static void main(String[] args){")) {
+			return trim(code.replace("public static void main(String[] args){", "").replaceFirst("(?s)(.*)" + "}", "$1" + ""));
 		} else {
 			// TODO Correct error handling
-			return "Error";
+			return code;
 		}
+	}
 
+	private String deleteClassFuctionCodeFromCode(String code) {
+		if (code.contains("public class") && (code.contains("\n"))) {
+			String toBeDeleted = code.substring(code.indexOf("public class"), code.indexOf("{\n") + 1);
+			return trim(code.replace(toBeDeleted, "").replaceFirst("\n", "").replaceFirst("(?s)(.*)" + "}", "$1" + ""));
+		} else {
+			// TODO Correct error handling
+			return code;
+		}
+	}
+
+	private String getStandardCode(String wholeCode) {
+		return deleteMainFuctionCodeFromCode(deleteClassFuctionCodeFromCode(wholeCode));
 	}
 
 	public void getClassNameFromFile(String fileName) {
@@ -67,7 +78,7 @@ public class CodingFile {
 
 	public void saveToFile() {
 		isSaved = true;
-		String finalCode = getWholeCode();
+		String finalCode = getFileCode();
 		try {
 			FileOutputStream fos = new FileOutputStream(savefile);
 			fos.write(finalCode.getBytes());
@@ -95,13 +106,27 @@ public class CodingFile {
 		case EXTENDED:
 			return this.getExtendedCode();
 		case FULL:
-			return this.getWholeCode();
+			return this.getFullCode();
 		default:
 			// TODO Correct error handling
 			return null;
 		}
 	}
 
+	private void setWrittenCode(String input) {
+		if (input.contains("\n")) {
+			String[] inputLines = input.split("\n");
+			String result = "";
+			for (String i : inputLines) {
+				i = i.replaceAll("\t", "");
+				result = result + i + "\n";
+			}
+			fullCode.set(3, result);
+		} else {
+			fullCode.set(3, input.replaceAll("\t", ""));
+		}
+	}
+	
 	private String getWrittenCode(Integer amountOfTabs) {
 		String source = fullCode.get(3).toString();
 		List<String> output = new ArrayList<String>();
@@ -119,35 +144,31 @@ public class CodingFile {
 				source = "\t" + source;
 			}
 		}
+		System.out.println("Written Code:\n"+ source);
 		return source;
 	}
 
-	private void setWrittenCode(String input) {
-		if (input.contains("\n")) {
-			String[] inputLines = input.split("\n");
-			String result = "";
-			for (String i : inputLines) {
-				i = i.replaceAll("\t", "");
-				result = result + i + "\n";
-			}
-			fullCode.set(3, result);
-		} else {
-			fullCode.set(3, input.replaceAll("\t", ""));
-		}
-	}
-
 	private String getExtendedCode() {
-		return this.fullCode.get(2).toString() + "\n\t" + getWrittenCode(1).trim() + "\n"
-				+ this.fullCode.get(4).toString().replaceFirst("(?s)(.*)" + "\\t", "$1" + "");
+		System.out.println("Extended Code:\n" + trim(this.fullCode.get(2).toString() + "\n" + getWrittenCode(1) + "\n"
+				+ this.fullCode.get(4).toString().replaceFirst("(?s)(.*)" + "\\t", "$1" + "")));
+		return trim(this.fullCode.get(2).toString() + "\n" + getWrittenCode(1) + "\n"
+				+ this.fullCode.get(4).toString().replaceFirst("(?s)(.*)" + "\\t", "$1" + ""));
 	}
 
-	private String getWholeCode() {
+	private String getFullCode() {
+		System.out.println("Full Code:" + trim(fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString() + "\n" + getWrittenCode(2) + "\n"
+				+ fullCode.get(4).toString() + "\n" + fullCode.get(5).toString()));
+		return trim(fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString() + "\n" + getWrittenCode(2) + "\n"
+				+ fullCode.get(4).toString() + "\n" + fullCode.get(5).toString());
+	}
+
+	private String getFileCode() {
 		if (this.fullCode.get(0).toString().contains("import")) { // different if imports exist (additional new line)
-			return fullCode.get(0).toString() + "\n" + fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString()
-					+ getWrittenCode(2) + "\n" + fullCode.get(4).toString() + "\n" + fullCode.get(5).toString();
+			System.out.println("File Code:\n" + trim(fullCode.get(0).toString() + "\n" + getFullCode()));
+			return trim(fullCode.get(0).toString() + "\n" + getFullCode());
 		} else {
-			return fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString() + getWrittenCode(2) + "\n"
-					+ fullCode.get(4).toString() + "\n" + fullCode.get(5).toString();
+			System.out.println("File Code:\n" + getFullCode());
+			return trim(getFullCode());
 		}
 	}
 
@@ -188,9 +209,8 @@ public class CodingFile {
 		if (this.className != null) {
 			fullCode.set(1, "public class " + this.className + " {"); // set class stump
 		}
-
-		setWrittenCode(getStandardCodeFromFullOrExtended(wholeCode).replaceFirst("(?s)(.*)" + "}", "$1" + "")
-				.replaceAll("(?m)^\\s*\\r?\\n|\\r?\\n\\s*(?!.*\\r?\\n)", "")); // set written code with last } deleted
+		setWrittenCode(
+				trim(getStandardCode(wholeCode.replace(allImports, ""))));
 	}
 
 	public String getClassName() {
@@ -200,13 +220,13 @@ public class CodingFile {
 	public void writeAllCodeToArray(String text, CodeMode codeMode) {
 		switch (codeMode) {
 		case EXTENDED:
-			setWrittenCode(getStandardCodeFromFullOrExtended(text));
+			setWrittenCode(getStandardCode(text));
 			break;
 		case STANDARD:
 			setWrittenCode(text);
 			break;
 		case FULL:
-			setWrittenCode(getStandardCodeFromFullOrExtended(text));
+			setWrittenCode(getStandardCode(text));
 			break;
 		default:
 			// TODO Correct error handling

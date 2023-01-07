@@ -332,7 +332,7 @@ public class MainUserInput implements CommandListener, Terminal {
 					btnShowAllCode.setText("Mode: Standard");
 					layout.show(codingAreaPanel, "1");
 					codingArea.setText(null);
-					codingArea.append(codingFile.getCode(codeMode).replaceFirst("\n", ""));
+					codingArea.append(codingFile.getCode(codeMode));
 					break;
 				default:
 					// TODO Correct error handling
