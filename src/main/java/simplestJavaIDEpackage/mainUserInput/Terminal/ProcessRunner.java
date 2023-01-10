@@ -7,6 +7,8 @@ import java.util.StringJoiner;
 
 import javax.swing.JButton;
 
+import simplestJavaIDEpackage.ErrorPopupWindow;
+
 public class ProcessRunner extends Thread {
 	private List<String> cmds;
 	private CommandListener listener;
@@ -48,9 +50,9 @@ public class ProcessRunner extends Thread {
 			});
 
 			listener.commandCompleted(sj.toString(), result);
-		} catch (Exception exp) {
-			exp.printStackTrace();
-			listener.commandFailed(exp);
+		} catch (Exception e) {
+			ErrorPopupWindow.main(null, e.getMessage());
+			listener.commandFailed(e);
 		}
 	}
 
