@@ -14,6 +14,7 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import simplestJavaIDEpackage.CodingFile;
+import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
 
 import javax.imageio.ImageIO;
@@ -33,7 +34,7 @@ public class AddImportsWindow {
 					AddImportsWindow window = new AddImportsWindow(codingFile, textToSafe, codeMode, font);
 					window.frmImportWindow.setVisible(true);
 				} catch (Exception e) {
-					e.printStackTrace();
+					ErrorPopupWindow.main(null, e.getMessage());
 				}
 			}
 		});
@@ -61,8 +62,7 @@ public class AddImportsWindow {
 		try {
 			frmImportWindow.setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
 		} catch (IOException e1) {
-			// TODO Correct error handling
-			e1.printStackTrace();
+			ErrorPopupWindow.main(null, e1.getMessage());
 		}
 
 		RSyntaxTextArea importArea = new RSyntaxTextArea(20, 60);

@@ -52,7 +52,7 @@ public class CodingFile {
 		if (code.contains("public static void main(String[] args){")) {
 			return trim(code.replace("public static void main(String[] args){", "").replaceFirst("(?s)(.*)" + "}", "$1" + ""));
 		} else {
-			// TODO Correct error handling
+			ErrorPopupWindow.main(null, "Error with code structure. Fix manually in expert mode!");
 			return code;
 		}
 	}
@@ -62,7 +62,7 @@ public class CodingFile {
 			String toBeDeleted = code.substring(code.indexOf("public class"), code.indexOf("{\n") + 1);
 			return trim(code.replace(toBeDeleted, "").replaceFirst("\n", "").replaceFirst("(?s)(.*)" + "}", "$1" + ""));
 		} else {
-			// TODO Correct error handling
+			ErrorPopupWindow.main(null, "Error with code structure. Fix manually in expert mode!");
 			return code;
 		}
 	}
@@ -108,7 +108,7 @@ public class CodingFile {
 		case FULL:
 			return this.getFullCode();
 		default:
-			// TODO Correct error handling
+			ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
 			return null;
 		}
 	}
@@ -181,7 +181,6 @@ public class CodingFile {
 	}
 
 	public void loadCodeFromFile(File file) {
-		// TODO FIX
 		String sCurrentLine;
 		StringBuilder contentBuilder = new StringBuilder();
 		try (BufferedReader br = new BufferedReader(new FileReader(file.getAbsolutePath()))) {
@@ -189,7 +188,7 @@ public class CodingFile {
 				contentBuilder.append(sCurrentLine).append("\n");
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			ErrorPopupWindow.main(null, e.getMessage());
 		}
 
 		String wholeCode = contentBuilder.toString();
@@ -229,7 +228,7 @@ public class CodingFile {
 			setWrittenCode(getStandardCode(text));
 			break;
 		default:
-			// TODO Correct error handling
+			ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
 			break;
 		}
 	}

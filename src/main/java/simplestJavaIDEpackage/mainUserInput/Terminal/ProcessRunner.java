@@ -32,7 +32,6 @@ public class ProcessRunner extends Thread {
 			if (errs.read() != -1) {
 				StreamReader errorReader = new StreamReader(listener, errs);
 				errorReader.join();
-				//TODO Correct error handling
 				runButton.setEnabled(false);
 				compileButton.setEnabled(false);
 			}
@@ -42,8 +41,6 @@ public class ProcessRunner extends Thread {
 
 			// Terminate the stream writer
 			reader.join();
-
-			// TODO Change UI Bevaviour if Errors occur
 
 			StringJoiner sj = new StringJoiner(" ");
 			cmds.stream().forEach((cmd) -> {

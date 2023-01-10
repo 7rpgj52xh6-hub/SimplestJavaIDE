@@ -3,6 +3,8 @@ package simplestJavaIDEpackage.mainUserInput.Terminal;
 import java.io.IOException;
 import java.io.InputStream;
 
+import simplestJavaIDEpackage.ErrorPopupWindow;
+
 public class StreamReader extends Thread {
 	private InputStream is;
 	private CommandListener listener;
@@ -20,9 +22,8 @@ public class StreamReader extends Thread {
 			while ((value = is.read()) != -1) {
 				listener.commandOutput(Character.toString((char) value));
 			}
-		} catch (IOException exp) {
-			// TODO Correct error handling
-			exp.printStackTrace();
+		} catch (IOException e) {
+			ErrorPopupWindow.main(null, e.getMessage());
 		}
 	}
 
@@ -30,8 +31,7 @@ public class StreamReader extends Thread {
 		try {
 			return is.read();
 		} catch (IOException e) {
-			// TODO Correct error handling
-			e.printStackTrace();
+			ErrorPopupWindow.main(null, e.getMessage());
 		}
 		return 69;
 	}

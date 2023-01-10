@@ -40,7 +40,7 @@ public class StartingWindow {
 					StartingWindow window = new StartingWindow();
 					window.frmSimplestJavaIDE_startingWindow.setVisible(true);
 				} catch (Exception e) {
-					e.printStackTrace();
+					ErrorPopupWindow.main(null, e.getMessage());
 				}
 			}
 		});
@@ -69,8 +69,7 @@ public class StartingWindow {
 			frmSimplestJavaIDE_startingWindow
 					.setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
 		} catch (IOException e1) {
-			// TODO Correct error handling
-			e1.printStackTrace();
+			ErrorPopupWindow.main(null, e1.getMessage());
 		}
 
 		JPanel panelAppButtons = new JPanel();

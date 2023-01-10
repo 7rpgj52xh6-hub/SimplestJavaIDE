@@ -16,6 +16,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
+import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.mainUserInput.Terminal.AppendTask;
 import simplestJavaIDEpackage.mainUserInput.Terminal.Command;
@@ -37,8 +38,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
 
 import java.awt.Dimension;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -65,7 +64,7 @@ public class MainUserInput implements CommandListener, Terminal {
 					MainUserInput window = new MainUserInput(savefile);
 					window.frmSimplestJavaIDE.setVisible(true);
 				} catch (Exception e) {
-					e.printStackTrace();
+					ErrorPopupWindow.main(null, e.getMessage());
 				}
 			}
 		});
@@ -93,8 +92,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		try {
 			frmSimplestJavaIDE.setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
 		} catch (IOException e1) {
-			// TODO Correct error handling
-			e1.printStackTrace();
+			ErrorPopupWindow.main(null, e1.getMessage());
 		}
 
 		// Structure of main window
@@ -293,13 +291,11 @@ public class MainUserInput implements CommandListener, Terminal {
 						try {
 							cmd.send(text + "\n");
 						} catch (IOException ex) {
-							// TODO Correct error handling
-							appendText("!! Failed to send command to process: " + ex.getMessage() + "\n");
+							ErrorPopupWindow.main(null, "!! Failed to send command to process: " + ex.getMessage());
 						}
 					}
 				} catch (BadLocationException ex) {
-					// TODO Correct error handling
-					Logger.getLogger(MainUserInput.class.getName()).log(Level.SEVERE, null, ex);
+					ErrorPopupWindow.main(null, ex.getMessage());
 				}
 				oldAction.actionPerformed(e);
 			}
@@ -335,7 +331,7 @@ public class MainUserInput implements CommandListener, Terminal {
 					codingArea.append(codingFile.getCode(codeMode));
 					break;
 				default:
-					// TODO Correct error handling
+					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
 					break;
 				}
 			}
@@ -350,9 +346,10 @@ public class MainUserInput implements CommandListener, Terminal {
 				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.EXTENDED) {
 					AddImportsWindow.main(codingFile, codingArea.getText(), codeMode, codingArea.getFont());
 				} else if (codeMode == CodeMode.FULL) {
-					AddImportsWindow.main(codingFile, codingAreaClassMode.getText(), codeMode, codingAreaClassMode.getFont());
+					AddImportsWindow.main(codingFile, codingAreaClassMode.getText(), codeMode,
+							codingAreaClassMode.getFont());
 				} else {
-					// TODO Correct error handling
+					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
 				}
 				save(codingArea, codingFile); // Also save other code
 				btnSave.setEnabled(false);
@@ -400,7 +397,7 @@ public class MainUserInput implements CommandListener, Terminal {
 						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 					}
 				} else {
-					// TODO Correct error handling
+					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
 				}
 			}
 		});
@@ -415,12 +412,12 @@ public class MainUserInput implements CommandListener, Terminal {
 					}
 				} else if (codeMode == CodeMode.FULL) {
 					Font font = codingAreaClassMode.getFont();
-					if (font.getSize() >= 4){
+					if (font.getSize() >= 4) {
 						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 					}
 				} else {
-					// TODO Correct error handling
+					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
 				}
 			}
 		});
@@ -472,8 +469,7 @@ public class MainUserInput implements CommandListener, Terminal {
 			try {
 				cmd.send(command + "\n");
 			} catch (IOException ex) {
-				// TODO Correct error handling
-				appendText("!! Failed to send command to process: " + ex.getMessage() + "\n");
+				ErrorPopupWindow.main(null, "!! Failed to send command to process:" + ex.getMessage());
 			}
 		}
 	}
@@ -483,8 +479,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		try {
 			runCommand("javac " + codingFile.getAbsolutePath(), runButton, compileButton);
 		} catch (IOException | BadLocationException e) {
-			// TODO Correct error handling
-			e.printStackTrace();
+			ErrorPopupWindow.main(null, e.getMessage());
 		}
 	}
 
@@ -494,8 +489,7 @@ public class MainUserInput implements CommandListener, Terminal {
 			runCommand("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName(), runButton,
 					compileButton);
 		} catch (IOException | BadLocationException e) {
-			// TODO Correct error handling
-			e.printStackTrace();
+			ErrorPopupWindow.main(null, e.getMessage());
 		}
 	}
 }
