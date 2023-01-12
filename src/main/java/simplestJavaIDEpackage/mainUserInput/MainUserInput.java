@@ -309,20 +309,20 @@ public class MainUserInput implements CommandListener, Terminal {
 				switch (codeMode) {
 				case STANDARD:
 					// Change to extended mode
-					codeMode = CodeMode.EXTENDED;
-					btnShowAllCode.setText("Mode: Extended");
+					codeMode = CodeMode.ADVANCED;
+					btnShowAllCode.setText("Mode: Advanced");
 					codingArea.setText(null);
 					codingArea.append(codingFile.getCode(codeMode));
 					break;
-				case EXTENDED:
+				case ADVANCED:
 					// Change to full mode
-					codeMode = CodeMode.FULL;
-					btnShowAllCode.setText("Mode: Full");
+					codeMode = CodeMode.EXPERT;
+					btnShowAllCode.setText("Mode: Expert");
 					layout.show(codingAreaPanel, "2");
 					codingAreaClassMode.setText(null);
 					codingAreaClassMode.append(codingFile.getCode(codeMode));
 					break;
-				case FULL:
+				case EXPERT:
 					// Change to standard mode
 					codeMode = CodeMode.STANDARD;
 					btnShowAllCode.setText("Mode: Standard");
@@ -343,9 +343,9 @@ public class MainUserInput implements CommandListener, Terminal {
 		});
 		btnAddImports.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.EXTENDED) {
+				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED) {
 					AddImportsWindow.main(codingFile, codingArea.getText(), codeMode, codingArea.getFont());
-				} else if (codeMode == CodeMode.FULL) {
+				} else if (codeMode == CodeMode.EXPERT) {
 					AddImportsWindow.main(codingFile, codingAreaClassMode.getText(), codeMode,
 							codingAreaClassMode.getFont());
 				} else {
@@ -384,13 +384,13 @@ public class MainUserInput implements CommandListener, Terminal {
 		btnZoomIn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// Add Zoom
-				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.EXTENDED) {
+				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED) {
 					Font font = codingArea.getFont();
 					if (font.getSize() <= 45) {
 						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 					}
-				} else if (codeMode == CodeMode.FULL) {
+				} else if (codeMode == CodeMode.EXPERT) {
 					Font font = codingAreaClassMode.getFont();
 					if (font.getSize() <= 45) {
 						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
@@ -404,13 +404,13 @@ public class MainUserInput implements CommandListener, Terminal {
 		btnZoomOut.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// Subtract Zoom
-				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.EXTENDED) {
+				if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED) {
 					Font font = codingArea.getFont();
 					if (font.getSize() >= 4) {
 						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 					}
-				} else if (codeMode == CodeMode.FULL) {
+				} else if (codeMode == CodeMode.EXPERT) {
 					Font font = codingAreaClassMode.getFont();
 					if (font.getSize() >= 4) {
 						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));

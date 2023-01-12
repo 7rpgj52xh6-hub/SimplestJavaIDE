@@ -19,7 +19,7 @@ public class CodingFile {
 	public InputStream is;
 
 	public enum CodeMode {
-		STANDARD, EXTENDED, FULL
+		STANDARD, ADVANCED, EXPERT
 	}
 
 	CodingFile(File sf, Boolean isNewFile) {
@@ -103,9 +103,9 @@ public class CodingFile {
 		switch (codeMode) {
 		case STANDARD:
 			return this.getWrittenCode(0);
-		case EXTENDED:
+		case ADVANCED:
 			return this.getExtendedCode();
-		case FULL:
+		case EXPERT:
 			return this.getFullCode();
 		default:
 			ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
@@ -218,13 +218,13 @@ public class CodingFile {
 
 	public void writeAllCodeToArray(String text, CodeMode codeMode) {
 		switch (codeMode) {
-		case EXTENDED:
+		case ADVANCED:
 			setWrittenCode(getStandardCode(text));
 			break;
 		case STANDARD:
 			setWrittenCode(text);
 			break;
-		case FULL:
+		case EXPERT:
 			setWrittenCode(getStandardCode(text));
 			break;
 		default:
