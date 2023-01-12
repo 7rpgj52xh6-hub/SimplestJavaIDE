@@ -58,11 +58,12 @@ public class CodingFile {
 	}
 
 	private String deleteClassFuctionCodeFromCode(String code) {
-		if (code.contains("public class") && (code.contains("\n"))) {
+		if ((code.contains("public class")) && (code.contains("\n"))) {
 			String toBeDeleted = code.substring(code.indexOf("public class"), code.indexOf("{\n") + 1);
 			return trim(code.replace(toBeDeleted, "").replaceFirst("\n", "").replaceFirst("(?s)(.*)" + "}", "$1" + ""));
 		} else {
-			ErrorPopupWindow.main(null, "Error with code structure. Fix manually in expert mode!");
+			//TODO Fix when this window appears
+			//ErrorPopupWindow.main(null, "Error with code structure. Fix manually in expert mode!");
 			return code;
 		}
 	}
