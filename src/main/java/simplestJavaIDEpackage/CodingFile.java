@@ -10,6 +10,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 
+ * @author Daniel Trageser
+ * This class regulates loading, saving and formatting of the code
+ *
+ */
 public class CodingFile {
 	File savefile;
 	String className;
@@ -48,11 +54,9 @@ public class CodingFile {
 	}
 
 	private String deleteMainFuctionCodeFromCode(String code) {
-		System.out.println("Main Function delete:\n" + code);
 		if (code.contains("public static void main(String[] args){")) {
 			return trim(code.replace("public static void main(String[] args){", "").replaceFirst("(?s)(.*)" + "}", "$1" + ""));
 		} else {
-			ErrorPopupWindow.main(null, "Error with code structure. Fix manually in expert mode!");
 			return code;
 		}
 	}
@@ -62,8 +66,6 @@ public class CodingFile {
 			String toBeDeleted = code.substring(code.indexOf("public class"), code.indexOf("{\n") + 1);
 			return trim(code.replace(toBeDeleted, "").replaceFirst("\n", "").replaceFirst("(?s)(.*)" + "}", "$1" + ""));
 		} else {
-			//TODO Fix when this window appears
-			//ErrorPopupWindow.main(null, "Error with code structure. Fix manually in expert mode!");
 			return code;
 		}
 	}
@@ -145,20 +147,15 @@ public class CodingFile {
 				source = "\t" + source;
 			}
 		}
-		System.out.println("Written Code:\n"+ source);
 		return source;
 	}
 
 	private String getExtendedCode() {
-		System.out.println("Extended Code:\n" + trim(this.fullCode.get(2).toString() + "\n" + getWrittenCode(1) + "\n"
-				+ this.fullCode.get(4).toString().replaceFirst("(?s)(.*)" + "\\t", "$1" + "")));
 		return trim(this.fullCode.get(2).toString() + "\n" + getWrittenCode(1) + "\n"
 				+ this.fullCode.get(4).toString().replaceFirst("(?s)(.*)" + "\\t", "$1" + ""));
 	}
 
 	private String getFullCode() {
-		System.out.println("Full Code:" + trim(fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString() + "\n" + getWrittenCode(2) + "\n"
-				+ fullCode.get(4).toString() + "\n" + fullCode.get(5).toString()));
 		return trim(fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString() + "\n" + getWrittenCode(2) + "\n"
 				+ fullCode.get(4).toString() + "\n" + fullCode.get(5).toString());
 	}
@@ -168,7 +165,6 @@ public class CodingFile {
 			System.out.println("File Code:\n" + trim(fullCode.get(0).toString() + "\n" + getFullCode()));
 			return trim(fullCode.get(0).toString() + "\n" + getFullCode());
 		} else {
-			System.out.println("File Code:\n" + getFullCode());
 			return trim(getFullCode());
 		}
 	}

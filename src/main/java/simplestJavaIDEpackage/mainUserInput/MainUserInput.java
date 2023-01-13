@@ -45,6 +45,13 @@ import javax.swing.Action;
 import javax.swing.text.BadLocationException;
 import java.awt.CardLayout;
 
+
+/**
+ * 
+ * @author Daniel Trageser
+ * This class implements the main user interface and its functions
+ *
+ */
 public class MainUserInput implements CommandListener, Terminal {
 
 	private JFrame frmSimplestJavaIDE;
