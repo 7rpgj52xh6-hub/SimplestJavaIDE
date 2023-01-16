@@ -9,6 +9,9 @@ import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import mdlaf.MaterialLookAndFeel;
+import mdlaf.themes.MaterialLiteTheme;
+import mdlaf.themes.MaterialOceanicTheme;
 import simplestJavaIDEpackage.mainUserInput.MainUserInput;
 
 import javax.imageio.ImageIO;
@@ -20,6 +23,7 @@ import java.awt.Dimension;
 
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.JLabel;
 import javax.swing.ImageIcon;
@@ -36,6 +40,11 @@ public class StartingWindow {
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
+				try { 
+					 UIManager.setLookAndFeel(new MaterialLookAndFeel(new MaterialLiteTheme()));
+				    } catch(Exception e){
+				    	ErrorPopupWindow.main(null, e.getMessage());
+				    }
 				try {
 					StartingWindow window = new StartingWindow();
 					window.frmSimplestJavaIDE_startingWindow.setVisible(true);
@@ -60,7 +69,7 @@ public class StartingWindow {
 
 		frmSimplestJavaIDE_startingWindow = new JFrame();
 		frmSimplestJavaIDE_startingWindow.setTitle("SimplestJavaIDE Alpha v1.5");
-		frmSimplestJavaIDE_startingWindow.setBounds(100, 100, 359, 298);
+		frmSimplestJavaIDE_startingWindow.setBounds(100, 100, 500, 350);
 		frmSimplestJavaIDE_startingWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmSimplestJavaIDE_startingWindow.setResizable(false);
 
@@ -89,11 +98,12 @@ public class StartingWindow {
 		//TODO fileNames must follow class naming constraints
 		
 		JButton btnOpenExistingCode = new JButton("Open existing code");
-		btnOpenExistingCode.setPreferredSize(new Dimension(155, 30));
+		btnOpenExistingCode.setPreferredSize(new Dimension(200, 30));
 		panelAppButtons.add(btnOpenExistingCode);
 		btnOpenExistingCode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setPreferredSize(new Dimension(800, 500));
 				fileChooser.setSelectedFile(new File("ExampleJavaClass.java"));
 				FileNameExtensionFilter filter = new FileNameExtensionFilter("Java Code Files", "java");
 				fileChooser.setFileFilter(filter);
@@ -107,11 +117,12 @@ public class StartingWindow {
 		});
 
 		JButton btnNewApplication = new JButton("Code new application");
-		btnNewApplication.setPreferredSize(new Dimension(155, 30));
+		btnNewApplication.setPreferredSize(new Dimension(200, 30));
 		panelAppButtons.add(btnNewApplication);
 		btnNewApplication.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setPreferredSize(new Dimension(800, 500));
 				fileChooser.setSelectedFile(new File("ExampleJavaClass.java"));
 				FileNameExtensionFilter filter = new FileNameExtensionFilter("Java Code Files", "java");
 				fileChooser.setFileFilter(filter);
@@ -152,17 +163,15 @@ public class StartingWindow {
 			lblIcon = new JLabel(new ImageIcon(ImageIO.read(getClass().getClassLoader().getResource("favicon.png"))
 					.getScaledInstance(128, 128, 0)));
 		} catch (IOException e1) {
-			// TODO Correct error handling
-			e1.printStackTrace();
+			ErrorPopupWindow.main(null, e1.getMessage());
 		}
 		lblIcon.setText("");
-		Border margin = new EmptyBorder(10, 10, 10, 10);
-		lblIcon.setBorder(margin);
+		lblIcon.setBorder(new EmptyBorder(10, 40, 10, 10));
 		panelCenter.add(lblIcon, BorderLayout.WEST);
 		JLabel lblText = new JLabel(
 				"<html>\r\n\t<body style=\"text-align: center; margin:15px\">\r\n\t\t<h2> SimplestJavaIDE</h2>\r\n\t\t<h4>Code in Java without classes!</h4>\r\n\t\t<br>\r\n\t</body>\r\n</html>",
 				SwingConstants.CENTER);
-		panelCenter.add(lblText, BorderLayout.EAST);
+		panelCenter.add(lblText, BorderLayout.CENTER);
 
 	}
 

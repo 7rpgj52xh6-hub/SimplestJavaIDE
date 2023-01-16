@@ -30,6 +30,11 @@
 			<artifactId>languagesupport</artifactId>
 			<version>LATEST</version>
 		</dependency>
+		<dependency>
+ 			<groupId>io.github.vincenzopalazzo</groupId>
+ 			<artifactId>material-ui-swing</artifactId>
+ 			<version>LATEST</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<pluginManagement>

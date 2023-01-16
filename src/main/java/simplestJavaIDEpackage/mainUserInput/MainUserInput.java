@@ -25,10 +25,7 @@ import simplestJavaIDEpackage.mainUserInput.Terminal.ProtectedDocumentFilter;
 import simplestJavaIDEpackage.mainUserInput.Terminal.Terminal;
 
 import java.awt.BorderLayout;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -40,10 +37,10 @@ import javax.swing.text.AbstractDocument;
 import java.awt.Dimension;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.text.BadLocationException;
 import java.awt.CardLayout;
+import java.awt.Color;
+
 import javax.swing.JSplitPane;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -61,7 +58,7 @@ public class MainUserInput implements CommandListener, Terminal {
 	private JTextArea terminal;
 	private int userInputStart = 0;
 	private Command cmd;
-
+	private JInformationTextPane informationTextPane;
 	private CodeMode codeMode;
 	private JTextField userInputTextField;
 
@@ -169,20 +166,29 @@ public class MainUserInput implements CommandListener, Terminal {
 		userInputTextField.setBounds(98, 169, 170, 36);
 		panelButtons.add(userInputTextField);
 		userInputTextField.setColumns(1);
+
+		informationTextPane = new JInformationTextPane();
+		informationTextPane.setBounds(0, 0, 7, 20);
+		informationTextPane.setText(null);
+		informationTextPane.setEditable(false);
+		JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
+		scrollPaneInformationTextPane.setBounds(6, 215, 264, 122);
+		panelButtons.add(scrollPaneInformationTextPane);
+
 		userInputTextField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!cmd.isRunning()) {
 					cmd.execute(userInputTextField.getText(), btnRun, btnCompile);
-					terminal.append("User input was: "+userInputTextField.getText()+"\n");
+					informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
 					userInputTextField.setText(null);
 				} else {
 					try {
-						cmd.send(userInputTextField.getText()+"\n");
-						terminal.append("User input was: "+userInputTextField.getText()+"\n");
+						cmd.send(userInputTextField.getText() + "\n");
+						informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
 						userInputTextField.setText(null);
 					} catch (IOException ex) {
-						ErrorPopupWindow.main(null, "!! Failed to send command to process: " + ex.getMessage());
+						informationTextPane.append("!! Failed to send command to process: " + ex.getMessage());
 					}
 				}
 			}
@@ -314,10 +320,11 @@ public class MainUserInput implements CommandListener, Terminal {
 		// Output
 		cmd = new Command(this);
 		terminal = new JTextArea(20, 30);
-		//terminal.setEditable(false);
+		// terminal.setEditable(false);
 		((AbstractDocument) terminal.getDocument()).setDocumentFilter(new ProtectedDocumentFilter(this));
-		bottomPanel.add(new JScrollPane(terminal));
-		
+		JScrollPane terminalScrollPane = new JScrollPane(terminal);
+		bottomPanel.add(terminalScrollPane);
+
 		// Manage interactions
 		btnSwitchCodeMode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -348,7 +355,7 @@ public class MainUserInput implements CommandListener, Terminal {
 					codingArea.append(codingFile.getCode(codeMode));
 					break;
 				default:
-					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
+					informationTextPane.append("Error with mode switch button. Mode was not set correcty.");
 					break;
 				}
 			}
@@ -366,7 +373,7 @@ public class MainUserInput implements CommandListener, Terminal {
 					AddImportsWindow.main(codingFile, codingAreaClassMode.getText(), codeMode,
 							codingAreaClassMode.getFont());
 				} else {
-					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
+					informationTextPane.append("Error with mode switch button. Mode was not set correcty.");
 				}
 				save(codingArea, codingFile); // Also save other code
 				btnSave.setEnabled(false);
@@ -382,7 +389,7 @@ public class MainUserInput implements CommandListener, Terminal {
 			public void actionPerformed(ActionEvent e) {
 				// RUN AND SAVE
 				save(codingArea, codingFile);
-				terminal.append("Running Application...\n");
+				informationTextPane.append("Running Application...\n");
 				runApplication(terminal, codingArea, codingFile, btnRun, btnCompile);
 				btnSave.setEnabled(false);
 			}
@@ -392,7 +399,7 @@ public class MainUserInput implements CommandListener, Terminal {
 				// COMPILE AND SAVE
 				save(codingArea, codingFile);
 				compile(terminal, codingArea, codingFile, btnRun, btnCompile);
-				terminal.append("Compiling Code...!\n");
+				informationTextPane.append("Compiling Code...!\n");
 				btnSave.setEnabled(false);
 				btnRun.setEnabled(true);
 				btnCompile.setEnabled(false);
@@ -416,7 +423,7 @@ public class MainUserInput implements CommandListener, Terminal {
 						terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 					}
 				} else {
-					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
+					informationTextPane.append("Error with mode switch button. Mode was not set correcty.");
 				}
 			}
 		});
@@ -438,10 +445,14 @@ public class MainUserInput implements CommandListener, Terminal {
 						terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 					}
 				} else {
-					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
+					informationTextPane.append("Error with mode switch button. Mode was not set correcty.");
 				}
 			}
 		});
+	}
+	
+	public JInformationTextPane getInformationTextPane() {
+		return this.informationTextPane;
 	}
 
 	@Override
@@ -490,7 +501,7 @@ public class MainUserInput implements CommandListener, Terminal {
 			try {
 				cmd.send(command + "\n");
 			} catch (IOException ex) {
-				ErrorPopupWindow.main(null, "!! Failed to send command to process:" + ex.getMessage());
+				this.getInformationTextPane().append("!! Failed to send command to process:" + ex.getMessage());
 			}
 		}
 	}
@@ -500,7 +511,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		try {
 			runCommand("javac " + codingFile.getAbsolutePath(), runButton, compileButton);
 		} catch (IOException | BadLocationException e) {
-			ErrorPopupWindow.main(null, e.getMessage());
+			this.getInformationTextPane().append(e.getMessage());
 		}
 	}
 
@@ -510,7 +521,7 @@ public class MainUserInput implements CommandListener, Terminal {
 			runCommand("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName(), runButton,
 					compileButton);
 		} catch (IOException | BadLocationException e) {
-			ErrorPopupWindow.main(null, e.getMessage());
+			this.getInformationTextPane().append(e.getMessage());
 		}
 	}
 }

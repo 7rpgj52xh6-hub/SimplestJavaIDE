@@ -162,7 +162,6 @@ public class CodingFile {
 
 	private String getFileCode() {
 		if (this.fullCode.get(0).toString().contains("import")) { // different if imports exist (additional new line)
-			System.out.println("File Code:\n" + trim(fullCode.get(0).toString() + "\n" + getFullCode()));
 			return trim(fullCode.get(0).toString() + "\n" + getFullCode());
 		} else {
 			return trim(getFullCode());
