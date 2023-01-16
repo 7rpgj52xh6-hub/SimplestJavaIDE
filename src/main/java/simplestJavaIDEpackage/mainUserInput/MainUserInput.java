@@ -55,7 +55,7 @@ import java.awt.CardLayout;
 public class MainUserInput implements CommandListener, Terminal {
 
 	private JFrame frmSimplestJavaIDE;
-	private JTextArea textArea;
+	private JTextArea terminal;
 	private int userInputStart = 0;
 	private Command cmd;
 
@@ -274,13 +274,13 @@ public class MainUserInput implements CommandListener, Terminal {
 
 		// Output
 		cmd = new Command(this);
-		textArea = new JTextArea(20, 30);
-		((AbstractDocument) textArea.getDocument()).setDocumentFilter(new ProtectedDocumentFilter(this));
-		bottomPanel.add(new JScrollPane(textArea));
+		terminal = new JTextArea(20, 30);
+		((AbstractDocument) terminal.getDocument()).setDocumentFilter(new ProtectedDocumentFilter(this));
+		bottomPanel.add(new JScrollPane(terminal));
 
 		@SuppressWarnings("unused") // TODO Why does it not work without "im"?
-		InputMap im = textArea.getInputMap(JComponent.WHEN_FOCUSED);
-		ActionMap am = textArea.getActionMap();
+		InputMap im = terminal.getInputMap(JComponent.WHEN_FOCUSED);
+		ActionMap am = terminal.getActionMap();
 
 		Action oldAction = am.get("insert-break");
 		am.put("insert-break", new AbstractAction() {
@@ -288,9 +288,9 @@ public class MainUserInput implements CommandListener, Terminal {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				int range = textArea.getCaretPosition() - userInputStart;
+				int range = terminal.getCaretPosition() - userInputStart;
 				try {
-					String text = textArea.getText(userInputStart, range).trim();
+					String text = terminal.getText(userInputStart, range).trim();
 					userInputStart += range;
 					if (!cmd.isRunning()) {
 						cmd.execute(text, btnRun, btnCompile);
@@ -372,8 +372,8 @@ public class MainUserInput implements CommandListener, Terminal {
 			public void actionPerformed(ActionEvent e) {
 				// RUN AND SAVE
 				save(codingArea, codingFile);
-				textArea.append("Running Application...\n");
-				runApplication(textArea, codingArea, codingFile, btnRun, btnCompile);
+				terminal.append("Running Application...\n");
+				runApplication(terminal, codingArea, codingFile, btnRun, btnCompile);
 				btnSave.setEnabled(false);
 			}
 		});
@@ -381,8 +381,8 @@ public class MainUserInput implements CommandListener, Terminal {
 			public void actionPerformed(ActionEvent e) {
 				// COMPILE AND SAVE
 				save(codingArea, codingFile);
-				compile(textArea, codingArea, codingFile, btnRun, btnCompile);
-				textArea.append("Compiling Code...!\n");
+				compile(terminal, codingArea, codingFile, btnRun, btnCompile);
+				terminal.append("Compiling Code...!\n");
 				btnSave.setEnabled(false);
 				btnRun.setEnabled(true);
 				btnCompile.setEnabled(false);
@@ -396,12 +396,14 @@ public class MainUserInput implements CommandListener, Terminal {
 					if (font.getSize() <= 45) {
 						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+						terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 					}
 				} else if (codeMode == CodeMode.EXPERT) {
 					Font font = codingAreaClassMode.getFont();
 					if (font.getSize() <= 45) {
 						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+						terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 					}
 				} else {
 					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
@@ -416,12 +418,14 @@ public class MainUserInput implements CommandListener, Terminal {
 					if (font.getSize() >= 4) {
 						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+						terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 					}
 				} else if (codeMode == CodeMode.EXPERT) {
 					Font font = codingAreaClassMode.getFont();
 					if (font.getSize() >= 4) {
 						codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 						codingAreaClassMode.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+						terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 					}
 				} else {
 					ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
@@ -446,8 +450,8 @@ public class MainUserInput implements CommandListener, Terminal {
 	}
 
 	protected void updateUserInputPos() {
-		int pos = textArea.getCaretPosition();
-		textArea.setCaretPosition(textArea.getText().length());
+		int pos = terminal.getCaretPosition();
+		terminal.setCaretPosition(terminal.getText().length());
 		userInputStart = pos;
 
 	}
@@ -459,7 +463,7 @@ public class MainUserInput implements CommandListener, Terminal {
 
 	@Override
 	public void appendText(String text) {
-		textArea.append(text);
+		terminal.append(text);
 		updateUserInputPos();
 	}
 
