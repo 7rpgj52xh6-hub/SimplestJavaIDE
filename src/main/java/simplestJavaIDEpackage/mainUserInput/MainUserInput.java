@@ -44,12 +44,15 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.text.BadLocationException;
 import java.awt.CardLayout;
-
+import javax.swing.JSplitPane;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 /**
  * 
- * @author Daniel Trageser
- * This class implements the main user interface and its functions
+ * @author Daniel Trageser This class implements the main user interface and its
+ *         functions
  *
  */
 public class MainUserInput implements CommandListener, Terminal {
@@ -60,6 +63,7 @@ public class MainUserInput implements CommandListener, Terminal {
 	private Command cmd;
 
 	private CodeMode codeMode;
+	private JTextField userInputTextField;
 
 	/**
 	 * Launch the application.
@@ -103,10 +107,13 @@ public class MainUserInput implements CommandListener, Terminal {
 		}
 
 		// Structure of main window
-		//TODO Make resizable with code window
-		//TODO externalize User Input in Terminal
+		JSplitPane contentSplitPane = new JSplitPane();
+		contentSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		contentSplitPane.setResizeWeight(0);
+		contentSplitPane.setDividerLocation(0.7);
+		frmSimplestJavaIDE.getContentPane().add(contentSplitPane, BorderLayout.CENTER);
 		JPanel bottomPanel = new JPanel();
-		frmSimplestJavaIDE.getContentPane().add(bottomPanel, BorderLayout.PAGE_END);
+		contentSplitPane.setBottomComponent(bottomPanel);
 		bottomPanel.setPreferredSize(new Dimension(200, 168));
 		bottomPanel.setLayout(new BorderLayout(0, 0));
 
@@ -130,9 +137,9 @@ public class MainUserInput implements CommandListener, Terminal {
 		btnHelp.setBounds(184, 48, 86, 36);
 		panelButtons.add(btnHelp);
 
-		JButton btnShowAllCode = new JButton("Mode: Standard");
-		btnShowAllCode.setBounds(140, 6, 131, 36);
-		panelButtons.add(btnShowAllCode);
+		JButton btnSwitchCodeMode = new JButton("Mode: Standard");
+		btnSwitchCodeMode.setBounds(140, 6, 131, 36);
+		panelButtons.add(btnSwitchCodeMode);
 
 		JButton btnRun = new JButton("Run");
 		btnRun.setBounds(184, 90, 86, 72);
@@ -150,6 +157,36 @@ public class MainUserInput implements CommandListener, Terminal {
 		JButton btnZoomOut = new JButton("Zoom -");
 		btnZoomOut.setBounds(95, 48, 86, 36);
 		panelButtons.add(btnZoomOut);
+
+		JLabel lblUserInput = new JLabel(
+				"<html>\r\n\t<body>\r\n\t\t<h4 style=\"text-align: center\">User Input:</h4>\r\n\t</body>\r\n</html>");
+		lblUserInput.setVerticalAlignment(SwingConstants.TOP);
+		lblUserInput.setBounds(16, 168, 86, 36);
+		panelButtons.add(lblUserInput);
+
+		// Input
+		userInputTextField = new JTextField();
+		userInputTextField.setBounds(98, 169, 170, 36);
+		panelButtons.add(userInputTextField);
+		userInputTextField.setColumns(1);
+		userInputTextField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (!cmd.isRunning()) {
+					cmd.execute(userInputTextField.getText(), btnRun, btnCompile);
+					terminal.append("User input was: "+userInputTextField.getText()+"\n");
+					userInputTextField.setText(null);
+				} else {
+					try {
+						cmd.send(userInputTextField.getText()+"\n");
+						terminal.append("User input was: "+userInputTextField.getText()+"\n");
+						userInputTextField.setText(null);
+					} catch (IOException ex) {
+						ErrorPopupWindow.main(null, "!! Failed to send command to process: " + ex.getMessage());
+					}
+				}
+			}
+		});
 
 		// Coding input and load code if code is not null (from loading file)
 		RSyntaxTextArea codingArea = new RSyntaxTextArea(20, 60);
@@ -272,46 +309,17 @@ public class MainUserInput implements CommandListener, Terminal {
 		JPanel codingAreaPanel = new JPanel(new CardLayout());
 		codingAreaPanel.add(codingPanel, "1");
 		codingAreaPanel.add(codingClassModePanel, "2");
-		frmSimplestJavaIDE.getContentPane().add(codingAreaPanel, BorderLayout.CENTER);
+		contentSplitPane.setTopComponent(codingAreaPanel);
 
 		// Output
 		cmd = new Command(this);
 		terminal = new JTextArea(20, 30);
+		//terminal.setEditable(false);
 		((AbstractDocument) terminal.getDocument()).setDocumentFilter(new ProtectedDocumentFilter(this));
 		bottomPanel.add(new JScrollPane(terminal));
-
-		@SuppressWarnings("unused") // TODO Why does it not work without "im"?
-		InputMap im = terminal.getInputMap(JComponent.WHEN_FOCUSED);
-		ActionMap am = terminal.getActionMap();
-
-		Action oldAction = am.get("insert-break");
-		am.put("insert-break", new AbstractAction() {
-			private static final long serialVersionUID = 5489224113004830522L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int range = terminal.getCaretPosition() - userInputStart;
-				try {
-					String text = terminal.getText(userInputStart, range).trim();
-					userInputStart += range;
-					if (!cmd.isRunning()) {
-						cmd.execute(text, btnRun, btnCompile);
-					} else {
-						try {
-							cmd.send(text + "\n");
-						} catch (IOException ex) {
-							ErrorPopupWindow.main(null, "!! Failed to send command to process: " + ex.getMessage());
-						}
-					}
-				} catch (BadLocationException ex) {
-					ErrorPopupWindow.main(null, ex.getMessage());
-				}
-				oldAction.actionPerformed(e);
-			}
-		});
-
+		
 		// Manage interactions
-		btnShowAllCode.addActionListener(new ActionListener() {
+		btnSwitchCodeMode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				CardLayout layout = (CardLayout) codingAreaPanel.getLayout();
 				save(codingArea, codingFile);
@@ -319,14 +327,14 @@ public class MainUserInput implements CommandListener, Terminal {
 				case STANDARD:
 					// Change to extended mode
 					codeMode = CodeMode.ADVANCED;
-					btnShowAllCode.setText("Mode: Advanced");
+					btnSwitchCodeMode.setText("Mode: Advanced");
 					codingArea.setText(null);
 					codingArea.append(codingFile.getCode(codeMode));
 					break;
 				case ADVANCED:
 					// Change to full mode
 					codeMode = CodeMode.EXPERT;
-					btnShowAllCode.setText("Mode: Expert");
+					btnSwitchCodeMode.setText("Mode: Expert");
 					layout.show(codingAreaPanel, "2");
 					codingAreaClassMode.setText(null);
 					codingAreaClassMode.append(codingFile.getCode(codeMode));
@@ -334,7 +342,7 @@ public class MainUserInput implements CommandListener, Terminal {
 				case EXPERT:
 					// Change to standard mode
 					codeMode = CodeMode.STANDARD;
-					btnShowAllCode.setText("Mode: Standard");
+					btnSwitchCodeMode.setText("Mode: Standard");
 					layout.show(codingAreaPanel, "1");
 					codingArea.setText(null);
 					codingArea.append(codingFile.getCode(codeMode));

@@ -22,7 +22,6 @@ public class Command {
 	}
 
 	public void execute(String cmd, JButton runButton, JButton compileButton) {
-
 		if (!cmd.trim().isEmpty()) {
 
 			List<String> values = new ArrayList<>(25);
@@ -49,11 +48,6 @@ public class Command {
 					String parts[] = cmd.trim().split(" ");
 					values.addAll(Arrays.asList(parts));
 				}
-
-				for (String value : values) {
-					System.out.println("[" + value + "]");
-				}
-
 			} else {
 
 				if (!cmd.trim().isEmpty()) {
