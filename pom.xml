@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.daniel</groupId>
 	<artifactId>com.daniel</artifactId>
-	<version>a1.4</version>
+	<version>a1.5</version>
 	<name>com.daniel</name>
 	<!-- FIXME change it to the project's website -->
 	<url>http://www.example.com</url>
@@ -17,18 +17,18 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>LATEST</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.fifesoft</groupId>
 			<artifactId>rsyntaxtextarea</artifactId>
-			<version>3.3.1</version>
+			<version>LATEST</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fifesoft</groupId>
 			<artifactId>languagesupport</artifactId>
-			<version>3.3.0</version>
+			<version>LATEST</version>
 		</dependency>
 	</dependencies>
 	<build>

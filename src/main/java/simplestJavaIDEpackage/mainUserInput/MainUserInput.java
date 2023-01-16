@@ -103,6 +103,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		}
 
 		// Structure of main window
+		//TODO Make resizable with code window
 		JPanel bottomPanel = new JPanel();
 		frmSimplestJavaIDE.getContentPane().add(bottomPanel, BorderLayout.PAGE_END);
 		bottomPanel.setPreferredSize(new Dimension(200, 168));
