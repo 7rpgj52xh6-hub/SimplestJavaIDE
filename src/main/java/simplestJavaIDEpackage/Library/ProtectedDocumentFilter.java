@@ -1,4 +1,4 @@
-package simplestJavaIDEpackage.mainUserInput.Terminal;
+package simplestJavaIDEpackage.Library;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;

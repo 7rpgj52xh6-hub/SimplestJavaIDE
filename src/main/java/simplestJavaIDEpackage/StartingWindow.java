@@ -40,11 +40,11 @@ public class StartingWindow {
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				try { 
-					 UIManager.setLookAndFeel(new MaterialLookAndFeel(new MaterialLiteTheme()));
-				    } catch(Exception e){
-				    	ErrorPopupWindow.main(null, e.getMessage());
-				    }
+				try {
+					UIManager.setLookAndFeel(new MaterialLookAndFeel(new MaterialLiteTheme()));
+				} catch (Exception e) {
+					ErrorPopupWindow.main(null, e.getMessage());
+				}
 				try {
 					StartingWindow window = new StartingWindow();
 					window.frmSimplestJavaIDE_startingWindow.setVisible(true);
@@ -94,9 +94,9 @@ public class StartingWindow {
 		frmSimplestJavaIDE_startingWindow.getContentPane().add(btnHelp, BorderLayout.SOUTH);
 		panelAppButtons.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
-		//TODO No spaces in file paths!!
-		//TODO fileNames must follow class naming constraints
-		
+		// TODO No spaces in file paths!!
+		// TODO fileNames must follow class naming constraints
+
 		JButton btnOpenExistingCode = new JButton("Open existing code");
 		btnOpenExistingCode.setPreferredSize(new Dimension(200, 30));
 		panelAppButtons.add(btnOpenExistingCode);

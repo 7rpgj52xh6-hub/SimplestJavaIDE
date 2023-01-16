@@ -1,4 +1,4 @@
-package simplestJavaIDEpackage.mainUserInput.Terminal;
+package simplestJavaIDEpackage.Library;
 
 public interface CommandListener {
 

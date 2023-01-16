@@ -1,4 +1,4 @@
-package simplestJavaIDEpackage.mainUserInput.Terminal;
+package simplestJavaIDEpackage.Library;
 
 import java.io.IOException;
 import java.util.ArrayList;

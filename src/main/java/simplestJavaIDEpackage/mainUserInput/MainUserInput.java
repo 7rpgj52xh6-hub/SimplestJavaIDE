@@ -16,13 +16,14 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
+import simplestJavaIDEpackage.Library.AppendTask;
+import simplestJavaIDEpackage.Library.Command;
+import simplestJavaIDEpackage.Library.CommandListener;
+import simplestJavaIDEpackage.Library.JInformationTextPane;
+import simplestJavaIDEpackage.Library.ProtectedDocumentFilter;
+import simplestJavaIDEpackage.Library.Terminal;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
-import simplestJavaIDEpackage.mainUserInput.Terminal.AppendTask;
-import simplestJavaIDEpackage.mainUserInput.Terminal.Command;
-import simplestJavaIDEpackage.mainUserInput.Terminal.CommandListener;
-import simplestJavaIDEpackage.mainUserInput.Terminal.ProtectedDocumentFilter;
-import simplestJavaIDEpackage.mainUserInput.Terminal.Terminal;
 
 import java.awt.BorderLayout;
 import javax.swing.JButton;
@@ -39,7 +40,6 @@ import java.awt.Dimension;
 import javax.imageio.ImageIO;
 import javax.swing.text.BadLocationException;
 import java.awt.CardLayout;
-import java.awt.Color;
 
 import javax.swing.JSplitPane;
 import javax.swing.JLabel;
@@ -106,17 +106,20 @@ public class MainUserInput implements CommandListener, Terminal {
 		// Structure of main window
 		JSplitPane contentSplitPane = new JSplitPane();
 		contentSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		contentSplitPane.setResizeWeight(0);
-		contentSplitPane.setDividerLocation(0.7);
 		frmSimplestJavaIDE.getContentPane().add(contentSplitPane, BorderLayout.CENTER);
+		contentSplitPane.setResizeWeight(1);
+		contentSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 338);
+		contentSplitPane.getBottomComponent().setMinimumSize(new Dimension(20000, 286));
+
 		JPanel bottomPanel = new JPanel();
 		contentSplitPane.setBottomComponent(bottomPanel);
-		bottomPanel.setPreferredSize(new Dimension(200, 168));
+		bottomPanel.setPreferredSize(new Dimension(200, 286));
 		bottomPanel.setLayout(new BorderLayout(0, 0));
 
 		JPanel panelButtons = new JPanel();
 		bottomPanel.add(panelButtons, BorderLayout.LINE_START);
-		panelButtons.setPreferredSize(new Dimension(278, 168));
+		panelButtons.setMaximumSize(new Dimension(278, 286));
+		panelButtons.setPreferredSize(new Dimension(278, 286));
 		panelButtons.setLayout(null);
 
 		// Buttons
@@ -156,9 +159,9 @@ public class MainUserInput implements CommandListener, Terminal {
 		panelButtons.add(btnZoomOut);
 
 		JLabel lblUserInput = new JLabel(
-				"<html>\r\n\t<body>\r\n\t\t<h4 style=\"text-align: center\">User Input:</h4>\r\n\t</body>\r\n</html>");
+				"<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
 		lblUserInput.setVerticalAlignment(SwingConstants.TOP);
-		lblUserInput.setBounds(16, 168, 86, 36);
+		lblUserInput.setBounds(10, 167, 86, 36);
 		panelButtons.add(lblUserInput);
 
 		// Input
@@ -168,11 +171,10 @@ public class MainUserInput implements CommandListener, Terminal {
 		userInputTextField.setColumns(1);
 
 		informationTextPane = new JInformationTextPane();
-		informationTextPane.setBounds(0, 0, 7, 20);
 		informationTextPane.setText(null);
 		informationTextPane.setEditable(false);
 		JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
-		scrollPaneInformationTextPane.setBounds(6, 215, 264, 122);
+		scrollPaneInformationTextPane.setBounds(6, 215, 264, 70);
 		panelButtons.add(scrollPaneInformationTextPane);
 
 		userInputTextField.addActionListener(new ActionListener() {
@@ -320,7 +322,7 @@ public class MainUserInput implements CommandListener, Terminal {
 		// Output
 		cmd = new Command(this);
 		terminal = new JTextArea(20, 30);
-		// terminal.setEditable(false);
+		terminal.setEditable(false);
 		((AbstractDocument) terminal.getDocument()).setDocumentFilter(new ProtectedDocumentFilter(this));
 		JScrollPane terminalScrollPane = new JScrollPane(terminal);
 		bottomPanel.add(terminalScrollPane);
@@ -450,7 +452,7 @@ public class MainUserInput implements CommandListener, Terminal {
 			}
 		});
 	}
-	
+
 	public JInformationTextPane getInformationTextPane() {
 		return this.informationTextPane;
 	}
