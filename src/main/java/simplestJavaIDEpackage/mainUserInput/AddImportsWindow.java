@@ -1,24 +1,22 @@
 package simplestJavaIDEpackage.mainUserInput;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-
-import javax.swing.JFrame;
-
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rtextarea.RTextScrollPane;
-
-import simplestJavaIDEpackage.CodingFile;
-import simplestJavaIDEpackage.ErrorPopupWindow;
-import simplestJavaIDEpackage.CodingFile.CodeMode;
-
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JFrame;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.Theme;
+import org.fife.ui.rtextarea.RTextScrollPane;
+import simplestJavaIDEpackage.CodingFile;
+import simplestJavaIDEpackage.CodingFile.CodeMode;
+import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class AddImportsWindow {
 
@@ -71,6 +69,15 @@ public class AddImportsWindow {
     importArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
     importArea.setCodeFoldingEnabled(true);
     importArea.setFont(font);
+    try {
+      Theme theme = Theme
+          .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
+      theme.apply(importArea);
+    } catch (IOException e) {
+      ErrorPopupWindow.main(null, e.getMessage());
+    }
+    importArea.setCurrentLineHighlightColor(new Color(55, 55, 55));
+    importArea.setBackground(new Color(47, 47, 47));
     RTextScrollPane importAreaScrollPane = new RTextScrollPane(importArea);
     frmImportWindow.getContentPane().add(importAreaScrollPane, BorderLayout.CENTER);
     importArea.setText(codingFile.getImports());

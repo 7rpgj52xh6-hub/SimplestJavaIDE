@@ -12,7 +12,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -104,8 +103,8 @@ public class MainUserInput implements CommandListener, Terminal {
     JSplitPane contentSplitPane = new JSplitPane();
     contentSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
     frmSimplestJavaIDE.getContentPane().add(contentSplitPane, BorderLayout.CENTER);
-    contentSplitPane.setResizeWeight(1);
-    contentSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 338);
+    contentSplitPane.setResizeWeight(0.9);
+    contentSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 300);
     contentSplitPane.getBottomComponent().setMinimumSize(new Dimension(20000, 286));
 
     JPanel bottomPanel = new JPanel();
@@ -113,15 +112,33 @@ public class MainUserInput implements CommandListener, Terminal {
     bottomPanel.setPreferredSize(new Dimension(200, 286));
     bottomPanel.setLayout(new BorderLayout(0, 0));
 
+    JPanel panelButtonsAndInformationTextPane = new JPanel();
+    bottomPanel.add(panelButtonsAndInformationTextPane, BorderLayout.LINE_START);
+    panelButtonsAndInformationTextPane.setMaximumSize(new Dimension(278, 286));
+    panelButtonsAndInformationTextPane.setPreferredSize(new Dimension(278, 286));
+    panelButtonsAndInformationTextPane.setLayout(new BorderLayout(0, 0));
+    panelButtonsAndInformationTextPane.setBackground(new Color(47, 47, 47));
+
+    // Information field on the bottom
+    informationTextPane = new InformationTextPane();
+    informationTextPane.setText(null);
+    informationTextPane.setEditable(false);
+    informationTextPane.setFocusable(false);
+    informationTextPane.setBackground(new Color(40, 40, 40));
+    JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
+    scrollPaneInformationTextPane.setBounds(6, 215, 264, 70);
+    panelButtonsAndInformationTextPane.add(scrollPaneInformationTextPane, BorderLayout.CENTER);
+
     JPanel panelButtons = new JPanel();
-    bottomPanel.add(panelButtons, BorderLayout.LINE_START);
-    panelButtons.setMaximumSize(new Dimension(278, 286));
-    panelButtons.setPreferredSize(new Dimension(278, 286));
+    panelButtonsAndInformationTextPane.add(panelButtons, BorderLayout.NORTH);
+    panelButtons.setMaximumSize(new Dimension(278, 175));
+    panelButtons.setPreferredSize(new Dimension(278, 175));
+    panelButtons.setBackground(new Color(47, 47, 47));
     panelButtons.setLayout(null);
 
     // Buttons
     JButton btnSave = new JButton("Save");
-    btnSave.setBounds(6, 90, 86, 72);
+    btnSave.setBounds(6, 90, 86, 36);
     btnSave.setEnabled(false);
     panelButtons.add(btnSave);
 
@@ -139,12 +156,12 @@ public class MainUserInput implements CommandListener, Terminal {
     panelButtons.add(btnSwitchCodeMode);
 
     JButton btnRun = new JButton("Run");
-    btnRun.setBounds(184, 90, 86, 72);
+    btnRun.setBounds(184, 90, 86, 36);
     btnRun.setEnabled(false);
     panelButtons.add(btnRun);
 
     JButton btnCompile = new JButton("Compile");
-    btnCompile.setBounds(95, 90, 86, 72);
+    btnCompile.setBounds(95, 90, 86, 36);
     panelButtons.add(btnCompile);
 
     JButton btnZoomIn = new JButton("Zoom +");
@@ -158,24 +175,14 @@ public class MainUserInput implements CommandListener, Terminal {
     JLabel lblUserInput = new JLabel(
         "<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
     lblUserInput.setVerticalAlignment(SwingConstants.TOP);
-    lblUserInput.setBounds(10, 167, 86, 36);
+    lblUserInput.setBounds(10, 131, 86, 36);
     panelButtons.add(lblUserInput);
 
     // Input
     userInputTextField = new JTextField();
-    userInputTextField.setBounds(98, 169, 170, 36);
+    userInputTextField.setBounds(98, 133, 170, 36);
     panelButtons.add(userInputTextField);
     userInputTextField.setColumns(1);
-
-    // Information field on the bottom
-    informationTextPane = new InformationTextPane();
-    informationTextPane.setText(null);
-    informationTextPane.setEditable(false);
-    informationTextPane.setFocusable(false);
-    JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
-    scrollPaneInformationTextPane.setBorder(BorderFactory.createLineBorder(new Color(47, 47, 47)));
-    scrollPaneInformationTextPane.setBounds(6, 215, 264, 70);
-    panelButtons.add(scrollPaneInformationTextPane);
 
     userInputTextField.addActionListener(new ActionListener() {
       @Override
@@ -342,7 +349,7 @@ public class MainUserInput implements CommandListener, Terminal {
     terminal = new JTextArea(20, 30);
     terminal.setFocusable(false);
     terminal.setEditable(false);
-    terminal.setBackground(new Color(47, 47, 47));
+    terminal.setBackground(new Color(35, 35, 35));
     ((AbstractDocument) terminal.getDocument())
         .setDocumentFilter(new ProtectedDocumentFilter(this));
     JScrollPane terminalScrollPane = new JScrollPane(terminal);
