@@ -2,6 +2,7 @@ package simplestJavaIDEpackage.mainUserInput;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -28,6 +29,7 @@ import javax.swing.text.BadLocationException;
 import org.fife.rsta.ac.LanguageSupportFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
@@ -36,7 +38,7 @@ import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.AppendTask;
 import simplestJavaIDEpackage.Library.Command;
 import simplestJavaIDEpackage.Library.CommandListener;
-import simplestJavaIDEpackage.Library.JInformationTextPane;
+import simplestJavaIDEpackage.Library.InformationTextPane;
 import simplestJavaIDEpackage.Library.ProtectedDocumentFilter;
 import simplestJavaIDEpackage.Library.Terminal;
 
@@ -51,7 +53,7 @@ public class MainUserInput implements CommandListener, Terminal {
   private JTextArea terminal;
   private int userInputStart = 0;
   private Command cmd;
-  private JInformationTextPane informationTextPane;
+  private InformationTextPane informationTextPane;
   private CodeMode codeMode;
   private JTextField userInputTextField;
 
@@ -164,9 +166,11 @@ public class MainUserInput implements CommandListener, Terminal {
     panelButtons.add(userInputTextField);
     userInputTextField.setColumns(1);
 
-    informationTextPane = new JInformationTextPane();
+    // Information field on the bottom
+    informationTextPane = new InformationTextPane();
     informationTextPane.setText(null);
     informationTextPane.setEditable(false);
+    informationTextPane.setFocusable(false);
     JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
     scrollPaneInformationTextPane.setBounds(6, 215, 264, 70);
     panelButtons.add(scrollPaneInformationTextPane);
@@ -194,6 +198,15 @@ public class MainUserInput implements CommandListener, Terminal {
     RSyntaxTextArea codingArea = new RSyntaxTextArea(20, 60);
     codingArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
     codingArea.setCodeFoldingEnabled(true);
+    try {
+      Theme theme = Theme
+          .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
+      theme.apply(codingArea);
+    } catch (IOException e) {
+      ErrorPopupWindow.main(null, e.getMessage());
+    }
+    codingArea.setCurrentLineHighlightColor(new Color(55, 55, 55));
+    codingArea.setBackground(new Color(47, 47, 47));
     codingArea.getDocument().addDocumentListener(new DocumentListener() {
       @Override
       public void changedUpdate(DocumentEvent arg0) {
@@ -244,6 +257,15 @@ public class MainUserInput implements CommandListener, Terminal {
     LanguageSupportFactory.get().register(codingAreaClassMode);
     codingAreaClassMode.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
     codingAreaClassMode.setCodeFoldingEnabled(true);
+    try {
+      Theme theme = Theme
+          .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
+      theme.apply(codingAreaClassMode);
+    } catch (IOException e) {
+      ErrorPopupWindow.main(null, e.getMessage());
+    }
+    codingAreaClassMode.setCurrentLineHighlightColor(new Color(55, 55, 55));
+    codingAreaClassMode.setBackground(new Color(47, 47, 47));
     codingAreaClassMode.getDocument().addDocumentListener(new DocumentListener() {
       @Override
       public void changedUpdate(DocumentEvent arg0) {
@@ -316,6 +338,7 @@ public class MainUserInput implements CommandListener, Terminal {
     // Output
     cmd = new Command(this);
     terminal = new JTextArea(20, 30);
+    terminal.setFocusable(false);
     terminal.setEditable(false);
     ((AbstractDocument) terminal.getDocument())
         .setDocumentFilter(new ProtectedDocumentFilter(this));
@@ -452,7 +475,7 @@ public class MainUserInput implements CommandListener, Terminal {
     });
   }
 
-  public JInformationTextPane getInformationTextPane() {
+  public InformationTextPane getInformationTextPane() {
     return this.informationTextPane;
   }
 

@@ -1,32 +1,26 @@
 package simplestJavaIDEpackage;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-
-import javax.swing.JFrame;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
-import mdlaf.MaterialLookAndFeel;
-import mdlaf.themes.MaterialLiteTheme;
-import simplestJavaIDEpackage.mainUserInput.MainUserInput;
-
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-import javax.swing.JLabel;
-import javax.swing.ImageIcon;
 import javax.swing.border.EmptyBorder;
-import java.awt.FlowLayout;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import com.formdev.flatlaf.FlatDarkLaf;
+import simplestJavaIDEpackage.mainUserInput.MainUserInput;
 
 public class StartingWindow {
 
@@ -39,9 +33,9 @@ public class StartingWindow {
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
-          UIManager.setLookAndFeel(new MaterialLookAndFeel(new MaterialLiteTheme()));
-        } catch (Exception e) {
-          ErrorPopupWindow.main(null, e.getMessage());
+          UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch (Exception ex) {
+          ErrorPopupWindow.main(null, ex.getMessage());
         }
         try {
           StartingWindow window = new StartingWindow();

@@ -31,9 +31,9 @@
 			<version>LATEST</version>
 		</dependency>
 		<dependency>
- 			<groupId>io.github.vincenzopalazzo</groupId>
- 			<artifactId>material-ui-swing</artifactId>
- 			<version>LATEST</version>
+ 			<groupId>com.formdev</groupId>
+ 			<artifactId>flatlaf</artifactId>
+ 			<version>3.0</version>
 		</dependency>
 	</dependencies>
 	<build>
