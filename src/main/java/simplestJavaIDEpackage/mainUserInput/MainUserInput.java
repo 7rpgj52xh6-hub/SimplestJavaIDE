@@ -12,6 +12,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -172,6 +173,7 @@ public class MainUserInput implements CommandListener, Terminal {
     informationTextPane.setEditable(false);
     informationTextPane.setFocusable(false);
     JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
+    scrollPaneInformationTextPane.setBorder(BorderFactory.createLineBorder(new Color(47, 47, 47)));
     scrollPaneInformationTextPane.setBounds(6, 215, 264, 70);
     panelButtons.add(scrollPaneInformationTextPane);
 
@@ -340,6 +342,7 @@ public class MainUserInput implements CommandListener, Terminal {
     terminal = new JTextArea(20, 30);
     terminal.setFocusable(false);
     terminal.setEditable(false);
+    terminal.setBackground(new Color(47, 47, 47));
     ((AbstractDocument) terminal.getDocument())
         .setDocumentFilter(new ProtectedDocumentFilter(this));
     JScrollPane terminalScrollPane = new JScrollPane(terminal);

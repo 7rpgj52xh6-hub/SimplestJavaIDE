@@ -1,6 +1,7 @@
 package simplestJavaIDEpackage;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -34,6 +35,9 @@ public class StartingWindow {
       public void run() {
         try {
           UIManager.setLookAndFeel(new FlatDarkLaf());
+          UIManager.put("TextField.border", new Color(0, 0, 0, 0));
+          UIManager.put("Button.border", new Color(0, 0, 0, 0));
+          UIManager.put("ScrollPane.border", new Color(0, 0, 0, 0));
         } catch (Exception ex) {
           ErrorPopupWindow.main(null, ex.getMessage());
         }
@@ -58,7 +62,6 @@ public class StartingWindow {
    * Initialize the contents of the frame.
    */
   private void initialize() {
-
     frmSimplestJavaIDE_startingWindow = new JFrame();
     frmSimplestJavaIDE_startingWindow.setTitle("SimplestJavaIDE Alpha v1.5");
     frmSimplestJavaIDE_startingWindow.setBounds(100, 100, 500, 350);

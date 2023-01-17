@@ -2,6 +2,8 @@ package simplestJavaIDEpackage.Library;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JTextPane;
 
 /**
@@ -9,6 +11,8 @@ import javax.swing.JTextPane;
  */
 public class InformationTextPane extends JTextPane {
   private static final long serialVersionUID = 4716313567540658604L;
+  private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+  List<String> lines = new ArrayList<String>();
 
   /**
    * Appends text with date and time
@@ -16,9 +20,12 @@ public class InformationTextPane extends JTextPane {
    * @param text is the text that shall be added to the information text pane
    */
   public void append(String text) {
-    final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-    String tmp = this.getText();
     Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-    this.setText("[" + sdf.format(timestamp) + "]: " + tmp + "\n" + text);
+    lines.add("[" + sdf.format(timestamp) + "]:\n\t" + text);
+    String output = "";
+    for (String i : lines) {
+      output = output + i + "\n";
+    }
+    this.setText(output);
   }
 }
