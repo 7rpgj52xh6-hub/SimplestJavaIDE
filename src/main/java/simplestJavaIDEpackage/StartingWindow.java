@@ -63,7 +63,7 @@ public class StartingWindow {
    */
   private void initialize() {
     frmSimplestJavaIDE_startingWindow = new JFrame();
-    frmSimplestJavaIDE_startingWindow.setTitle("SimplestJavaIDE Alpha v1.5");
+    frmSimplestJavaIDE_startingWindow.setTitle("SimplestJavaIDE Alpha v1.6");
     frmSimplestJavaIDE_startingWindow.setBounds(100, 100, 500, 350);
     frmSimplestJavaIDE_startingWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frmSimplestJavaIDE_startingWindow.setResizable(false);
@@ -89,8 +89,7 @@ public class StartingWindow {
     frmSimplestJavaIDE_startingWindow.getContentPane().add(btnHelp, BorderLayout.SOUTH);
     panelAppButtons.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
-    // TODO No spaces in file paths!!
-    // TODO fileNames must follow class naming constraints
+    // TODO fileNamesCantStartWithNumber
 
     JButton btnOpenExistingCode = new JButton("Open existing code");
     btnOpenExistingCode.setPreferredSize(new Dimension(200, 30));
@@ -104,10 +103,15 @@ public class StartingWindow {
         fileChooser.setFileFilter(filter);
         if (fileChooser
             .showOpenDialog(frmSimplestJavaIDE_startingWindow) == JFileChooser.APPROVE_OPTION) {
-          File file = fileChooser.getSelectedFile();
-          CodingFile codingFile = new CodingFile(file, false); // isNewFile = true
-          MainUserInput.main(null, codingFile);
-          frmSimplestJavaIDE_startingWindow.dispose();
+          if (!fileChooser.getSelectedFile().getAbsolutePath().contains(" ")) {
+            File file = fileChooser.getSelectedFile();
+            CodingFile codingFile = new CodingFile(file, false); // isNewFile = true
+            MainUserInput.main(null, codingFile);
+            frmSimplestJavaIDE_startingWindow.dispose();
+          } else {
+            ErrorPopupWindow.main(null, "File path can't contain any spaces. Please reselect.");
+          }
+
         }
       }
     });
@@ -124,27 +128,32 @@ public class StartingWindow {
         fileChooser.setFileFilter(filter);
         if (fileChooser
             .showSaveDialog(frmSimplestJavaIDE_startingWindow) == JFileChooser.APPROVE_OPTION) {
-          File tmpfile = fileChooser.getSelectedFile();
-          File file = new File(tmpfile.toString().replaceAll(" ", ""));
-          if (!file.exists()) {
-            if (!file.toString().endsWith(".java")) {
-              file = new File(file.toString() + ".java");
+          if (!fileChooser.getSelectedFile().getAbsolutePath().contains(" ")) {
+            File tmpfile = fileChooser.getSelectedFile();
+            File file = new File(tmpfile.toString().replaceAll(" ", ""));
+            if (!file.exists()) {
+              if (!file.toString().endsWith(".java")) {
+                file = new File(file.toString() + ".java");
+              }
+              CodingFile codingFile = new CodingFile(file, true); // isNewFile = true
+              try {
+                file.createNewFile();
+              } catch (IOException e1) {
+                e1.printStackTrace();
+              }
+              MainUserInput.main(null, codingFile);
+              frmSimplestJavaIDE_startingWindow.dispose();
+            } else {
+              // File aleady exists. Opening File instead
+              File file1 = fileChooser.getSelectedFile();
+              CodingFile codingFile = new CodingFile(file1, false); // isNewFile = true
+              MainUserInput.main(null, codingFile);
+              frmSimplestJavaIDE_startingWindow.dispose();
             }
-            CodingFile codingFile = new CodingFile(file, true); // isNewFile = true
-            try {
-              file.createNewFile();
-            } catch (IOException e1) {
-              e1.printStackTrace();
-            }
-            MainUserInput.main(null, codingFile);
-            frmSimplestJavaIDE_startingWindow.dispose();
           } else {
-            // File aleady exists. Opening File instead
-            File file1 = fileChooser.getSelectedFile();
-            CodingFile codingFile = new CodingFile(file1, false); // isNewFile = true
-            MainUserInput.main(null, codingFile);
-            frmSimplestJavaIDE_startingWindow.dispose();
+            ErrorPopupWindow.main(null, "File path can't contain any spaces. Please reselect.");
           }
+
 
         }
       }
