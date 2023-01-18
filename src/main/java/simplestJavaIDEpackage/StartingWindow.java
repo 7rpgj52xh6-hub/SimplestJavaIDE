@@ -89,8 +89,6 @@ public class StartingWindow {
     frmSimplestJavaIDE_startingWindow.getContentPane().add(btnHelp, BorderLayout.SOUTH);
     panelAppButtons.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
-    // TODO fileNamesCantStartWithNumber
-
     JButton btnOpenExistingCode = new JButton("Open existing code");
     btnOpenExistingCode.setPreferredSize(new Dimension(200, 30));
     panelAppButtons.add(btnOpenExistingCode);
@@ -103,13 +101,15 @@ public class StartingWindow {
         fileChooser.setFileFilter(filter);
         if (fileChooser
             .showOpenDialog(frmSimplestJavaIDE_startingWindow) == JFileChooser.APPROVE_OPTION) {
-          if (!fileChooser.getSelectedFile().getAbsolutePath().contains(" ")) {
+          if (fileChooser.getSelectedFile().getAbsolutePath().contains(" ")) {
+            ErrorPopupWindow.main(null, "File path can't contain any spaces. Please reselect.");
+          } else if (Character.isDigit(fileChooser.getSelectedFile().getName().charAt(0))) {
+            ErrorPopupWindow.main(null, "File name can't start with a number. Please reselect.");
+          } else {
             File file = fileChooser.getSelectedFile();
             CodingFile codingFile = new CodingFile(file, false); // isNewFile = true
             MainUserInput.main(null, codingFile);
             frmSimplestJavaIDE_startingWindow.dispose();
-          } else {
-            ErrorPopupWindow.main(null, "File path can't contain any spaces. Please reselect.");
           }
 
         }
@@ -128,7 +128,11 @@ public class StartingWindow {
         fileChooser.setFileFilter(filter);
         if (fileChooser
             .showSaveDialog(frmSimplestJavaIDE_startingWindow) == JFileChooser.APPROVE_OPTION) {
-          if (!fileChooser.getSelectedFile().getAbsolutePath().contains(" ")) {
+          if (fileChooser.getSelectedFile().getAbsolutePath().contains(" ")) {
+            ErrorPopupWindow.main(null, "File path can't contain any spaces. Please reselect.");
+          } else if (Character.isDigit(fileChooser.getSelectedFile().getName().charAt(0))) {
+            ErrorPopupWindow.main(null, "File name can't start with a number. Please reselect.");
+          } else {
             File tmpfile = fileChooser.getSelectedFile();
             File file = new File(tmpfile.toString().replaceAll(" ", ""));
             if (!file.exists()) {
@@ -150,8 +154,6 @@ public class StartingWindow {
               MainUserInput.main(null, codingFile);
               frmSimplestJavaIDE_startingWindow.dispose();
             }
-          } else {
-            ErrorPopupWindow.main(null, "File path can't contain any spaces. Please reselect.");
           }
 
 
