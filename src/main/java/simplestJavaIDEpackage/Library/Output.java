@@ -1,6 +1,8 @@
 package simplestJavaIDEpackage.Library;
 
+import java.awt.Color;
 import java.io.IOException;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import simplestJavaIDEpackage.CodingFile;
@@ -15,9 +17,10 @@ import simplestJavaIDEpackage.Library.Terminal.CommandListener;
  * @author Daniel Trageser
  * 
  */
-public class Output extends JTextArea implements CommandListener {
+public class Output extends JScrollPane implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
   private Command cmd;
+  private JTextArea terminalTextArea;
 
   public enum ErrorsHappened {
     YES, NO, UNDEFINED
@@ -29,14 +32,24 @@ public class Output extends JTextArea implements CommandListener {
 
   public Output() {
     cmd = new Command(this);
+    terminalTextArea = new JTextArea();
+    this.setViewportView(terminalTextArea);
+    this.setFocusable(false);
+    this.getTextArea().setEditable(false);
+    this.getTextArea().setBackground(new Color(35, 35, 35));
   }
 
+  public JTextArea getTextArea() {
+    return this.terminalTextArea;
+  }
+
+  // TODO Make obsolete
   public Command getCommand() {
     return this.cmd;
   }
 
   public void appendText(String text) {
-    this.append(text);
+    this.getTextArea().append(text);
   }
 
   @Override

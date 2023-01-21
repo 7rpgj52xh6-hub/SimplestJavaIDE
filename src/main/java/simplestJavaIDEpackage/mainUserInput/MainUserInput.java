@@ -169,6 +169,7 @@ public class MainUserInput {
     panelButtons.add(lblUserInput);
 
     // Input
+    // TODO implement in Output
     userInputTextField = new JTextField();
     userInputTextField.setBounds(98, 133, 170, 36);
     panelButtons.add(userInputTextField);
@@ -273,11 +274,7 @@ public class MainUserInput {
 
     // Output
     terminal = new Output();
-    terminal.setFocusable(false);
-    terminal.setEditable(false);
-    terminal.setBackground(new Color(35, 35, 35));
-    JScrollPane terminalScrollPane = new JScrollPane(terminal);
-    bottomPanel.add(terminalScrollPane);
+    bottomPanel.add(terminal);
 
     // Manage interactions
     btnSwitchCodeMode.addActionListener(new ActionListener() {
@@ -376,7 +373,8 @@ public class MainUserInput {
           Font font = codingArea.getFont();
           if (font.getSize() <= 45) {
             codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
-            terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+            terminal.getTextArea()
+                .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
           }
         } else {
           ErrorPopupWindow
@@ -392,7 +390,8 @@ public class MainUserInput {
           Font font = codingArea.getFont();
           if (font.getSize() >= 4) {
             codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
-            terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+            terminal.getTextArea()
+                .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
           }
         } else {
           ErrorPopupWindow
