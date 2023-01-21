@@ -17,14 +17,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
@@ -33,24 +29,18 @@ import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
-import simplestJavaIDEpackage.Library.AppendTask;
-import simplestJavaIDEpackage.Library.Command;
-import simplestJavaIDEpackage.Library.CommandListener;
 import simplestJavaIDEpackage.Library.InformationTextPane;
-import simplestJavaIDEpackage.Library.ProtectedDocumentFilter;
-import simplestJavaIDEpackage.Library.Terminal;
+import simplestJavaIDEpackage.Library.TerminalTextPane;
 
 /**
  * 
  * @author Daniel Trageser This class implements the main user interface and its functions
  *
  */
-public class MainUserInput implements CommandListener, Terminal {
+public class MainUserInput {
 
   private JFrame frmSimplestJavaIDE;
-  private JTextArea terminal;
-  private int userInputStart = 0;
-  private Command cmd;
+  private TerminalTextPane terminal;
   private InformationTextPane informationTextPane;
   private CodeMode codeMode;
   private JTextField userInputTextField;
@@ -185,13 +175,14 @@ public class MainUserInput implements CommandListener, Terminal {
     userInputTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (!cmd.isRunning()) {
-          cmd.execute(userInputTextField.getText(), btnRun, btnCompile);
+        // TODO Implement in Terminal
+        if (!terminal.cmd.isRunning()) {
+          terminal.cmd.execute(userInputTextField.getText(), btnRun, btnCompile);
           informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
           userInputTextField.setText(null);
         } else {
           try {
-            cmd.send(userInputTextField.getText() + "\n");
+            terminal.cmd.send(userInputTextField.getText() + "\n");
             informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
             userInputTextField.setText(null);
           } catch (IOException ex) {
@@ -273,13 +264,11 @@ public class MainUserInput implements CommandListener, Terminal {
     }
 
     // Output
-    cmd = new Command(this);
-    terminal = new JTextArea(20, 30);
+
+    terminal = new TerminalTextPane();
     terminal.setFocusable(false);
     terminal.setEditable(false);
     terminal.setBackground(new Color(35, 35, 35));
-    ((AbstractDocument) terminal.getDocument())
-        .setDocumentFilter(new ProtectedDocumentFilter(this));
     JScrollPane terminalScrollPane = new JScrollPane(terminal);
     bottomPanel.add(terminalScrollPane);
 
@@ -343,7 +332,7 @@ public class MainUserInput implements CommandListener, Terminal {
         // RUN AND SAVE
         save(codingArea, codingFile);
         informationTextPane.append("Running Application...\n");
-        runApplication(terminal, codingArea, codingFile, btnRun, btnCompile);
+        terminal.runApplication(codingArea, codingFile, btnRun, btnCompile);
         btnSave.setEnabled(false);
       }
     });
@@ -351,7 +340,7 @@ public class MainUserInput implements CommandListener, Terminal {
       public void actionPerformed(ActionEvent e) {
         // COMPILE AND SAVE
         save(codingArea, codingFile);
-        compile(terminal, codingArea, codingFile, btnRun, btnCompile);
+        terminal.compile(codingArea, codingFile, btnRun, btnCompile);
         informationTextPane.append("Compiling Code...!\n");
         btnSave.setEnabled(false);
         btnRun.setEnabled(true);
@@ -394,74 +383,8 @@ public class MainUserInput implements CommandListener, Terminal {
     return this.informationTextPane;
   }
 
-  @Override
-  public void commandOutput(String text) {
-    SwingUtilities.invokeLater(new AppendTask(this, text));
-  }
-
-  @Override
-  public void commandFailed(Exception exp) {
-    SwingUtilities.invokeLater(new AppendTask(this, "Command failed - " + exp.getMessage()));
-  }
-
-  @Override
-  public void commandCompleted(String cmd, int result) {
-    appendText("\n");
-  }
-
-  protected void updateUserInputPos() {
-    int pos = terminal.getCaretPosition();
-    terminal.setCaretPosition(terminal.getText().length());
-    userInputStart = pos;
-
-  }
-
-  @Override
-  public int getUserInputStart() {
-    return userInputStart;
-  }
-
-  @Override
-  public void appendText(String text) {
-    terminal.append(text);
-    updateUserInputPos();
-  }
-
   public void save(RSyntaxTextArea codingArea, CodingFile codingFile) {
     codingFile.writeAllCodeToArray(codingArea.getText(), codeMode);
     codingFile.saveToFile();
-  }
-
-  public void runCommand(String command, JButton runButton, JButton compileButton)
-      throws IOException, BadLocationException {
-    if (!cmd.isRunning()) {
-      cmd.execute(command, runButton, compileButton);
-    } else {
-      try {
-        cmd.send(command + "\n");
-      } catch (IOException ex) {
-        this.getInformationTextPane()
-            .append("!! Failed to send command to process:" + ex.getMessage());
-      }
-    }
-  }
-
-  public void compile(JTextArea outputTextPane, RSyntaxTextArea codingArea, CodingFile codingFile,
-      JButton runButton, JButton compileButton) {
-    try {
-      runCommand("javac " + codingFile.getAbsolutePath(), runButton, compileButton);
-    } catch (IOException | BadLocationException e) {
-      this.getInformationTextPane().append(e.getMessage());
-    }
-  }
-
-  public void runApplication(JTextArea outputTextPane, RSyntaxTextArea codingArea,
-      CodingFile codingFile, JButton runButton, JButton compileButton) {
-    try {
-      runCommand("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName(),
-          runButton, compileButton);
-    } catch (IOException | BadLocationException e) {
-      this.getInformationTextPane().append(e.getMessage());
-    }
   }
 }
