@@ -68,7 +68,7 @@ public class Output extends JScrollPane implements CommandListener {
 
   @Override
   public void commandFailed(Exception exp) {
-    SwingUtilities.invokeLater(new AppendTask(this, "Command failed - " + exp.getMessage()));
+    ErrorPopupWindow.throwMessage("Command failed - " + exp.getMessage());
   }
 
   /**
@@ -127,5 +127,4 @@ public class Output extends JScrollPane implements CommandListener {
     }
     return ErrorsHappened.UNDEFINED;
   }
-
 }

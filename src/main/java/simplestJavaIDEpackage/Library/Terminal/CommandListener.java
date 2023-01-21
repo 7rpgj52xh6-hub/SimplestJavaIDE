@@ -7,5 +7,4 @@ public interface CommandListener {
   void commandCompleted(String cmd, int result);
 
   void commandFailed(Exception exp);
-
 }
