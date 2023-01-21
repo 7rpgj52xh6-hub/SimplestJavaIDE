@@ -4,23 +4,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.StringJoiner;
-
-import javax.swing.JButton;
-
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class ProcessRunner extends Thread {
   private List<String> cmds;
   private CommandListener listener;
   private Process process;
-  private JButton runButton, compileButton;
+  private boolean ranWithErrors;
 
-  public ProcessRunner(CommandListener listener, List<String> cmds, JButton runButton,
-      JButton compileButton) {
+  public ProcessRunner(CommandListener listener, List<String> cmds) {
     this.cmds = cmds;
     this.listener = listener;
-    this.runButton = runButton;
-    this.compileButton = compileButton;
     start();
   }
 
@@ -35,14 +29,11 @@ public class ProcessRunner extends Thread {
       if (errs.read() != -1) {
         StreamReader errorReader = new StreamReader(listener, errs);
         errorReader.join();
-        runButton.setEnabled(false);
-        compileButton.setEnabled(false);
+        ranWithErrors = true;
+      } else {
+        ranWithErrors = false;
       }
-      // Need a stream writer...
-
       int result = process.waitFor();
-
-      // Terminate the stream writer
       reader.join();
 
       StringJoiner sj = new StringJoiner(" ");
@@ -52,7 +43,7 @@ public class ProcessRunner extends Thread {
 
       listener.commandCompleted(sj.toString(), result);
     } catch (Exception e) {
-      ErrorPopupWindow.main(null, e.getMessage());
+      ErrorPopupWindow.throwMessage(e.getMessage());
       listener.commandFailed(e);
     }
   }
@@ -62,5 +53,9 @@ public class ProcessRunner extends Thread {
       process.getOutputStream().write(text.getBytes());
       process.getOutputStream().flush();
     }
+  }
+
+  public boolean ranWithErrors() {
+    return this.ranWithErrors;
   }
 }

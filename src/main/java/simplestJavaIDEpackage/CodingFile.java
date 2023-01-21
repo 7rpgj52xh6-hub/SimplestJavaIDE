@@ -112,7 +112,7 @@ public class CodingFile {
       case EXPERT:
         return this.getFullCode();
       default:
-        ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
+        ErrorPopupWindow.throwMessage("Error with mode switch button. Mode was not set correcty.");
         return null;
     }
   }
@@ -187,7 +187,7 @@ public class CodingFile {
         contentBuilder.append(sCurrentLine).append("\n");
       }
     } catch (IOException e) {
-      ErrorPopupWindow.main(null, e.getMessage());
+      ErrorPopupWindow.throwMessage(e.getMessage());
     }
 
     String wholeCode = contentBuilder.toString();
@@ -226,7 +226,7 @@ public class CodingFile {
         setWrittenCode(getStandardCode(text));
         break;
       default:
-        ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
+        ErrorPopupWindow.throwMessage("Error with mode switch button. Mode was not set correcty.");
         break;
     }
   }

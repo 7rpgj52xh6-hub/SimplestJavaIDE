@@ -31,7 +31,8 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.InfoTextPane;
 import simplestJavaIDEpackage.Library.Output;
-import simplestJavaIDEpackage.Library.Output.CommandType;;
+import simplestJavaIDEpackage.Library.Output.CommandType;
+import simplestJavaIDEpackage.Library.Output.ErrorsHappened;;
 
 /**
  * 
@@ -56,7 +57,7 @@ public class MainUserInput {
           MainUserInput window = new MainUserInput(savefile);
           window.frmSimplestJavaIDE.setVisible(true);
         } catch (Exception e) {
-          ErrorPopupWindow.main(null, e.getMessage());
+          ErrorPopupWindow.throwMessage(e.getMessage());
         }
       }
     });
@@ -85,7 +86,7 @@ public class MainUserInput {
       frmSimplestJavaIDE
           .setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
     } catch (IOException e1) {
-      ErrorPopupWindow.main(null, e1.getMessage());
+      ErrorPopupWindow.throwMessage(e1.getMessage());
     }
 
     // Structure of main window
@@ -172,22 +173,28 @@ public class MainUserInput {
     userInputTextField.setBounds(98, 133, 170, 36);
     panelButtons.add(userInputTextField);
     userInputTextField.setColumns(1);
-
     userInputTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        // TODO Implement in Terminal
         if (!terminal.getCommand().isRunning()) {
-          terminal.getCommand().execute(userInputTextField.getText(), btnRun, btnCompile);
-          informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
-          userInputTextField.setText(null);
+          if (terminal.getCommand().execute(userInputTextField.getText()) == ErrorsHappened.YES) {
+            btnRun.setEnabled(false);
+            btnCompile.setEnabled(false);
+          } else if (terminal.getCommand()
+              .execute(userInputTextField.getText()) == ErrorsHappened.NO) {
+            informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
+            userInputTextField.setText(null);
+          } else {
+            ErrorPopupWindow.throwMessage("Unsure if error occured while sending user input.");
+          }
         } else {
           try {
             terminal.getCommand().send(userInputTextField.getText() + "\n");
             informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
             userInputTextField.setText(null);
           } catch (IOException ex) {
-            ErrorPopupWindow.main(null, "!! Failed to send command to process: " + ex.getMessage());
+            ErrorPopupWindow
+                .throwMessage("!! Failed to send command to process: " + ex.getMessage());
           }
         }
       }
@@ -202,7 +209,7 @@ public class MainUserInput {
           .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
       theme.apply(codingArea);
     } catch (IOException e) {
-      ErrorPopupWindow.main(null, e.getMessage());
+      ErrorPopupWindow.throwMessage(e.getMessage());
     }
     codingArea.setCurrentLineHighlightColor(new Color(55, 55, 55));
     codingArea.setBackground(new Color(47, 47, 47));
@@ -299,8 +306,8 @@ public class MainUserInput {
             codingArea.append(codingFile.getCode(codeMode));
             break;
           default:
-            ErrorPopupWindow.main(null,
-                "Error with mode switch button. Mode was not set correcty.");
+            ErrorPopupWindow
+                .throwMessage("Error with mode switch button. Mode was not set correcty.");
             break;
         }
       }
@@ -316,7 +323,8 @@ public class MainUserInput {
             || codeMode == CodeMode.EXPERT) {
           AddImportsWindow.main(codingFile, codingArea.getText(), codeMode, codingArea.getFont());
         } else {
-          ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
+          ErrorPopupWindow
+              .throwMessage("Error with mode switch button. Mode was not set correcty.");
         }
         save(codingArea, codingFile); // Also save other code
         btnSave.setEnabled(false);
@@ -334,8 +342,14 @@ public class MainUserInput {
         CommandType ct = CommandType.RUN;
         save(codingArea, codingFile);
         informationTextPane.append("Running Application...\n");
-        terminal.run(ct, codingFile, btnRun, btnCompile);
-        btnSave.setEnabled(false);
+        ErrorsHappened eh = terminal.run(ct, codingFile);
+        if (eh == ErrorsHappened.NO) { // if it did run without errors
+          btnRun.setEnabled(true);
+          btnSave.setEnabled(false);
+          btnCompile.setEnabled(false);
+        } else if (eh == ErrorsHappened.UNDEFINED) {
+          ErrorPopupWindow.throwMessage("Unsure if errors occured trying to run the program.");
+        }
       }
     });
     btnCompile.addActionListener(new ActionListener() {
@@ -343,11 +357,15 @@ public class MainUserInput {
         // COMPILE AND SAVE
         CommandType ct = CommandType.COMPILE;
         save(codingArea, codingFile);
-        terminal.run(ct, codingFile, btnRun, btnCompile);
-        informationTextPane.append("Compiling Code...!\n");
         btnSave.setEnabled(false);
-        btnRun.setEnabled(true);
-        btnCompile.setEnabled(false);
+        informationTextPane.append("Compiling Code...!\n");
+        ErrorsHappened eh = terminal.run(ct, codingFile);
+        if (eh == ErrorsHappened.NO) { // if it did run without errors
+          btnRun.setEnabled(true);
+          btnCompile.setEnabled(false);
+        } else if (eh == ErrorsHappened.UNDEFINED) {
+          ErrorPopupWindow.throwMessage("Unsure if errors occured during compiling.");
+        }
       }
     });
     btnZoomIn.addActionListener(new ActionListener() {
@@ -361,7 +379,8 @@ public class MainUserInput {
             terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
           }
         } else {
-          ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
+          ErrorPopupWindow
+              .throwMessage("Error with mode switch button. Mode was not set correcty.");
         }
       }
     });
@@ -376,7 +395,8 @@ public class MainUserInput {
             terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
           }
         } else {
-          ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
+          ErrorPopupWindow
+              .throwMessage("Error with mode switch button. Mode was not set correcty.");
         }
       }
     });

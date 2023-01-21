@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.swing.JButton;
+import simplestJavaIDEpackage.ErrorPopupWindow;
+import simplestJavaIDEpackage.Library.Output.ErrorsHappened;
 
 public class Command {
   private CommandListener listener;
@@ -16,12 +16,10 @@ public class Command {
   }
 
   public boolean isRunning() {
-
     return runner != null && runner.isAlive();
-
   }
 
-  public void execute(String cmd, JButton runButton, JButton compileButton) {
+  public ErrorsHappened execute(String cmd) {
     if (!cmd.trim().isEmpty()) {
 
       List<String> values = new ArrayList<>(25);
@@ -57,10 +55,19 @@ public class Command {
 
       }
 
-      runner = new ProcessRunner(listener, values, runButton, compileButton);
-
+      runner = new ProcessRunner(listener, values);
+      try {
+        runner.join();
+        if (runner.ranWithErrors()) {
+          return ErrorsHappened.YES;
+        } else {
+          return ErrorsHappened.NO;
+        }
+      } catch (InterruptedException e) {
+        ErrorPopupWindow.throwMessage(e.getMessage());
+      }
     }
-
+    return ErrorsHappened.UNDEFINED;
   }
 
   public void send(String cmd) throws IOException {

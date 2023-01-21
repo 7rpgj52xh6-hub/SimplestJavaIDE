@@ -33,7 +33,7 @@ public class AddImportsWindow {
           AddImportsWindow window = new AddImportsWindow(codingFile, textToSafe, codeMode, font);
           window.frmImportWindow.setVisible(true);
         } catch (Exception e) {
-          ErrorPopupWindow.main(null, e.getMessage());
+          ErrorPopupWindow.throwMessage(e.getMessage());
         }
       }
     });
@@ -62,7 +62,7 @@ public class AddImportsWindow {
       frmImportWindow
           .setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
     } catch (IOException e1) {
-      ErrorPopupWindow.main(null, e1.getMessage());
+      ErrorPopupWindow.throwMessage(e1.getMessage());
     }
 
     RSyntaxTextArea importArea = new RSyntaxTextArea(20, 60);
@@ -74,7 +74,7 @@ public class AddImportsWindow {
           .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
       theme.apply(importArea);
     } catch (IOException e) {
-      ErrorPopupWindow.main(null, e.getMessage());
+      ErrorPopupWindow.throwMessage(e.getMessage());
     }
     importArea.setCurrentLineHighlightColor(new Color(55, 55, 55));
     importArea.setBackground(new Color(47, 47, 47));

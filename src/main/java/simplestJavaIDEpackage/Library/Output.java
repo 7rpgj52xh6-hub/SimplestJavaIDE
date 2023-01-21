@@ -1,7 +1,6 @@
 package simplestJavaIDEpackage.Library;
 
 import java.io.IOException;
-import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import simplestJavaIDEpackage.CodingFile;
@@ -19,6 +18,10 @@ import simplestJavaIDEpackage.Library.Terminal.CommandListener;
 public class Output extends JTextArea implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
   private Command cmd;
+
+  public enum ErrorsHappened {
+    YES, NO, UNDEFINED
+  }
 
   public enum CommandType {
     COMPILE, RUN
@@ -52,34 +55,43 @@ public class Output extends JTextArea implements CommandListener {
     SwingUtilities.invokeLater(new AppendTask(this, "Command failed - " + exp.getMessage()));
   }
 
-  public void run(CommandType ct, CodingFile cf, JButton runButton, JButton compileButton) {
+  /**
+   * Sends compile or run command to system terminal. Returns true if errors occured
+   * 
+   * @param ct defines if compile or run
+   * @param cf is used for the path that is used for the commands
+   */
+  public ErrorsHappened run(CommandType ct, CodingFile cf) {
+
     if (ct == CommandType.COMPILE) {
       String command = "javac " + cf.getAbsolutePath();
       if (!cmd.isRunning()) {
-        cmd.execute(command, runButton, compileButton);
+        return cmd.execute(command);
       } else {
         try {
           cmd.send(command + "\n");
         } catch (IOException ex) {
-          ErrorPopupWindow.main(null,
-              "!! Failed to send compile command to process:" + ex.getMessage());
+          ErrorPopupWindow
+              .throwMessage("!! Failed to send compile command to process:" + ex.getMessage());
         }
       }
     } else if (ct == CommandType.RUN) {
       String command = "java -cp " + cf.getClassPath() + " " + cf.getClassName();
       if (!cmd.isRunning()) {
-        cmd.execute(command, runButton, compileButton);
+        return cmd.execute(command);
       } else {
         try {
           cmd.send(command + "\n");
         } catch (IOException ex) {
-          ErrorPopupWindow.main(null,
-              "!! Failed to send run command to process:" + ex.getMessage());
+          ErrorPopupWindow
+              .throwMessage("!! Failed to send run command to process:" + ex.getMessage());
         }
       }
     } else {
-      ErrorPopupWindow.main(null, "Commands other than compiling and running are not allowed");
+      ErrorPopupWindow
+          .throwMessage("Commands other than compiling and running java are not allowed");
     }
+    return ErrorsHappened.UNDEFINED;
   }
 
 }

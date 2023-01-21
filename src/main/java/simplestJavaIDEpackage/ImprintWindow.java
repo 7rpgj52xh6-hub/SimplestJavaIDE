@@ -28,7 +28,7 @@ public class ImprintWindow {
           ImprintWindow window = new ImprintWindow();
           window.frmSimplestjavaideImprint.setVisible(true);
         } catch (Exception e) {
-          ErrorPopupWindow.main(null, e.getMessage());
+          ErrorPopupWindow.throwMessage(e.getMessage());
         }
       }
     });
@@ -57,7 +57,7 @@ public class ImprintWindow {
       frmSimplestjavaideImprint
           .setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
     } catch (IOException e1) {
-      ErrorPopupWindow.main(null, e1.getMessage());
+      ErrorPopupWindow.throwMessage(e1.getMessage());
     }
 
     JButton btnClose = new JButton("Close");

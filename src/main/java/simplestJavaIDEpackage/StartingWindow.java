@@ -39,13 +39,13 @@ public class StartingWindow {
           UIManager.put("Button.border", new Color(0, 0, 0, 0));
           UIManager.put("ScrollPane.border", new Color(0, 0, 0, 0));
         } catch (Exception ex) {
-          ErrorPopupWindow.main(null, ex.getMessage());
+          ErrorPopupWindow.throwMessage(ex.getMessage());
         }
         try {
           StartingWindow window = new StartingWindow();
           window.frmSimplestJavaIDE_startingWindow.setVisible(true);
         } catch (Exception e) {
-          ErrorPopupWindow.main(null, e.getMessage());
+          ErrorPopupWindow.throwMessage(e.getMessage());
         }
       }
     });
@@ -73,7 +73,7 @@ public class StartingWindow {
       frmSimplestJavaIDE_startingWindow
           .setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
     } catch (IOException e1) {
-      ErrorPopupWindow.main(null, e1.getMessage());
+      ErrorPopupWindow.throwMessage(e1.getMessage());
     }
 
     JPanel panelAppButtons = new JPanel();
@@ -102,9 +102,9 @@ public class StartingWindow {
         if (fileChooser
             .showOpenDialog(frmSimplestJavaIDE_startingWindow) == JFileChooser.APPROVE_OPTION) {
           if (fileChooser.getSelectedFile().getAbsolutePath().contains(" ")) {
-            ErrorPopupWindow.main(null, "File path can't contain any spaces. Please reselect.");
+            ErrorPopupWindow.throwMessage("File path can't contain any spaces. Please reselect.");
           } else if (Character.isDigit(fileChooser.getSelectedFile().getName().charAt(0))) {
-            ErrorPopupWindow.main(null, "File name can't start with a number. Please reselect.");
+            ErrorPopupWindow.throwMessage("File name can't start with a number. Please reselect.");
           } else {
             File file = fileChooser.getSelectedFile();
             CodingFile codingFile = new CodingFile(file, false); // isNewFile = true
@@ -129,9 +129,9 @@ public class StartingWindow {
         if (fileChooser
             .showSaveDialog(frmSimplestJavaIDE_startingWindow) == JFileChooser.APPROVE_OPTION) {
           if (fileChooser.getSelectedFile().getAbsolutePath().contains(" ")) {
-            ErrorPopupWindow.main(null, "File path can't contain any spaces. Please reselect.");
+            ErrorPopupWindow.throwMessage("File path can't contain any spaces. Please reselect.");
           } else if (Character.isDigit(fileChooser.getSelectedFile().getName().charAt(0))) {
-            ErrorPopupWindow.main(null, "File name can't start with a number. Please reselect.");
+            ErrorPopupWindow.throwMessage("File name can't start with a number. Please reselect.");
           } else {
             File tmpfile = fileChooser.getSelectedFile();
             File file = new File(tmpfile.toString().replaceAll(" ", ""));
@@ -172,7 +172,7 @@ public class StartingWindow {
           new ImageIcon(ImageIO.read(getClass().getClassLoader().getResource("favicon.png"))
               .getScaledInstance(128, 128, 0)));
     } catch (IOException e1) {
-      ErrorPopupWindow.main(null, e1.getMessage());
+      ErrorPopupWindow.throwMessage(e1.getMessage());
     }
     lblIcon.setText("");
     lblIcon.setBorder(new EmptyBorder(10, 40, 10, 10));

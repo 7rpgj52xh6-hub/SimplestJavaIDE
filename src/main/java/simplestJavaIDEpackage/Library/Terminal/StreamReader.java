@@ -2,7 +2,6 @@ package simplestJavaIDEpackage.Library.Terminal;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class StreamReader extends Thread {
@@ -23,7 +22,7 @@ public class StreamReader extends Thread {
         listener.commandOutput(Character.toString((char) value));
       }
     } catch (IOException e) {
-      ErrorPopupWindow.main(null, e.getMessage());
+      ErrorPopupWindow.throwMessage(e.getMessage());
     }
   }
 
@@ -31,7 +30,7 @@ public class StreamReader extends Thread {
     try {
       return is.read();
     } catch (IOException e) {
-      ErrorPopupWindow.main(null, e.getMessage());
+      ErrorPopupWindow.throwMessage(e.getMessage());
     }
     return 69;
   }

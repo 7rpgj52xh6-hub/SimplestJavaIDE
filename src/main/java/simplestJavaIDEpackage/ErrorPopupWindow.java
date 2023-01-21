@@ -1,20 +1,18 @@
 package simplestJavaIDEpackage;
 
+import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.swing.JFrame;
-import java.awt.BorderLayout;
-
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
-import javax.swing.JScrollPane;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
 
@@ -23,9 +21,9 @@ public class ErrorPopupWindow {
   private JFrame frmErrorPopupWindow;
 
   /**
-   * Launch the application.
+   * Launch the application only with error.
    */
-  public static void main(String[] args, String errorText) {
+  public static void throwMessage(String errorText) {
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
