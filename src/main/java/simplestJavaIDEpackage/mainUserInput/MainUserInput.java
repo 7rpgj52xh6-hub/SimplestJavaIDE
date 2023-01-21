@@ -29,8 +29,9 @@ import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
-import simplestJavaIDEpackage.Library.InformationTextPane;
+import simplestJavaIDEpackage.Library.InfoTextPane;
 import simplestJavaIDEpackage.Library.Output;
+import simplestJavaIDEpackage.Library.Output.CommandType;;
 
 /**
  * 
@@ -41,7 +42,7 @@ public class MainUserInput {
 
   private JFrame frmSimplestJavaIDE;
   private Output terminal;
-  private InformationTextPane informationTextPane;
+  private InfoTextPane informationTextPane;
   private CodeMode codeMode;
   private JTextField userInputTextField;
 
@@ -108,7 +109,7 @@ public class MainUserInput {
     panelButtonsAndInformationTextPane.setBackground(new Color(47, 47, 47));
 
     // Information field on the bottom
-    informationTextPane = new InformationTextPane();
+    informationTextPane = new InfoTextPane();
     informationTextPane.setText(null);
     informationTextPane.setEditable(false);
     informationTextPane.setFocusable(false);
@@ -330,17 +331,19 @@ public class MainUserInput {
     btnRun.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // RUN AND SAVE
+        CommandType ct = CommandType.RUN;
         save(codingArea, codingFile);
         informationTextPane.append("Running Application...\n");
-        terminal.run(codingArea, codingFile, btnRun, btnCompile);
+        terminal.run(ct, codingFile, btnRun, btnCompile);
         btnSave.setEnabled(false);
       }
     });
     btnCompile.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // COMPILE AND SAVE
+        CommandType ct = CommandType.COMPILE;
         save(codingArea, codingFile);
-        terminal.compile(codingArea, codingFile, btnRun, btnCompile);
+        terminal.run(ct, codingFile, btnRun, btnCompile);
         informationTextPane.append("Compiling Code...!\n");
         btnSave.setEnabled(false);
         btnRun.setEnabled(true);
@@ -379,7 +382,7 @@ public class MainUserInput {
     });
   }
 
-  public InformationTextPane getInformationTextPane() {
+  public InfoTextPane getInformationTextPane() {
     return this.informationTextPane;
   }
 

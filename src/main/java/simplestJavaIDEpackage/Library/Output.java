@@ -4,9 +4,11 @@ import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
+import simplestJavaIDEpackage.Library.Terminal.AppendTask;
+import simplestJavaIDEpackage.Library.Terminal.Command;
+import simplestJavaIDEpackage.Library.Terminal.CommandListener;
 
 /**
  * This class implements the terminal with all possible functions
@@ -18,6 +20,10 @@ public class Output extends JTextArea implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
   private Command cmd;
 
+  public enum CommandType {
+    COMPILE, RUN
+  }
+
   public Output() {
     cmd = new Command(this);
   }
@@ -26,7 +32,7 @@ public class Output extends JTextArea implements CommandListener {
     return this.cmd;
   }
 
-  void appendText(String text) {
+  public void appendText(String text) {
     this.append(text);
   }
 
@@ -46,35 +52,33 @@ public class Output extends JTextArea implements CommandListener {
     SwingUtilities.invokeLater(new AppendTask(this, "Command failed - " + exp.getMessage()));
   }
 
-  private void runCommand(String command, JButton runButton, JButton compileButton)
-      throws IOException, BadLocationException {
-    if (!cmd.isRunning()) {
-      cmd.execute(command, runButton, compileButton);
-    } else {
-      try {
-        cmd.send(command + "\n");
-      } catch (IOException ex) {
-        ErrorPopupWindow.main(null, "!! Failed to send command to process:" + ex.getMessage());
+  public void run(CommandType ct, CodingFile cf, JButton runButton, JButton compileButton) {
+    if (ct == CommandType.COMPILE) {
+      String command = "javac " + cf.getAbsolutePath();
+      if (!cmd.isRunning()) {
+        cmd.execute(command, runButton, compileButton);
+      } else {
+        try {
+          cmd.send(command + "\n");
+        } catch (IOException ex) {
+          ErrorPopupWindow.main(null,
+              "!! Failed to send compile command to process:" + ex.getMessage());
+        }
       }
-    }
-  }
-
-  public void compile(JTextArea outputTextPane, CodingFile codingFile, JButton runButton,
-      JButton compileButton) {
-    try {
-      runCommand("javac " + codingFile.getAbsolutePath(), runButton, compileButton);
-    } catch (IOException | BadLocationException e) {
-      ErrorPopupWindow.main(null, e.getMessage());
-    }
-  }
-
-  public void run(JTextArea outputTextPane, CodingFile codingFile, JButton runButton,
-      JButton compileButton) {
-    try {
-      runCommand("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName(),
-          runButton, compileButton);
-    } catch (IOException | BadLocationException e) {
-      ErrorPopupWindow.main(null, e.getMessage());
+    } else if (ct == CommandType.RUN) {
+      String command = "java -cp " + cf.getClassPath() + " " + cf.getClassName();
+      if (!cmd.isRunning()) {
+        cmd.execute(command, runButton, compileButton);
+      } else {
+        try {
+          cmd.send(command + "\n");
+        } catch (IOException ex) {
+          ErrorPopupWindow.main(null,
+              "!! Failed to send run command to process:" + ex.getMessage());
+        }
+      }
+    } else {
+      ErrorPopupWindow.main(null, "Commands other than compiling and running are not allowed");
     }
   }
 

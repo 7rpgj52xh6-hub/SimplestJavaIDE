@@ -1,4 +1,4 @@
-package simplestJavaIDEpackage.Library;
+package simplestJavaIDEpackage.Library.Terminal;
 
 import java.io.IOException;
 import java.io.InputStream;

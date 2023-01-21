@@ -7,9 +7,11 @@ import java.util.List;
 import javax.swing.JTextPane;
 
 /**
+ * Modified JTextPane to be able to append text with a timestamp
+ * 
  * @author Daniel Trageser
  */
-public class InformationTextPane extends JTextPane {
+public class InfoTextPane extends JTextPane {
   private static final long serialVersionUID = 4716313567540658604L;
   private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
   List<String> lines = new ArrayList<String>();

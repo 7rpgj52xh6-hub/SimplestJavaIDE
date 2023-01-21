@@ -1,5 +1,6 @@
-package simplestJavaIDEpackage.Library;
+package simplestJavaIDEpackage.Library.Terminal;
 
+import simplestJavaIDEpackage.Library.Output;
 
 public class AppendTask implements Runnable {
 
