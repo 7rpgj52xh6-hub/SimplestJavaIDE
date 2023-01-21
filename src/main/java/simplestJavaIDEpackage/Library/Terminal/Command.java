@@ -19,9 +19,8 @@ public class Command {
     return runner != null && runner.isAlive();
   }
 
-  public ErrorsHappened execute(String cmd) {
+  public List<String> getValues(String cmd) {
     if (!cmd.trim().isEmpty()) {
-
       List<String> values = new ArrayList<>(25);
       if (cmd.contains("\"")) {
 
@@ -54,18 +53,41 @@ public class Command {
         }
 
       }
+      return values;
+    }
+    return null;
+  }
 
-      runner = new ProcessRunner(listener, values);
-      try {
-        runner.join();
-        if (runner.ranWithErrors()) {
-          return ErrorsHappened.YES;
-        } else {
-          return ErrorsHappened.NO;
-        }
-      } catch (InterruptedException e) {
-        ErrorPopupWindow.throwMessage(e.getMessage());
+  public ErrorsHappened compile(String cmd) {
+    runner = new ProcessRunner(listener, getValues(cmd));
+    try {
+      runner.join();
+      if (runner.ranWithErrors()) {
+        return ErrorsHappened.YES;
+      } else {
+        return ErrorsHappened.NO;
       }
+    } catch (InterruptedException e) {
+      ErrorPopupWindow.throwMessage(e.getMessage());
+    }
+    return ErrorsHappened.UNDEFINED;
+  }
+
+  public void run(String cmd) {
+    runner = new ProcessRunner(listener, getValues(cmd));
+  }
+
+  public ErrorsHappened input(String cmd) {
+    runner = new ProcessRunner(listener, getValues(cmd));
+    try {
+      runner.join();
+      if (runner.ranWithErrors()) {
+        return ErrorsHappened.YES;
+      } else {
+        return ErrorsHappened.NO;
+      }
+    } catch (InterruptedException e) {
+      ErrorPopupWindow.throwMessage(e.getMessage());
     }
     return ErrorsHappened.UNDEFINED;
   }

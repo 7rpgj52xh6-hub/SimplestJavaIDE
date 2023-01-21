@@ -136,6 +136,8 @@ public class MainUserInput {
     btnAddImports.setBounds(6, 6, 131, 36);
     panelButtons.add(btnAddImports);
 
+    // TODO Add terminal clear button
+
     JButton btnHelp = new JButton("Help");
     btnHelp.setIcon(null);
     btnHelp.setBounds(184, 48, 86, 36);
@@ -177,27 +179,14 @@ public class MainUserInput {
     userInputTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (!terminal.getCommand().isRunning()) {
-          if (terminal.getCommand().execute(userInputTextField.getText()) == ErrorsHappened.YES) {
-            btnRun.setEnabled(false);
-            btnCompile.setEnabled(false);
-          } else if (terminal.getCommand()
-              .execute(userInputTextField.getText()) == ErrorsHappened.NO) {
-            informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
-            userInputTextField.setText(null);
-          } else {
-            ErrorPopupWindow.throwMessage("Unsure if error occured while sending user input.");
-          }
-        } else {
-          try {
-            terminal.getCommand().send(userInputTextField.getText() + "\n");
-            informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
-            userInputTextField.setText(null);
-          } catch (IOException ex) {
-            ErrorPopupWindow
-                .throwMessage("!! Failed to send command to process: " + ex.getMessage());
-          }
+        ErrorsHappened eh = terminal.run(CommandType.INPUT, codingFile);
+        if (eh == ErrorsHappened.YES) {
+          btnRun.setEnabled(false);
+          btnCompile.setEnabled(false);
+        } else if (eh == ErrorsHappened.NO) {
+          informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
         }
+        userInputTextField.setText(null);
       }
     });
 
@@ -215,6 +204,7 @@ public class MainUserInput {
     codingArea.setCurrentLineHighlightColor(new Color(55, 55, 55));
     codingArea.setBackground(new Color(47, 47, 47));
     codingArea.getDocument().addDocumentListener(new DocumentListener() {
+
       @Override
       public void changedUpdate(DocumentEvent arg0) {
         // Do nothing
@@ -273,7 +263,7 @@ public class MainUserInput {
     }
 
     // Output
-    terminal = new Output();
+    terminal = new Output(userInputTextField);
     bottomPanel.add(terminal);
 
     // Manage interactions

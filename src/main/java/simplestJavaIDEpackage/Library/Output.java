@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.io.IOException;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
@@ -21,18 +22,20 @@ public class Output extends JScrollPane implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
   private Command cmd;
   private JTextArea terminalTextArea;
+  private JTextField userInputField;
 
   public enum ErrorsHappened {
     YES, NO, UNDEFINED
   }
 
   public enum CommandType {
-    COMPILE, RUN
+    COMPILE, RUN, INPUT
   }
 
-  public Output() {
+  public Output(JTextField userInputField) {
     cmd = new Command(this);
     terminalTextArea = new JTextArea();
+    this.userInputField = userInputField;
     this.setViewportView(terminalTextArea);
     this.setFocusable(false);
     this.getTextArea().setEditable(false);
@@ -75,34 +78,52 @@ public class Output extends JScrollPane implements CommandListener {
    * @param cf is used for the path that is used for the commands
    */
   public ErrorsHappened run(CommandType ct, CodingFile cf) {
-
-    if (ct == CommandType.COMPILE) {
-      String command = "javac " + cf.getAbsolutePath();
-      if (!cmd.isRunning()) {
-        return cmd.execute(command);
-      } else {
-        try {
-          cmd.send(command + "\n");
-        } catch (IOException ex) {
-          ErrorPopupWindow
-              .throwMessage("!! Failed to send compile command to process:" + ex.getMessage());
+    switch (ct) {
+      case COMPILE:
+        String cmdCompile = "javac " + cf.getAbsolutePath();
+        if (!cmd.isRunning()) {
+          return cmd.compile(cmdCompile);
+        } else {
+          try {
+            cmd.send(cmdCompile + "\n");
+          } catch (IOException ex) {
+            ErrorPopupWindow
+                .throwMessage("!! Failed to send compile command to process:" + ex.getMessage());
+          }
         }
-      }
-    } else if (ct == CommandType.RUN) {
-      String command = "java -cp " + cf.getClassPath() + " " + cf.getClassName();
-      if (!cmd.isRunning()) {
-        return cmd.execute(command);
-      } else {
-        try {
-          cmd.send(command + "\n");
-        } catch (IOException ex) {
-          ErrorPopupWindow
-              .throwMessage("!! Failed to send run command to process:" + ex.getMessage());
+        break;
+      case RUN:
+        String cmdRun = "java -cp " + cf.getClassPath() + " " + cf.getClassName();
+        if (!cmd.isRunning()) {
+          cmd.run(cmdRun);
+          return ErrorsHappened.NO;
+        } else {
+          try {
+            cmd.send(cmdRun + "\n");
+          } catch (IOException ex) {
+            ErrorPopupWindow
+                .throwMessage("!! Failed to send run command to process:" + ex.getMessage());
+          }
         }
-      }
-    } else {
-      ErrorPopupWindow
-          .throwMessage("Commands other than compiling and running java are not allowed");
+        break;
+      case INPUT:
+        if (userInputField.getText() != null) {
+          if (!cmd.isRunning()) {
+            return cmd.input(userInputField.getText());
+          } else {
+            try {
+              cmd.send(userInputField.getText() + "\n");
+            } catch (IOException ex) {
+              ErrorPopupWindow
+                  .throwMessage("!! Failed to send run command to process:" + ex.getMessage());
+            }
+          }
+        }
+        break;
+      default:
+        ErrorPopupWindow
+            .throwMessage("Commands other than compiling and running java are not allowed");
+        break;
     }
     return ErrorsHappened.UNDEFINED;
   }

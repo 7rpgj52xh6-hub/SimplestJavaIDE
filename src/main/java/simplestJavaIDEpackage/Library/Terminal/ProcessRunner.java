@@ -29,6 +29,7 @@ public class ProcessRunner extends Thread {
       if (errs.read() != -1) {
         StreamReader errorReader = new StreamReader(listener, errs);
         errorReader.join();
+        System.out.println("Errors happened");
         ranWithErrors = true;
       } else {
         ranWithErrors = false;
