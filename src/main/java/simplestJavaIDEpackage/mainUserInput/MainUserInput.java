@@ -1,7 +1,6 @@
 package simplestJavaIDEpackage.mainUserInput;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -26,7 +25,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
-import org.fife.rsta.ac.LanguageSupportFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
@@ -260,71 +258,11 @@ public class MainUserInput implements CommandListener, Terminal {
       }
     });
 
-    // Copied for full class mode
-    // Coding input and load code if code is not null (from loading file)
-    RSyntaxTextArea codingAreaClassMode = new RSyntaxTextArea(20, 60);
-    LanguageSupportFactory.get().register(codingAreaClassMode);
-    codingAreaClassMode.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-    codingAreaClassMode.setCodeFoldingEnabled(true);
-    try {
-      Theme theme = Theme
-          .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
-      theme.apply(codingAreaClassMode);
-    } catch (IOException e) {
-      ErrorPopupWindow.main(null, e.getMessage());
-    }
-    codingAreaClassMode.setCurrentLineHighlightColor(new Color(55, 55, 55));
-    codingAreaClassMode.setBackground(new Color(47, 47, 47));
-    codingAreaClassMode.getDocument().addDocumentListener(new DocumentListener() {
-      @Override
-      public void changedUpdate(DocumentEvent arg0) {
-        // Copy to original text area
-        codingArea.setText(null);
-        codingArea.append(codingAreaClassMode.getText());
-      }
-
-      @Override
-      public void insertUpdate(DocumentEvent e) {
-        codingFile.isSaved = false;
-        btnSave.setEnabled(true);
-        btnCompile.setEnabled(true);
-        btnRun.setEnabled(false);
-      }
-
-      @Override
-      public void removeUpdate(DocumentEvent e) {
-        codingFile.isSaved = false;
-        btnSave.setEnabled(true);
-        btnCompile.setEnabled(true);
-        btnRun.setEnabled(false);
-      }
-    });
-    codingAreaClassMode.addKeyListener(new KeyListener() {
-      @Override
-      public void keyPressed(KeyEvent e) {
-        boolean windowsCTRLpressed = ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0);
-        boolean macOSCTRLpressed = ((e.getModifiersEx() & KeyEvent.VK_META) != 0);
-        if ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
-          save(codingArea, codingFile);
-          btnSave.setEnabled(false);
-        }
-      }
-
-      @Override
-      public void keyReleased(KeyEvent arg0) {
-        // do nothing
-      }
-
-      @Override
-      public void keyTyped(KeyEvent arg0) {
-        // do noting
-      }
-    });
-
     // Coding Panel without code completion for standard and extended mode
     JPanel codingPanel = new JPanel(new BorderLayout(0, 0));
     RTextScrollPane codingScrollPane = new RTextScrollPane(codingArea);
     codingPanel.add(codingScrollPane, BorderLayout.CENTER);
+    contentSplitPane.setTopComponent(codingPanel);
     // Load Code if possible
     boolean loadingEnabled = true;
     while (loadingEnabled) {
@@ -333,16 +271,6 @@ public class MainUserInput implements CommandListener, Terminal {
         codingArea.setText(codingFile.getCode(codeMode));
       }
     }
-    // Coding Panel with code completion for standard and extended mode
-    JPanel codingClassModePanel = new JPanel(new BorderLayout(0, 0));
-    RTextScrollPane codingClassModeScrollPane = new RTextScrollPane(codingAreaClassMode);
-    codingClassModePanel.add(codingClassModeScrollPane, BorderLayout.CENTER);
-
-    // Panel to house both coding panels
-    JPanel codingAreaPanel = new JPanel(new CardLayout());
-    codingAreaPanel.add(codingPanel, "1");
-    codingAreaPanel.add(codingClassModePanel, "2");
-    contentSplitPane.setTopComponent(codingAreaPanel);
 
     // Output
     cmd = new Command(this);
@@ -358,7 +286,6 @@ public class MainUserInput implements CommandListener, Terminal {
     // Manage interactions
     btnSwitchCodeMode.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        CardLayout layout = (CardLayout) codingAreaPanel.getLayout();
         save(codingArea, codingFile);
         switch (codeMode) {
           case STANDARD:
@@ -372,15 +299,13 @@ public class MainUserInput implements CommandListener, Terminal {
             // Change to full mode
             codeMode = CodeMode.EXPERT;
             btnSwitchCodeMode.setText("Mode: Expert");
-            layout.show(codingAreaPanel, "2");
-            codingAreaClassMode.setText(null);
-            codingAreaClassMode.append(codingFile.getCode(codeMode));
+            codingArea.setText(null);
+            codingArea.append(codingFile.getCode(codeMode));
             break;
           case EXPERT:
             // Change to standard mode
             codeMode = CodeMode.STANDARD;
             btnSwitchCodeMode.setText("Mode: Standard");
-            layout.show(codingAreaPanel, "1");
             codingArea.setText(null);
             codingArea.append(codingFile.getCode(codeMode));
             break;
@@ -397,11 +322,9 @@ public class MainUserInput implements CommandListener, Terminal {
     });
     btnAddImports.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED) {
+        if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
+            || codeMode == CodeMode.EXPERT) {
           AddImportsWindow.main(codingFile, codingArea.getText(), codeMode, codingArea.getFont());
-        } else if (codeMode == CodeMode.EXPERT) {
-          AddImportsWindow.main(codingFile, codingAreaClassMode.getText(), codeMode,
-              codingAreaClassMode.getFont());
         } else {
           informationTextPane.append("Error with mode switch button. Mode was not set correcty.");
         }
@@ -438,20 +361,11 @@ public class MainUserInput implements CommandListener, Terminal {
     btnZoomIn.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // Add Zoom
-        if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED) {
+        if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
+            || codeMode == CodeMode.EXPERT) {
           Font font = codingArea.getFont();
           if (font.getSize() <= 45) {
             codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
-            codingAreaClassMode
-                .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
-            terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
-          }
-        } else if (codeMode == CodeMode.EXPERT) {
-          Font font = codingAreaClassMode.getFont();
-          if (font.getSize() <= 45) {
-            codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
-            codingAreaClassMode
-                .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
             terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
           }
         } else {
@@ -462,20 +376,11 @@ public class MainUserInput implements CommandListener, Terminal {
     btnZoomOut.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // Subtract Zoom
-        if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED) {
+        if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
+            || codeMode == CodeMode.EXPERT) {
           Font font = codingArea.getFont();
           if (font.getSize() >= 4) {
             codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
-            codingAreaClassMode
-                .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
-            terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
-          }
-        } else if (codeMode == CodeMode.EXPERT) {
-          Font font = codingAreaClassMode.getFont();
-          if (font.getSize() >= 4) {
-            codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
-            codingAreaClassMode
-                .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
             terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
           }
         } else {
