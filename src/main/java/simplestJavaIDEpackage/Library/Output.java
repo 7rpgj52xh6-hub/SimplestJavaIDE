@@ -7,14 +7,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import simplestJavaIDEpackage.CodingFile;
 
-public class TerminalTextPane extends JTextArea implements CommandListener {
-  /**
-   * 
-   */
+public class Output extends JTextArea implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
   public Command cmd;
 
-  public TerminalTextPane() {
+  public Output() {
     cmd = new Command(this);
   }
 

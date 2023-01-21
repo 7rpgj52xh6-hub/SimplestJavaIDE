@@ -30,7 +30,7 @@ import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.InformationTextPane;
-import simplestJavaIDEpackage.Library.TerminalTextPane;
+import simplestJavaIDEpackage.Library.Output;
 
 /**
  * 
@@ -40,7 +40,7 @@ import simplestJavaIDEpackage.Library.TerminalTextPane;
 public class MainUserInput {
 
   private JFrame frmSimplestJavaIDE;
-  private TerminalTextPane terminal;
+  private Output terminal;
   private InformationTextPane informationTextPane;
   private CodeMode codeMode;
   private JTextField userInputTextField;
@@ -265,7 +265,7 @@ public class MainUserInput {
 
     // Output
 
-    terminal = new TerminalTextPane();
+    terminal = new Output();
     terminal.setFocusable(false);
     terminal.setEditable(false);
     terminal.setBackground(new Color(35, 35, 35));
