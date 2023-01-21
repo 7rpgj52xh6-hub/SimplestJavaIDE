@@ -6,16 +6,27 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import simplestJavaIDEpackage.CodingFile;
+import simplestJavaIDEpackage.ErrorPopupWindow;
 
+/**
+ * This class implements the terminal with all possible functions
+ * 
+ * @author Daniel Trageser
+ * 
+ */
 public class Output extends JTextArea implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
-  public Command cmd;
+  private Command cmd;
 
   public Output() {
     cmd = new Command(this);
   }
 
-  public void appendText(String text) {
+  public Command getCommand() {
+    return this.cmd;
+  }
+
+  void appendText(String text) {
     this.append(text);
   }
 
@@ -35,7 +46,7 @@ public class Output extends JTextArea implements CommandListener {
     SwingUtilities.invokeLater(new AppendTask(this, "Command failed - " + exp.getMessage()));
   }
 
-  public void runCommand(String command, JButton runButton, JButton compileButton)
+  private void runCommand(String command, JButton runButton, JButton compileButton)
       throws IOException, BadLocationException {
     if (!cmd.isRunning()) {
       cmd.execute(command, runButton, compileButton);
@@ -43,9 +54,7 @@ public class Output extends JTextArea implements CommandListener {
       try {
         cmd.send(command + "\n");
       } catch (IOException ex) {
-        // this.getInformationTextPane()
-        // .append("!! Failed to send command to process:" + ex.getMessage());
-        // TODO Error handling
+        ErrorPopupWindow.main(null, "!! Failed to send command to process:" + ex.getMessage());
       }
     }
   }
@@ -55,19 +64,17 @@ public class Output extends JTextArea implements CommandListener {
     try {
       runCommand("javac " + codingFile.getAbsolutePath(), runButton, compileButton);
     } catch (IOException | BadLocationException e) {
-      // this.getInformationTextPane().append(e.getMessage());
-      // TODO Error handling
+      ErrorPopupWindow.main(null, e.getMessage());
     }
   }
 
-  public void runApplication(JTextArea outputTextPane, CodingFile codingFile, JButton runButton,
+  public void run(JTextArea outputTextPane, CodingFile codingFile, JButton runButton,
       JButton compileButton) {
     try {
       runCommand("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName(),
           runButton, compileButton);
     } catch (IOException | BadLocationException e) {
-      // this.getInformationTextPane().append(e.getMessage());
-      // TODO Error Handling
+      ErrorPopupWindow.main(null, e.getMessage());
     }
   }
 

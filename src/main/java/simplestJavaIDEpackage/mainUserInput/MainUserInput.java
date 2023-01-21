@@ -176,17 +176,17 @@ public class MainUserInput {
       @Override
       public void actionPerformed(ActionEvent e) {
         // TODO Implement in Terminal
-        if (!terminal.cmd.isRunning()) {
-          terminal.cmd.execute(userInputTextField.getText(), btnRun, btnCompile);
+        if (!terminal.getCommand().isRunning()) {
+          terminal.getCommand().execute(userInputTextField.getText(), btnRun, btnCompile);
           informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
           userInputTextField.setText(null);
         } else {
           try {
-            terminal.cmd.send(userInputTextField.getText() + "\n");
+            terminal.getCommand().send(userInputTextField.getText() + "\n");
             informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
             userInputTextField.setText(null);
           } catch (IOException ex) {
-            informationTextPane.append("!! Failed to send command to process: " + ex.getMessage());
+            ErrorPopupWindow.main(null, "!! Failed to send command to process: " + ex.getMessage());
           }
         }
       }
@@ -264,7 +264,6 @@ public class MainUserInput {
     }
 
     // Output
-
     terminal = new Output();
     terminal.setFocusable(false);
     terminal.setEditable(false);
@@ -299,7 +298,8 @@ public class MainUserInput {
             codingArea.append(codingFile.getCode(codeMode));
             break;
           default:
-            informationTextPane.append("Error with mode switch button. Mode was not set correcty.");
+            ErrorPopupWindow.main(null,
+                "Error with mode switch button. Mode was not set correcty.");
             break;
         }
       }
@@ -315,7 +315,7 @@ public class MainUserInput {
             || codeMode == CodeMode.EXPERT) {
           AddImportsWindow.main(codingFile, codingArea.getText(), codeMode, codingArea.getFont());
         } else {
-          informationTextPane.append("Error with mode switch button. Mode was not set correcty.");
+          ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
         }
         save(codingArea, codingFile); // Also save other code
         btnSave.setEnabled(false);
@@ -332,7 +332,7 @@ public class MainUserInput {
         // RUN AND SAVE
         save(codingArea, codingFile);
         informationTextPane.append("Running Application...\n");
-        terminal.runApplication(codingArea, codingFile, btnRun, btnCompile);
+        terminal.run(codingArea, codingFile, btnRun, btnCompile);
         btnSave.setEnabled(false);
       }
     });
@@ -358,7 +358,7 @@ public class MainUserInput {
             terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
           }
         } else {
-          informationTextPane.append("Error with mode switch button. Mode was not set correcty.");
+          ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
         }
       }
     });
@@ -373,7 +373,7 @@ public class MainUserInput {
             terminal.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
           }
         } else {
-          informationTextPane.append("Error with mode switch button. Mode was not set correcty.");
+          ErrorPopupWindow.main(null, "Error with mode switch button. Mode was not set correcty.");
         }
       }
     });
