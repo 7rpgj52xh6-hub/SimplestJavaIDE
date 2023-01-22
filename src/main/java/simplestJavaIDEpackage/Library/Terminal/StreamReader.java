@@ -2,11 +2,14 @@ package simplestJavaIDEpackage.Library.Terminal;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class StreamReader extends Thread {
   private InputStream is;
   private CommandListener listener;
+  private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
   public StreamReader(CommandListener listener, InputStream is) {
     this.is = is;
@@ -16,7 +19,10 @@ public class StreamReader extends Thread {
 
   @Override
   public void run() {
+    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    String start = ("[" + sdf.format(timestamp) + "]:\n");
     try {
+      listener.commandOutput(start);
       int value = -1;
       while ((value = is.read()) != -1) {
         listener.commandOutput(Character.toString((char) value));

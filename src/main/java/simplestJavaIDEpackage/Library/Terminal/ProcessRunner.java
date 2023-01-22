@@ -10,7 +10,9 @@ public class ProcessRunner extends Thread {
   private List<String> cmds;
   private CommandListener listener;
   private Process process;
-  private boolean ranWithErrors;
+  private boolean isCompile;
+  private boolean compiledWithErrors;
+
 
   public ProcessRunner(CommandListener listener, List<String> cmds) {
     this.cmds = cmds;
@@ -23,29 +25,37 @@ public class ProcessRunner extends Thread {
       ProcessBuilder pb = new ProcessBuilder(cmds);
       pb.redirectErrorStream();
       process = pb.start();
-      InputStream is = process.getInputStream();
       InputStream errs = process.getErrorStream();
-      StreamReader reader = new StreamReader(listener, is);
-      if (errs.read() != -1) {
-        StreamReader errorReader = new StreamReader(listener, errs);
-        errorReader.join();
-        ranWithErrors = true;
+      int result;
+      if (!isCompile) {
+        InputStream is = process.getInputStream();
+        StreamReader reader = new StreamReader(listener, is);
+        if (errs.read() != -1) {
+          StreamReader errorReader = new StreamReader(listener, errs);
+          errorReader.join();
+          this.compiledWithErrors = true;
+          // TODO Prevent run if compile fails
+        }
+        result = process.waitFor();
+        reader.join();
       } else {
-        ranWithErrors = false;
+        if (errs.read() != -1) {
+          StreamReader errorReader = new StreamReader(listener, errs);
+          errorReader.join();
+          this.compiledWithErrors = true;
+        }
+        result = process.waitFor();
       }
-      int result = process.waitFor();
-      reader.join();
-
       StringJoiner sj = new StringJoiner(" ");
       cmds.stream().forEach((cmd) -> {
         sj.add(cmd);
       });
-
       listener.commandCompleted(sj.toString(), result);
     } catch (Exception e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
       listener.commandFailed(e);
     }
+
   }
 
   public void write(String text) throws IOException {
@@ -55,7 +65,7 @@ public class ProcessRunner extends Thread {
     }
   }
 
-  public boolean ranWithErrors() {
-    return this.ranWithErrors;
+  public boolean checkIfCompiledWithErrors() {
+    return this.compiledWithErrors;
   }
 }

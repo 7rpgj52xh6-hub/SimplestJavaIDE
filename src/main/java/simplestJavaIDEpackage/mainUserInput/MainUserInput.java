@@ -5,12 +5,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -31,8 +33,7 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.InfoTextPane;
 import simplestJavaIDEpackage.Library.Output;
-import simplestJavaIDEpackage.Library.Output.CommandType;
-import simplestJavaIDEpackage.Library.Output.ErrorsHappened;;
+import simplestJavaIDEpackage.Library.Output.CommandType;;
 
 /**
  * 
@@ -43,7 +44,7 @@ public class MainUserInput {
 
   private JFrame frmSimplestJavaIDE;
   private Output terminal;
-  private InfoTextPane informationTextPane;
+  private static InfoTextPane informationTextPane;
   private CodeMode codeMode;
   private JTextField userInputTextField;
 
@@ -136,8 +137,6 @@ public class MainUserInput {
     btnAddImports.setBounds(6, 6, 131, 36);
     panelButtons.add(btnAddImports);
 
-    // TODO Add terminal clear button
-
     JButton btnHelp = new JButton("Help");
     btnHelp.setIcon(null);
     btnHelp.setBounds(184, 48, 86, 36);
@@ -147,14 +146,23 @@ public class MainUserInput {
     btnSwitchCodeMode.setBounds(140, 6, 131, 36);
     panelButtons.add(btnSwitchCodeMode);
 
-    JButton btnRun = new JButton("Run");
-    btnRun.setBounds(184, 90, 86, 36);
-    btnRun.setEnabled(false);
-    panelButtons.add(btnRun);
+    JButton btnClearConsole = new JButton("Clear");
+    btnClearConsole.setBounds(184, 90, 86, 36);
+    panelButtons.add(btnClearConsole);
 
-    JButton btnCompile = new JButton("Compile");
-    btnCompile.setBounds(95, 90, 86, 36);
-    panelButtons.add(btnCompile);
+    JButton btnCompileAndRun = new JButton("Run code");
+    btnCompileAndRun.setBounds(95, 90, 86, 36);
+    try {
+      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("run.png"))
+          .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnCompileAndRun = new ImageIcon(tmpImage);
+      btnCompileAndRun.setIcon(iconBtnCompileAndRun);
+      btnCompileAndRun.setText("Run");
+      // TODO Make 4 icons (Rollover, Pressed, Disbled)
+    } catch (IOException e1) {
+      ErrorPopupWindow.throwMessage(e1.getMessage());
+    }
+    panelButtons.add(btnCompileAndRun);
 
     JButton btnZoomIn = new JButton("Zoom +");
     btnZoomIn.setBounds(6, 48, 86, 36);
@@ -179,13 +187,8 @@ public class MainUserInput {
     userInputTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ErrorsHappened eh = terminal.run(CommandType.INPUT, codingFile);
-        if (eh == ErrorsHappened.YES) {
-          btnRun.setEnabled(false);
-          btnCompile.setEnabled(false);
-        } else if (eh == ErrorsHappened.NO) {
-          informationTextPane.append("User input was: " + userInputTextField.getText() + "\n");
-        }
+        terminal.run(CommandType.INPUT, codingFile, btnCompileAndRun);
+        btnCompileAndRun.setEnabled(false);
         userInputTextField.setText(null);
       }
     });
@@ -214,16 +217,14 @@ public class MainUserInput {
       public void insertUpdate(DocumentEvent e) {
         codingFile.isSaved = false;
         btnSave.setEnabled(true);
-        btnCompile.setEnabled(true);
-        btnRun.setEnabled(false);
+        btnCompileAndRun.setEnabled(true);
       }
 
       @Override
       public void removeUpdate(DocumentEvent e) {
         codingFile.isSaved = false;
         btnSave.setEnabled(true);
-        btnCompile.setEnabled(true);
-        btnRun.setEnabled(false);
+        btnCompileAndRun.setEnabled(true);
       }
     });
     codingArea.addKeyListener(new KeyListener() {
@@ -323,36 +324,21 @@ public class MainUserInput {
         btnSave.setEnabled(false);
       }
     });
-    btnRun.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        // RUN AND SAVE
-        CommandType ct = CommandType.RUN;
-        save(codingArea, codingFile);
-        informationTextPane.append("Running Application...\n");
-        ErrorsHappened eh = terminal.run(ct, codingFile);
-        if (eh == ErrorsHappened.NO) { // if it did run without errors
-          btnRun.setEnabled(true);
-          btnSave.setEnabled(false);
-          btnCompile.setEnabled(false);
-        } else if (eh == ErrorsHappened.UNDEFINED) {
-          ErrorPopupWindow.throwMessage("Unsure if errors occured trying to run the program.");
-        }
-      }
-    });
-    btnCompile.addActionListener(new ActionListener() {
+    btnCompileAndRun.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // COMPILE AND SAVE
-        CommandType ct = CommandType.COMPILE;
+        CommandType ct = CommandType.COMPILE_AND_RUN;
         save(codingArea, codingFile);
         btnSave.setEnabled(false);
         informationTextPane.append("Compiling Code...!\n");
-        ErrorsHappened eh = terminal.run(ct, codingFile);
-        if (eh == ErrorsHappened.NO) { // if it did run without errors
-          btnRun.setEnabled(true);
-          btnCompile.setEnabled(false);
-        } else if (eh == ErrorsHappened.UNDEFINED) {
-          ErrorPopupWindow.throwMessage("Unsure if errors occured during compiling.");
-        }
+        terminal.run(ct, codingFile, btnCompileAndRun);
+      }
+    });
+    btnClearConsole.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        terminal.getTextArea().setText(null);
+        informationTextPane.setText(null);
       }
     });
     btnZoomIn.addActionListener(new ActionListener() {
@@ -391,8 +377,8 @@ public class MainUserInput {
     });
   }
 
-  public InfoTextPane getInformationTextPane() {
-    return this.informationTextPane;
+  public static InfoTextPane getInformationTextPane() {
+    return informationTextPane;
   }
 
   public void save(RSyntaxTextArea codingArea, CodingFile codingFile) {
