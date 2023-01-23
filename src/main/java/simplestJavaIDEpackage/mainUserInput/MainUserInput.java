@@ -13,7 +13,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -120,35 +120,61 @@ public class MainUserInput {
     DefaultCaret informationTextPaneCaret = (DefaultCaret) informationTextPane.getCaret();
     informationTextPaneCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
-    scrollPaneInformationTextPane.setBounds(6, 215, 264, 70);
+    scrollPaneInformationTextPane.setBounds(6, 173, 264, 70);
     panelButtonsAndInformationTextPane.add(scrollPaneInformationTextPane, BorderLayout.CENTER);
 
     JPanel panelButtons = new JPanel();
     panelButtonsAndInformationTextPane.add(panelButtons, BorderLayout.NORTH);
-    panelButtons.setMaximumSize(new Dimension(278, 175));
-    panelButtons.setPreferredSize(new Dimension(278, 175));
+    panelButtons.setMaximumSize(new Dimension(278, 90));
+    panelButtons.setPreferredSize(new Dimension(278, 90));
     panelButtons.setBackground(new Color(47, 47, 47));
     panelButtons.setLayout(null);
 
-    // Buttons
     JButton btnAddImports = new JButton("Add imports");
-    btnAddImports.setBounds(6, 6, 131, 36);
+    btnAddImports.setBounds(10, 6, 126, 36);
     panelButtons.add(btnAddImports);
 
+    // Action Panel
+    JPanel actionPanel = new JPanel();
+    actionPanel.setBounds(6, 48, 264, 36);
+    actionPanel.setLayout(new BoxLayout(actionPanel, BoxLayout.X_AXIS));
+    actionPanel.setOpaque(false);
+    panelButtons.add(actionPanel);
+
+    // Help button
+    JPanel panelBtnHelp = new JPanel(new BorderLayout());
+    panelBtnHelp.setPreferredSize(new Dimension(44, 36));
+    panelBtnHelp.setOpaque(false);
     JButton btnHelp = new JButton("Help");
-    btnHelp.setIcon(null);
-    btnHelp.setBounds(95, 48, 86, 36);
-    panelButtons.add(btnHelp);
+    try {
+      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnHelp.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnHelp = new ImageIcon(tmpImage);
+      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnHelpPressed.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnHelpPressed = new ImageIcon(tmpImage);
+      btnHelp.setIcon(iconBtnHelp);
+      btnHelp.setPressedIcon(iconBtnHelpPressed);
+      btnHelp.setText(null);
+      btnHelp.setBorderPainted(false);
+      btnHelp.setBorder(null);
+      btnHelp.setMargin(new Insets(0, 0, 0, 0));
+      btnHelp.setContentAreaFilled(false);
+      btnHelp.setBounds(95, 90, 30, 30);
+    } catch (IOException e1) {
+      ErrorPopupWindow.throwMessage(e1.getMessage());
+    }
+    panelBtnHelp.add(btnHelp, BorderLayout.CENTER);
+
 
     JButton btnSwitchCodeMode = new JButton("Mode: Standard");
-    btnSwitchCodeMode.setBounds(140, 6, 131, 36);
+    btnSwitchCodeMode.setBounds(146, 6, 126, 36);
     panelButtons.add(btnSwitchCodeMode);
 
     // Save button
-    JPanel panelSave = new JPanel();
-    panelSave.setBounds(0, 0, 131, 36);
-    panelSave.setLayout(new BorderLayout());
-    panelSave.setOpaque(false);
+    JPanel panelBtnSave = new JPanel(new BorderLayout());
+    panelBtnSave.setPreferredSize(new Dimension(66, 36));
+    panelBtnSave.setOpaque(false);
     JButton btnSave = new JButton("Save");
     try {
       Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSave.png"))
@@ -172,17 +198,14 @@ public class MainUserInput {
     } catch (IOException e1) {
       ErrorPopupWindow.throwMessage(e1.getMessage());
     }
-    panelSave.add(btnSave, BorderLayout.CENTER);
+    panelBtnSave.add(btnSave, BorderLayout.CENTER);
+
 
     // Run button
-    JPanel panelRun = new JPanel();
-    panelRun.setLayout(new BorderLayout());
-    panelRun.setBounds(131, 0, 131, 36);
-    panelRun.setOpaque(false);
+    JPanel panelBtnRun = new JPanel(new BorderLayout());
+    panelBtnRun.setPreferredSize(new Dimension(66, 36));
+    panelBtnRun.setOpaque(false);
     JButton btnCompileAndRun = new JButton("Run code");
-    /**
-     * Make run button look special
-     */
     try {
       Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnRun.png"))
           .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
@@ -205,25 +228,69 @@ public class MainUserInput {
     } catch (IOException e1) {
       ErrorPopupWindow.throwMessage(e1.getMessage());
     }
-    panelRun.add(btnCompileAndRun, BorderLayout.CENTER);
+    panelBtnRun.add(btnCompileAndRun, BorderLayout.CENTER);
 
-    // Save and Run Panel
-    JPanel panelSaveAndRun = new JPanel();
-    panelSaveAndRun.setBounds(6, 90, 264, 36);
-    panelSaveAndRun.setLayout(null);
-    panelSaveAndRun.setBorder(BorderFactory.createLineBorder(new Color(35, 35, 35)));
-    panelSaveAndRun.setOpaque(false);
-    panelSaveAndRun.add(panelSave);
-    panelSaveAndRun.add(panelRun);
-    panelButtons.add(panelSaveAndRun);
 
+    // ZoomIn Button
+    JPanel panelBtnZoomIn = new JPanel(new BorderLayout());
+    panelBtnZoomIn.setPreferredSize(new Dimension(44, 36));
+    panelBtnZoomIn.setOpaque(false);
     JButton btnZoomIn = new JButton("+");
     btnZoomIn.setBounds(6, 48, 42, 36);
-    panelButtons.add(btnZoomIn);
+    try {
+      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnZoomIn.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnZoomIn = new ImageIcon(tmpImage);
+      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnZoomInPressed.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnZoomInPressed = new ImageIcon(tmpImage);
+      btnZoomIn.setIcon(iconBtnZoomIn);
+      btnZoomIn.setPressedIcon(iconBtnZoomInPressed);
+      btnZoomIn.setText(null);
+      btnZoomIn.setBorderPainted(false);
+      btnZoomIn.setBorder(null);
+      btnZoomIn.setMargin(new Insets(0, 0, 0, 0));
+      btnZoomIn.setContentAreaFilled(false);
+      btnZoomIn.setBounds(95, 90, 30, 30);
+    } catch (IOException e1) {
+      ErrorPopupWindow.throwMessage(e1.getMessage());
+    }
+    panelBtnZoomIn.add(btnZoomIn, BorderLayout.CENTER);
 
+
+    // ZoomOut Button
+    JPanel panelBtnZoomOut = new JPanel(new BorderLayout());
+    panelBtnZoomOut.setPreferredSize(new Dimension(44, 36));
+    panelBtnZoomOut.setOpaque(false);
     JButton btnZoomOut = new JButton("-");
     btnZoomOut.setBounds(50, 48, 42, 36);
-    panelButtons.add(btnZoomOut);
+    try {
+      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnZoomOut.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnZoomOut = new ImageIcon(tmpImage);
+      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnZoomOutPressed.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnZoomOutPressed = new ImageIcon(tmpImage);
+      btnZoomOut.setIcon(iconBtnZoomOut);
+      btnZoomOut.setPressedIcon(iconBtnZoomOutPressed);
+      btnZoomOut.setText(null);
+      btnZoomOut.setBorderPainted(false);
+      btnZoomOut.setBorder(null);
+      btnZoomOut.setMargin(new Insets(0, 0, 0, 0));
+      btnZoomOut.setContentAreaFilled(false);
+      btnZoomOut.setBounds(95, 90, 30, 30);
+    } catch (IOException e1) {
+      ErrorPopupWindow.throwMessage(e1.getMessage());
+    }
+    panelBtnZoomOut.add(btnZoomOut, BorderLayout.CENTER);
+
+
+    // Action panel layout
+    actionPanel.add(panelBtnHelp);
+    actionPanel.add(panelBtnZoomIn);
+    actionPanel.add(panelBtnZoomOut);
+    actionPanel.add(panelBtnSave);
+    actionPanel.add(panelBtnRun);
 
     // Coding input and load code if code is not null (from loading file)
     RSyntaxTextArea codingArea = new RSyntaxTextArea(20, 60);
