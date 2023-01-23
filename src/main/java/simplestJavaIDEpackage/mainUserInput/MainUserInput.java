@@ -6,12 +6,14 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -29,9 +31,9 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import simplestJavaIDEpackage.CodingFile;
-import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
+import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.Library.InfoTextPane;
 import simplestJavaIDEpackage.Library.Output;
 import simplestJavaIDEpackage.Library.Output.CommandType;;
@@ -131,18 +133,13 @@ public class MainUserInput {
     panelButtons.setLayout(null);
 
     // Buttons
-    JButton btnSave = new JButton("Save");
-    btnSave.setBounds(6, 90, 86, 36);
-    btnSave.setEnabled(false);
-    panelButtons.add(btnSave);
-
     JButton btnAddImports = new JButton("Add imports");
     btnAddImports.setBounds(6, 6, 131, 36);
     panelButtons.add(btnAddImports);
 
     JButton btnHelp = new JButton("Help");
     btnHelp.setIcon(null);
-    btnHelp.setBounds(184, 48, 86, 36);
+    btnHelp.setBounds(95, 48, 86, 36);
     panelButtons.add(btnHelp);
 
     JButton btnSwitchCodeMode = new JButton("Mode: Standard");
@@ -150,29 +147,88 @@ public class MainUserInput {
     panelButtons.add(btnSwitchCodeMode);
 
     JButton btnClearConsole = new JButton("Clear");
-    btnClearConsole.setBounds(184, 90, 86, 36);
+    btnClearConsole.setBounds(184, 48, 86, 36);
     panelButtons.add(btnClearConsole);
 
-    JButton btnCompileAndRun = new JButton("Run code");
-    btnCompileAndRun.setBounds(95, 90, 86, 36);
+    // Save button
+    JPanel panelSave = new JPanel();
+    panelSave.setBounds(0, 0, 131, 36);
+    panelSave.setLayout(new BorderLayout());
+    panelSave.setOpaque(false);
+    JButton btnSave = new JButton("Save");
     try {
-      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("run.png"))
-          .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnCompileAndRun = new ImageIcon(tmpImage);
-      btnCompileAndRun.setIcon(iconBtnCompileAndRun);
-      btnCompileAndRun.setText("Run");
-      // TODO Make 4 icons (Rollover, Pressed, Disbled)
+      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSave.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnSave = new ImageIcon(tmpImage);
+      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSavePressed.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnSavePressed = new ImageIcon(tmpImage);
+      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSaveDisabled.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnSaveDisabled = new ImageIcon(tmpImage);
+      btnSave.setIcon(iconBtnSave);
+      btnSave.setPressedIcon(iconBtnSavePressed);
+      btnSave.setDisabledIcon(iconBtnSaveDisabled);
+      btnSave.setText(null);
+      btnSave.setBorderPainted(false);
+      btnSave.setBorder(null);
+      btnSave.setMargin(new Insets(0, 0, 0, 0));
+      btnSave.setContentAreaFilled(false);
+      btnSave.setBounds(95, 90, 30, 30);
     } catch (IOException e1) {
       ErrorPopupWindow.throwMessage(e1.getMessage());
     }
-    panelButtons.add(btnCompileAndRun);
+    panelSave.add(btnSave, BorderLayout.CENTER);
 
-    JButton btnZoomIn = new JButton("Zoom +");
-    btnZoomIn.setBounds(6, 48, 86, 36);
+    // Run button
+    JPanel panelRun = new JPanel();
+    panelRun.setLayout(new BorderLayout());
+    panelRun.setBounds(131, 0, 131, 36);
+    panelRun.setOpaque(false);
+    JButton btnCompileAndRun = new JButton("Run code");
+    /**
+     * Make run button look special
+     */
+    try {
+      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnRun.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnCompileAndRun = new ImageIcon(tmpImage);
+      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnRunPressed.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnCompileAndRunPressed = new ImageIcon(tmpImage);
+      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnRunDisabled.png"))
+          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      ImageIcon iconBtnCompileAndRunDisabled = new ImageIcon(tmpImage);
+      btnCompileAndRun.setIcon(iconBtnCompileAndRun);
+      btnCompileAndRun.setPressedIcon(iconBtnCompileAndRunPressed);
+      btnCompileAndRun.setDisabledIcon(iconBtnCompileAndRunDisabled);
+      btnCompileAndRun.setText(null);
+      btnCompileAndRun.setBorderPainted(false);
+      btnCompileAndRun.setBorder(null);
+      btnCompileAndRun.setMargin(new Insets(0, 0, 0, 0));
+      btnCompileAndRun.setContentAreaFilled(false);
+      btnCompileAndRun.setBounds(95, 90, 30, 30);
+    } catch (IOException e1) {
+      ErrorPopupWindow.throwMessage(e1.getMessage());
+    }
+    panelRun.add(btnCompileAndRun, BorderLayout.CENTER);
+
+    // Save and Run Panel
+    JPanel panelSaveAndRun = new JPanel();
+    panelSaveAndRun.setBounds(6, 90, 264, 36);
+    panelSaveAndRun.setLayout(null);
+    panelSaveAndRun.setBorder(BorderFactory.createLineBorder(new Color(35, 35, 35)));
+    panelSaveAndRun.setOpaque(false);
+    panelSaveAndRun.add(panelSave);
+    panelSaveAndRun.add(panelRun);
+    panelButtons.add(panelSaveAndRun);
+
+    JButton btnZoomIn = new JButton("+");
+    btnZoomIn.setBounds(6, 48, 42, 36);
     panelButtons.add(btnZoomIn);
 
-    JButton btnZoomOut = new JButton("Zoom -");
-    btnZoomOut.setBounds(95, 48, 86, 36);
+    JButton btnZoomOut = new JButton("-");
+    btnZoomOut.setBounds(50, 48, 42, 36);
     panelButtons.add(btnZoomOut);
 
     JLabel lblUserInput = new JLabel(
