@@ -23,6 +23,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.DefaultCaret;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
@@ -116,6 +117,8 @@ public class MainUserInput {
     informationTextPane.setEditable(false);
     informationTextPane.setFocusable(false);
     informationTextPane.setBackground(new Color(40, 40, 40));
+    DefaultCaret informationTextPaneCaret = (DefaultCaret) informationTextPane.getCaret();
+    informationTextPaneCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
     scrollPaneInformationTextPane.setBounds(6, 215, 264, 70);
     panelButtonsAndInformationTextPane.add(scrollPaneInformationTextPane, BorderLayout.CENTER);

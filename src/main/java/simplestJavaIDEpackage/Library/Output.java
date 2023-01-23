@@ -6,6 +6,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.text.DefaultCaret;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.Terminal.AppendTask;
@@ -33,6 +34,8 @@ public class Output extends JScrollPane implements CommandListener {
   public Output(JTextField userInputField) {
     cmd = new Command(this);
     terminalTextArea = new JTextArea();
+    DefaultCaret terminalTextAreaCaret = (DefaultCaret) terminalTextArea.getCaret();
+    terminalTextAreaCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     this.userInputField = userInputField;
     this.setViewportView(terminalTextArea);
     this.setFocusable(false);

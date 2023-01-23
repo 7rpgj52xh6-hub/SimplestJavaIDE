@@ -105,6 +105,9 @@ public class StartingWindow {
             ErrorPopupWindow.throwMessage("File path can't contain any spaces. Please reselect.");
           } else if (Character.isDigit(fileChooser.getSelectedFile().getName().charAt(0))) {
             ErrorPopupWindow.throwMessage("File name can't start with a number. Please reselect.");
+          } else if (fileChooser.getSelectedFile().getAbsolutePath().contains(".")) {
+            ErrorPopupWindow
+                .throwMessage("File path can't contain any period/dot. Please reselect.");
           } else {
             File file = fileChooser.getSelectedFile();
             CodingFile codingFile = new CodingFile(file, false); // isNewFile = true
@@ -132,6 +135,9 @@ public class StartingWindow {
             ErrorPopupWindow.throwMessage("File path can't contain any spaces. Please reselect.");
           } else if (Character.isDigit(fileChooser.getSelectedFile().getName().charAt(0))) {
             ErrorPopupWindow.throwMessage("File name can't start with a number. Please reselect.");
+          } else if (fileChooser.getSelectedFile().getAbsolutePath().contains(".")) {
+            ErrorPopupWindow
+                .throwMessage("File path can't contain any period/dot. Please reselect.");
           } else {
             File tmpfile = fileChooser.getSelectedFile();
             File file = new File(tmpfile.toString().replaceAll(" ", ""));
