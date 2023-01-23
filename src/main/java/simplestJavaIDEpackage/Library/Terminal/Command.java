@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.JButton;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class Command {
@@ -58,20 +57,26 @@ public class Command {
     return null;
   }
 
-  /**
-   * 
-   * @param cmd is the command to run as string
-   * @param runButton is the button do disable if it did run with errors
-   * @return returns true if it could be run without errors
-   */
-  public boolean run(String cmd, JButton runButton) {
+  public void compile(String cmd) {
     runner = new ProcessRunner(listener, getValues(cmd));
     try {
       runner.join();
     } catch (InterruptedException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
     }
-    return !runner.checkIfCompiledWithErrors();
+  }
+
+  public void run(String cmd) {
+    runner = new ProcessRunner(listener, getValues(cmd));
+  }
+
+  public void input(String cmd) {
+    runner = new ProcessRunner(listener, getValues(cmd));
+    try {
+      runner.join();
+    } catch (InterruptedException e) {
+      ErrorPopupWindow.throwMessage(e.getMessage());
+    }
   }
 
   public void send(String cmd) throws IOException {

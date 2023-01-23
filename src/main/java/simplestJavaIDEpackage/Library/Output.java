@@ -1,6 +1,7 @@
 package simplestJavaIDEpackage.Library;
 
 import java.awt.Color;
+import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -12,8 +13,6 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.Terminal.AppendTask;
 import simplestJavaIDEpackage.Library.Terminal.Command;
 import simplestJavaIDEpackage.Library.Terminal.CommandListener;
-import simplestJavaIDEpackage.Library.Terminal.CompileRunnable;
-import simplestJavaIDEpackage.Library.Terminal.RunRunnable;
 
 /**
  * This class implements the terminal with all possible functions
@@ -28,7 +27,7 @@ public class Output extends JScrollPane implements CommandListener {
   private JTextField userInputField;
 
   public enum CommandType {
-    COMPILE_AND_RUN, INPUT
+    COMPILE, RUN, INPUT
   }
 
   public Output(JTextField userInputField) {
@@ -80,18 +79,52 @@ public class Output extends JScrollPane implements CommandListener {
    */
   public void run(CommandType ct, CodingFile cf, JButton runButton) {
     switch (ct) {
-      case COMPILE_AND_RUN:
-        SwingUtilities.invokeLater(new CompileRunnable(cmd, runButton, cf));
+      case COMPILE:
+        String cmdCompile = "javac " + cf.getAbsolutePath();
+        if (!cmd.isRunning()) {
+          cmd.compile(cmdCompile);
+        } else {
+          try {
+            cmd.send(cmdCompile + "\n");
+          } catch (IOException ex) {
+            ErrorPopupWindow
+                .throwMessage("!! Failed to send compile command to process:" + ex.getMessage());
+          }
+        }
+        break;
+      case RUN:
+        String cmdRun = "java -cp " + cf.getClassPath() + " " + cf.getClassName();
+        if (!cmd.isRunning()) {
+          cmd.run(cmdRun);
+        } else {
+          try {
+            cmd.send(cmdRun + "\n");
+          } catch (IOException ex) {
+            ErrorPopupWindow
+                .throwMessage("!! Failed to send run command to process:" + ex.getMessage());
+          }
+        }
         break;
       case INPUT:
-        String input = userInputField.getText();
-        if (input != null) {
-          SwingUtilities.invokeLater(new RunRunnable(cmd, input, runButton));
+        if (userInputField.getText() != null) {
+          if (!cmd.isRunning()) {
+            cmd.input(userInputField.getText());
+          } else {
+            try {
+              cmd.send(userInputField.getText() + "\n");
+            } catch (IOException ex) {
+              ErrorPopupWindow
+                  .throwMessage("!! Failed to send run command to process:" + ex.getMessage());
+            }
+          }
         }
         break;
       default:
-        ErrorPopupWindow.throwMessage("False command. Not allowed.");
+        ErrorPopupWindow
+            .throwMessage("Commands other than compiling and running java are not allowed");
         break;
     }
   }
+
+
 }
