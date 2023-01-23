@@ -1,14 +1,22 @@
 package simplestJavaIDEpackage.Library;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultCaret;
 import simplestJavaIDEpackage.CodingFile;
@@ -23,25 +31,80 @@ import simplestJavaIDEpackage.Library.Terminal.ProcessRunner;
  * @author Daniel Trageser
  * 
  */
-public class Output extends JScrollPane implements CommandListener {
+public class Output extends JPanel implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
   private JTextArea terminalTextArea;
-  private JTextField userInputField;
   private ProcessRunner runner;
+  private CodingFile codingFile;
+  private JScrollPane terminalTextAreaScrollPane;
+  private JTextField userInputTextField;
+  private JButton btnCompileAndRun;
+  private Output terminal;
 
   public enum CommandType {
     COMPILE, RUN, INPUT
   }
 
-  public Output(JTextField userInputField) {
+  public Output(JTextField userInputField, CodingFile codingFile, JButton btnCompileAndRun) {
+    initializeUI();
+    this.codingFile = codingFile;
+    this.btnCompileAndRun = btnCompileAndRun;
+    this.terminal = this;
+  }
+
+  public void initializeUI() {
+    // Input
+    userInputTextField = new JTextField();
+    userInputTextField.setBounds(98, 133, 170, 36);
+    userInputTextField.setColumns(1);
+    userInputTextField.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        terminal.tryRunning(CommandType.INPUT);
+        btnCompileAndRun.setEnabled(false);
+        userInputTextField.setText(null);
+      }
+    });
+
+    // Top Panel
+    JPanel panelClearBtnAndLabel = new JPanel();
+    panelClearBtnAndLabel.setLayout(new BorderLayout());
+    JButton btnClearConsole = new JButton("Clear");
+    btnClearConsole.setPreferredSize(new Dimension(86, 36));
+    btnClearConsole.setMargin(new Insets(6, 6, 6, 6));
+    btnClearConsole.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        terminal.getTextArea().setText(null);
+        // TODO enable following line
+        // informationTextPane.setText(null);
+      }
+    });
+    panelClearBtnAndLabel.add(btnClearConsole, BorderLayout.LINE_START);
+    JLabel lblUserInput = new JLabel(
+        "<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
+    lblUserInput.setVerticalAlignment(SwingConstants.TOP);
+    lblUserInput.setBounds(10, 131, 86, 36);
+    panelClearBtnAndLabel.add(lblUserInput);
+    JPanel topPanel = new JPanel();
+    topPanel.setLayout(new BorderLayout());
+    topPanel.add(userInputTextField, BorderLayout.CENTER);
+    topPanel.add(panelClearBtnAndLabel, BorderLayout.LINE_START);
+
+    // Output
     terminalTextArea = new JTextArea();
+    terminalTextAreaScrollPane = new JScrollPane();
+    terminalTextAreaScrollPane.setViewportView(terminalTextArea);
     DefaultCaret terminalTextAreaCaret = (DefaultCaret) terminalTextArea.getCaret();
     terminalTextAreaCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-    this.userInputField = userInputField;
-    this.setViewportView(terminalTextArea);
-    this.setFocusable(false);
-    this.getTextArea().setEditable(false);
-    this.getTextArea().setBackground(new Color(35, 35, 35));
+    terminalTextAreaScrollPane.setFocusable(false);
+    terminalTextArea.setEditable(false);
+    terminalTextArea.setBackground(new Color(35, 35, 35));
+
+    // Main Panel
+    this.setLayout(new BorderLayout());
+    this.add(terminalTextArea, BorderLayout.CENTER);
+    this.add(topPanel, BorderLayout.NORTH);
   }
 
   public JTextArea getTextArea() {
@@ -78,18 +141,18 @@ public class Output extends JScrollPane implements CommandListener {
    * @param ct defines if compile or run
    * @param cf is used for the path that is used for the commands
    */
-  public boolean tryRunning(CommandType ct, CodingFile cf, JButton runButton) {
+  public boolean tryRunning(CommandType ct) {
     String command = "";
     switch (ct) {
       case COMPILE:
-        command = "javac " + cf.getAbsolutePath();
+        command = "javac " + codingFile.getAbsolutePath();
         break;
       case RUN:
-        command = "java -cp " + cf.getClassPath() + " " + cf.getClassName();
+        command = "java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName();
         break;
       case INPUT:
-        if (userInputField.getText() != null) {
-          command = userInputField.getText();
+        if (userInputTextField.getText() != null) {
+          command = userInputTextField.getText();
         }
         break;
       default:

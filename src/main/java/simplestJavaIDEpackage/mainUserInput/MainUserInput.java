@@ -17,12 +17,10 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.DefaultCaret;
@@ -31,9 +29,9 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import simplestJavaIDEpackage.CodingFile;
+import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
-import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.Library.InfoTextPane;
 import simplestJavaIDEpackage.Library.Output;
 import simplestJavaIDEpackage.Library.Output.CommandType;;
@@ -146,10 +144,6 @@ public class MainUserInput {
     btnSwitchCodeMode.setBounds(140, 6, 131, 36);
     panelButtons.add(btnSwitchCodeMode);
 
-    JButton btnClearConsole = new JButton("Clear");
-    btnClearConsole.setBounds(184, 48, 86, 36);
-    panelButtons.add(btnClearConsole);
-
     // Save button
     JPanel panelSave = new JPanel();
     panelSave.setBounds(0, 0, 131, 36);
@@ -231,27 +225,6 @@ public class MainUserInput {
     btnZoomOut.setBounds(50, 48, 42, 36);
     panelButtons.add(btnZoomOut);
 
-    JLabel lblUserInput = new JLabel(
-        "<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
-    lblUserInput.setVerticalAlignment(SwingConstants.TOP);
-    lblUserInput.setBounds(10, 131, 86, 36);
-    panelButtons.add(lblUserInput);
-
-    // Input
-    // TODO implement in Output
-    userInputTextField = new JTextField();
-    userInputTextField.setBounds(98, 133, 170, 36);
-    panelButtons.add(userInputTextField);
-    userInputTextField.setColumns(1);
-    userInputTextField.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        terminal.tryRunning(CommandType.INPUT, codingFile, btnCompileAndRun);
-        btnCompileAndRun.setEnabled(false);
-        userInputTextField.setText(null);
-      }
-    });
-
     // Coding input and load code if code is not null (from loading file)
     RSyntaxTextArea codingArea = new RSyntaxTextArea(20, 60);
     codingArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
@@ -323,7 +296,7 @@ public class MainUserInput {
     }
 
     // Output
-    terminal = new Output(userInputTextField);
+    terminal = new Output(userInputTextField, codingFile, btnCompileAndRun);
     bottomPanel.add(terminal);
 
     // Manage interactions
@@ -389,16 +362,9 @@ public class MainUserInput {
         save(codingArea, codingFile);
         btnSave.setEnabled(false);
         informationTextPane.append("Compiling Code...!\n");
-        if (terminal.tryRunning(CommandType.COMPILE, codingFile, btnCompileAndRun)) {
-          terminal.tryRunning(CommandType.RUN, codingFile, btnCompileAndRun);
+        if (terminal.tryRunning(CommandType.COMPILE)) {
+          terminal.tryRunning(CommandType.RUN);
         }
-      }
-    });
-    btnClearConsole.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        terminal.getTextArea().setText(null);
-        informationTextPane.setText(null);
       }
     });
     btnZoomIn.addActionListener(new ActionListener() {
