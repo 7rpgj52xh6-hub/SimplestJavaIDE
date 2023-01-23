@@ -2,6 +2,9 @@ package simplestJavaIDEpackage.Library;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -11,8 +14,8 @@ import javax.swing.text.DefaultCaret;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.Terminal.AppendTask;
-import simplestJavaIDEpackage.Library.Terminal.Command;
 import simplestJavaIDEpackage.Library.Terminal.CommandListener;
+import simplestJavaIDEpackage.Library.Terminal.ProcessRunner;
 
 /**
  * This class implements the terminal with all possible functions
@@ -22,16 +25,15 @@ import simplestJavaIDEpackage.Library.Terminal.CommandListener;
  */
 public class Output extends JScrollPane implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
-  private Command cmd;
   private JTextArea terminalTextArea;
   private JTextField userInputField;
+  private ProcessRunner runner;
 
   public enum CommandType {
     COMPILE, RUN, INPUT
   }
 
   public Output(JTextField userInputField) {
-    cmd = new Command(this);
     terminalTextArea = new JTextArea();
     DefaultCaret terminalTextAreaCaret = (DefaultCaret) terminalTextArea.getCaret();
     terminalTextAreaCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -44,11 +46,6 @@ public class Output extends JScrollPane implements CommandListener {
 
   public JTextArea getTextArea() {
     return this.terminalTextArea;
-  }
-
-  // TODO Make obsolete
-  public Command getCommand() {
-    return this.cmd;
   }
 
   public void appendText(String text) {
@@ -69,6 +66,10 @@ public class Output extends JScrollPane implements CommandListener {
   @Override
   public void commandFailed(Exception exp) {
     ErrorPopupWindow.throwMessage("Command failed - " + exp.getMessage());
+  }
+
+  public boolean isRunning() {
+    return runner != null && runner.isAlive();
   }
 
   /**
@@ -96,11 +97,11 @@ public class Output extends JScrollPane implements CommandListener {
             .throwMessage("Commands other than compiling and running java are not allowed");
         break;
     }
-    if (!cmd.isRunning()) {
-      return cmd.run(command);
+    if (!isRunning()) {
+      return run(command);
     } else {
       try {
-        cmd.send(command + "\n");
+        runner.write(command + "\n");
       } catch (IOException ex) {
         ErrorPopupWindow
             .throwMessage("!! Failed to send compile command to process:" + ex.getMessage());
@@ -109,5 +110,57 @@ public class Output extends JScrollPane implements CommandListener {
     return false;
   }
 
+  public boolean run(String cmd) {
+    runner = new ProcessRunner(this, getValues(cmd));
+    try {
+      runner.join();
+      if (runner.ranWithErrors()) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (InterruptedException e) {
+      ErrorPopupWindow.throwMessage(e.getMessage());
+    }
+    return false;
+  }
 
+  public List<String> getValues(String cmd) {
+    if (!cmd.trim().isEmpty()) {
+      List<String> values = new ArrayList<>(25);
+      if (cmd.contains("\"")) {
+
+        while (cmd.contains("\"")) {
+
+          String start = cmd.substring(0, cmd.indexOf("\""));
+          cmd = cmd.substring(start.length());
+          String quote = cmd.substring(cmd.indexOf("\"") + 1);
+          cmd = cmd.substring(cmd.indexOf("\"") + 1);
+          quote = quote.substring(0, cmd.indexOf("\""));
+          cmd = cmd.substring(cmd.indexOf("\"") + 1);
+
+          if (!start.trim().isEmpty()) {
+            String parts[] = start.trim().split(" ");
+            values.addAll(Arrays.asList(parts));
+          }
+          values.add(quote.trim());
+
+        }
+
+        if (!cmd.trim().isEmpty()) {
+          String parts[] = cmd.trim().split(" ");
+          values.addAll(Arrays.asList(parts));
+        }
+      } else {
+
+        if (!cmd.trim().isEmpty()) {
+          String parts[] = cmd.trim().split(" ");
+          values.addAll(Arrays.asList(parts));
+        }
+
+      }
+      return values;
+    }
+    return null;
+  }
 }
