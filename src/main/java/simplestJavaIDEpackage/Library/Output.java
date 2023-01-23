@@ -3,20 +3,19 @@ package simplestJavaIDEpackage.Library;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultCaret;
 import simplestJavaIDEpackage.CodingFile;
@@ -55,7 +54,7 @@ public class Output extends JPanel implements CommandListener {
   public void initializeUI() {
     // Input
     userInputTextField = new JTextField();
-    userInputTextField.setBounds(98, 133, 170, 36);
+    userInputTextField.setBorder(BorderFactory.createLineBorder(new Color(47, 47, 47), 6));
     userInputTextField.setColumns(1);
     userInputTextField.addActionListener(new ActionListener() {
       @Override
@@ -68,10 +67,12 @@ public class Output extends JPanel implements CommandListener {
 
     // Top Panel
     JPanel panelClearBtnAndLabel = new JPanel();
-    panelClearBtnAndLabel.setLayout(new BorderLayout());
+    panelClearBtnAndLabel.setLayout(null);
+    panelClearBtnAndLabel.setPreferredSize(new Dimension(184, 48));
+    panelClearBtnAndLabel.setBackground(new Color(47, 47, 47));
     JButton btnClearConsole = new JButton("Clear");
     btnClearConsole.setPreferredSize(new Dimension(86, 36));
-    btnClearConsole.setMargin(new Insets(6, 6, 6, 6));
+    btnClearConsole.setBounds(6, 6, 86, 36);
     btnClearConsole.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -80,13 +81,13 @@ public class Output extends JPanel implements CommandListener {
         // informationTextPane.setText(null);
       }
     });
-    panelClearBtnAndLabel.add(btnClearConsole, BorderLayout.LINE_START);
+    panelClearBtnAndLabel.add(btnClearConsole);
     JLabel lblUserInput = new JLabel(
         "<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
-    lblUserInput.setVerticalAlignment(SwingConstants.TOP);
-    lblUserInput.setBounds(10, 131, 86, 36);
+    lblUserInput.setBounds(104, 6, 86, 36);
     panelClearBtnAndLabel.add(lblUserInput);
     JPanel topPanel = new JPanel();
+    topPanel.setPreferredSize(new Dimension(200, 48));
     topPanel.setLayout(new BorderLayout());
     topPanel.add(userInputTextField, BorderLayout.CENTER);
     topPanel.add(panelClearBtnAndLabel, BorderLayout.LINE_START);
