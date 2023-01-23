@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,13 +18,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultCaret;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
-import simplestJavaIDEpackage.Library.Terminal.AppendTask;
-import simplestJavaIDEpackage.Library.Terminal.CommandListener;
-import simplestJavaIDEpackage.Library.Terminal.ProcessRunner;
+import simplestJavaIDEpackage.Library.Commands.CommandListener;
+import simplestJavaIDEpackage.Library.Commands.CommandRunner;
+import simplestJavaIDEpackage.Library.Commands.CommitRunner;
 
 /**
  * This class implements the terminal with all possible functions
@@ -30,25 +31,29 @@ import simplestJavaIDEpackage.Library.Terminal.ProcessRunner;
  * @author Daniel Trageser
  * 
  */
-public class Output extends JPanel implements CommandListener {
+public class Terminal extends JPanel implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
-  private JTextArea terminalTextArea;
-  private ProcessRunner runner;
+  private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+  private JTextArea terminalOutput;
+  private CommandRunner commandRunner;
+  private CommitRunner commitRunner;
   private CodingFile codingFile;
   private JScrollPane terminalTextAreaScrollPane;
   private JTextField userInputTextField;
   private JButton btnCompileAndRun;
-  private Output terminal;
+  private Terminal terminal;
+  private List<String> outputList;
 
   public enum CommandType {
     COMPILE, RUN, INPUT
   }
 
-  public Output(JTextField userInputField, CodingFile codingFile, JButton btnCompileAndRun) {
+  public Terminal(JTextField userInputField, CodingFile codingFile, JButton btnCompileAndRun) {
     initializeUI();
     this.codingFile = codingFile;
     this.btnCompileAndRun = btnCompileAndRun;
     this.terminal = this;
+    outputList = new ArrayList<String>();
   }
 
   public void initializeUI() {
@@ -59,8 +64,9 @@ public class Output extends JPanel implements CommandListener {
     userInputTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        terminal.tryRunning(CommandType.INPUT);
-        btnCompileAndRun.setEnabled(false);
+        if (!terminal.tryRunning(CommandType.INPUT)) {
+          btnCompileAndRun.setEnabled(false);
+        }
         userInputTextField.setText(null);
       }
     });
@@ -93,23 +99,23 @@ public class Output extends JPanel implements CommandListener {
     topPanel.add(panelClearBtnAndLabel, BorderLayout.LINE_START);
 
     // Output
-    terminalTextArea = new JTextArea();
+    terminalOutput = new JTextArea();
     terminalTextAreaScrollPane = new JScrollPane();
-    terminalTextAreaScrollPane.setViewportView(terminalTextArea);
-    DefaultCaret terminalTextAreaCaret = (DefaultCaret) terminalTextArea.getCaret();
+    terminalTextAreaScrollPane.setViewportView(terminalOutput);
+    DefaultCaret terminalTextAreaCaret = (DefaultCaret) terminalOutput.getCaret();
     terminalTextAreaCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     terminalTextAreaScrollPane.setFocusable(false);
-    terminalTextArea.setEditable(false);
-    terminalTextArea.setBackground(new Color(35, 35, 35));
+    terminalOutput.setEditable(false);
+    terminalOutput.setBackground(new Color(35, 35, 35));
 
     // Main Panel
     this.setLayout(new BorderLayout());
-    this.add(terminalTextArea, BorderLayout.CENTER);
+    this.add(terminalTextAreaScrollPane, BorderLayout.CENTER);
     this.add(topPanel, BorderLayout.NORTH);
   }
 
   public JTextArea getTextArea() {
-    return this.terminalTextArea;
+    return this.terminalOutput;
   }
 
   public void appendText(String text) {
@@ -118,72 +124,126 @@ public class Output extends JPanel implements CommandListener {
 
   @Override
   public void commandOutput(String text) {
-    SwingUtilities.invokeLater(new AppendTask(this, text));
+    // SwingUtilities.invokeLater(new AppendTask(this, text));
+    outputList.add(text);
   }
 
   @Override
-  public void commandCompleted(String cmd, int result) {
-    appendText("\n");
+  public void commandCompleted() {
+    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    String prefix = "[" + sdf.format(timestamp) + "]:\n\t";
+    String output = "";
+    System.out.println(outputList.size());
+    for (String i : outputList) {
+      output = output + i;
+    }
+    appendText(prefix + output + "\n");
+    outputList.clear();
   }
-
 
   @Override
   public void commandFailed(Exception exp) {
     ErrorPopupWindow.throwMessage("Command failed - " + exp.getMessage());
   }
 
-  public boolean isRunning() {
-    return runner != null && runner.isAlive();
+  public boolean isCommandRunnerRunning() {
+    return commandRunner != null && commandRunner.isAlive();
   }
 
-  /**
-   * Sends compile or run command to system terminal. Returns true if errors occurred
-   * 
-   * @param ct defines if compile or run
-   * @param cf is used for the path that is used for the commands
-   */
+  public boolean isCommitRunnerRunning() {
+    return commitRunner != null && commitRunner.isAlive();
+  }
+
+
   public boolean tryRunning(CommandType ct) {
     String command = "";
     switch (ct) {
       case COMPILE:
         command = "javac " + codingFile.getAbsolutePath();
+        if (!isCommitRunnerRunning()) {
+          commitRunner = new CommitRunner(this, getValues(command));
+          if (ct == CommandType.COMPILE) {
+            try {
+              commitRunner.join();
+              if (commitRunner.ranWithErrors()) {
+                return false;
+              } else {
+                return true;
+              }
+            } catch (InterruptedException e) {
+              ErrorPopupWindow.throwMessage(e.getMessage());
+            }
+          } else {
+            return true;
+          }
+        } else {
+          try {
+            commandRunner.write(command + "\n");
+          } catch (IOException ex) {
+            ErrorPopupWindow
+                .throwMessage("!! Failed to send compile command to process:" + ex.getMessage());
+          }
+        }
         break;
       case RUN:
-        command = "java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName();
+        if (!isCommandRunnerRunning()) {
+          commandRunner = new CommandRunner(this,
+              getValues("java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName()));
+          if (ct == CommandType.COMPILE) {
+            try {
+              commitRunner.join();
+              if (commitRunner.ranWithErrors()) {
+                return false;
+              } else {
+                return true;
+              }
+            } catch (InterruptedException e) {
+              ErrorPopupWindow.throwMessage(e.getMessage());
+            }
+          } else {
+            return true;
+          }
+        } else {
+          try {
+            commandRunner.write(command + "\n");
+          } catch (IOException ex) {
+            ErrorPopupWindow
+                .throwMessage("!! Failed to send command to process:" + ex.getMessage());
+          }
+        }
         break;
       case INPUT:
-        if (userInputTextField.getText() != null) {
-          command = userInputTextField.getText();
+        if (!isCommandRunnerRunning()) {
+          if (userInputTextField.getText() != null) {
+            commandRunner = new CommandRunner(this, getValues(userInputTextField.getText()));
+            if (ct == CommandType.COMPILE) {
+              try {
+                commitRunner.join();
+                if (commitRunner.ranWithErrors()) {
+                  return false;
+                } else {
+                  return true;
+                }
+              } catch (InterruptedException e) {
+                ErrorPopupWindow.throwMessage(e.getMessage());
+              }
+            } else {
+              return true;
+            }
+          } else {
+            try {
+              commandRunner.write(command + "\n");
+            } catch (IOException ex) {
+              ErrorPopupWindow
+                  .throwMessage("!! Failed to send command to process:" + ex.getMessage());
+            }
+          }
         }
         break;
       default:
         ErrorPopupWindow
             .throwMessage("Commands other than compiling and running java are not allowed");
         break;
-    }
-    if (!isRunning()) {
-      runner = new ProcessRunner(this, getValues(command));
-      if (ct == CommandType.COMPILE) {
-        try {
-          runner.join();
-          if (runner.ranWithErrors()) {
-            return false;
-          } else {
-            return true;
-          }
-        } catch (InterruptedException e) {
-          ErrorPopupWindow.throwMessage(e.getMessage());
-        }
-      } else {
-        return true;
-      }
-    } else {
-      try {
-        runner.write(command + "\n");
-      } catch (IOException ex) {
-        ErrorPopupWindow
-            .throwMessage("!! Failed to send compile command to process:" + ex.getMessage());
-      }
     }
     return false;
   }

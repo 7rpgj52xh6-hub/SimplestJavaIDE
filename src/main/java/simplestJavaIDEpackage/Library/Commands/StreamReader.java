@@ -1,4 +1,4 @@
-package simplestJavaIDEpackage.Library.Terminal;
+package simplestJavaIDEpackage.Library.Commands;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,14 +24,5 @@ public class StreamReader extends Thread {
     } catch (IOException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
     }
-  }
-
-  public int checkIfStreamIsEmpty() {
-    try {
-      return is.read();
-    } catch (IOException e) {
-      ErrorPopupWindow.throwMessage(e.getMessage());
-    }
-    return 69;
   }
 }

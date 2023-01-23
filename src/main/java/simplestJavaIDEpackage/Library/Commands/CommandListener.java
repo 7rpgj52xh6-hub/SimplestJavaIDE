@@ -1,10 +1,10 @@
-package simplestJavaIDEpackage.Library.Terminal;
+package simplestJavaIDEpackage.Library.Commands;
 
 public interface CommandListener {
 
   void commandOutput(String text);
 
-  void commandCompleted(String cmd, int result);
+  void commandCompleted();
 
   void commandFailed(Exception exp);
 }

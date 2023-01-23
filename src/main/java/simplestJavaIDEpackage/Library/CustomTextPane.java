@@ -11,7 +11,7 @@ import javax.swing.JTextPane;
  * 
  * @author Daniel Trageser
  */
-public class InfoTextPane extends JTextPane {
+public class CustomTextPane extends JTextPane {
   private static final long serialVersionUID = 4716313567540658604L;
   private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
   List<String> lines = new ArrayList<String>();
@@ -25,8 +25,8 @@ public class InfoTextPane extends JTextPane {
     Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     lines.add("[" + sdf.format(timestamp) + "]:\n\t" + text);
     String output = "";
-    for (String i : lines) {
-      output = output + i + "\n";
+    for (int i = lines.size(); i > 0; i--) {
+      output = output + lines.get(i - 1) + "\n";
     }
     this.setText(output);
   }

@@ -29,9 +29,9 @@ import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
-import simplestJavaIDEpackage.Library.InfoTextPane;
-import simplestJavaIDEpackage.Library.Output;
-import simplestJavaIDEpackage.Library.Output.CommandType;
+import simplestJavaIDEpackage.Library.CustomTextPane;
+import simplestJavaIDEpackage.Library.Terminal;
+import simplestJavaIDEpackage.Library.Terminal.CommandType;
 import simplestJavaIDEpackage.mainUserInput.Components.HelpButton;
 import simplestJavaIDEpackage.mainUserInput.Components.RunButton;
 import simplestJavaIDEpackage.mainUserInput.Components.SaveButton;
@@ -46,8 +46,8 @@ import simplestJavaIDEpackage.mainUserInput.Components.ZoomOutButton;;
 public class MainUserInput {
 
   private JFrame frmSimplestJavaIDE;
-  private Output terminal;
-  private static InfoTextPane informationTextPane;
+  private Terminal terminal;
+  private static CustomTextPane informationTextPane;
   private CodeMode codeMode;
   private JTextField userInputTextField;
 
@@ -114,13 +114,13 @@ public class MainUserInput {
     panelButtonsAndInformationTextPane.setBackground(new Color(47, 47, 47));
 
     // Information field on the bottom
-    informationTextPane = new InfoTextPane();
+    informationTextPane = new CustomTextPane();
     informationTextPane.setText(null);
     informationTextPane.setEditable(false);
     informationTextPane.setFocusable(false);
     informationTextPane.setBackground(new Color(40, 40, 40));
     DefaultCaret informationTextPaneCaret = (DefaultCaret) informationTextPane.getCaret();
-    informationTextPaneCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+    informationTextPaneCaret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
     JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
     scrollPaneInformationTextPane.setBounds(6, 173, 264, 70);
     panelButtonsAndInformationTextPane.add(scrollPaneInformationTextPane, BorderLayout.CENTER);
@@ -146,7 +146,6 @@ public class MainUserInput {
     actionPanel.setLayout(new BoxLayout(actionPanel, BoxLayout.X_AXIS));
     actionPanel.setOpaque(false);
     panelButtons.add(actionPanel);
-
 
     // Action buttons
     SaveButton saveButton = new SaveButton();
@@ -230,7 +229,7 @@ public class MainUserInput {
     }
 
     // Output
-    terminal = new Output(userInputTextField, codingFile, runButton.getButton());
+    terminal = new Terminal(userInputTextField, codingFile, runButton.getButton());
     bottomPanel.add(terminal);
 
     // Manage interactions
@@ -337,7 +336,7 @@ public class MainUserInput {
     });
   }
 
-  public static InfoTextPane getInformationTextPane() {
+  public static CustomTextPane getInformationTextPane() {
     return informationTextPane;
   }
 
