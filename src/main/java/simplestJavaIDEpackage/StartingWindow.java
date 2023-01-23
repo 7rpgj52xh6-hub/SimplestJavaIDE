@@ -105,14 +105,19 @@ public class StartingWindow {
             ErrorPopupWindow.throwMessage("File path can't contain any spaces. Please reselect.");
           } else if (Character.isDigit(fileChooser.getSelectedFile().getName().charAt(0))) {
             ErrorPopupWindow.throwMessage("File name can't start with a number. Please reselect.");
-          } else if (fileChooser.getSelectedFile().getAbsolutePath().contains(".")) {
+          } else if (fileChooser.getSelectedFile().getName().replaceFirst(".java", "")
+              .contains(".")) {
             ErrorPopupWindow
                 .throwMessage("File path can't contain any period/dot. Please reselect.");
           } else {
-            File file = fileChooser.getSelectedFile();
-            CodingFile codingFile = new CodingFile(file, false); // isNewFile = true
-            MainUserInput.main(null, codingFile);
-            frmSimplestJavaIDE_startingWindow.dispose();
+            if (fileChooser.getSelectedFile().exists()) {
+              File file = fileChooser.getSelectedFile();
+              CodingFile codingFile = new CodingFile(file, false); // isNewFile = true
+              MainUserInput.main(null, codingFile);
+              frmSimplestJavaIDE_startingWindow.dispose();
+            } else {
+              ErrorPopupWindow.throwMessage("Chosen file does not exist. Please reselect.");
+            }
           }
 
         }
@@ -135,7 +140,8 @@ public class StartingWindow {
             ErrorPopupWindow.throwMessage("File path can't contain any spaces. Please reselect.");
           } else if (Character.isDigit(fileChooser.getSelectedFile().getName().charAt(0))) {
             ErrorPopupWindow.throwMessage("File name can't start with a number. Please reselect.");
-          } else if (fileChooser.getSelectedFile().getAbsolutePath().contains(".")) {
+          } else if (fileChooser.getSelectedFile().getName().replaceFirst(".java", "")
+              .contains(".")) {
             ErrorPopupWindow
                 .throwMessage("File path can't contain any period/dot. Please reselect.");
           } else {
