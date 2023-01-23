@@ -57,26 +57,19 @@ public class Command {
     return null;
   }
 
-  public void compile(String cmd) {
+  public boolean run(String cmd) {
     runner = new ProcessRunner(listener, getValues(cmd));
     try {
       runner.join();
+      if (runner.ranWithErrors()) {
+        return false;
+      } else {
+        return true;
+      }
     } catch (InterruptedException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
     }
-  }
-
-  public void run(String cmd) {
-    runner = new ProcessRunner(listener, getValues(cmd));
-  }
-
-  public void input(String cmd) {
-    runner = new ProcessRunner(listener, getValues(cmd));
-    try {
-      runner.join();
-    } catch (InterruptedException e) {
-      ErrorPopupWindow.throwMessage(e.getMessage());
-    }
+    return false;
   }
 
   public void send(String cmd) throws IOException {

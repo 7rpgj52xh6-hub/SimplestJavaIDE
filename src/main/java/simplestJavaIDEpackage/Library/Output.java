@@ -77,46 +77,18 @@ public class Output extends JScrollPane implements CommandListener {
    * @param ct defines if compile or run
    * @param cf is used for the path that is used for the commands
    */
-  public void run(CommandType ct, CodingFile cf, JButton runButton) {
+  public boolean tryRunning(CommandType ct, CodingFile cf, JButton runButton) {
+    String command = "";
     switch (ct) {
       case COMPILE:
-        String cmdCompile = "javac " + cf.getAbsolutePath();
-        if (!cmd.isRunning()) {
-          cmd.compile(cmdCompile);
-        } else {
-          try {
-            cmd.send(cmdCompile + "\n");
-          } catch (IOException ex) {
-            ErrorPopupWindow
-                .throwMessage("!! Failed to send compile command to process:" + ex.getMessage());
-          }
-        }
+        command = "javac " + cf.getAbsolutePath();
         break;
       case RUN:
-        String cmdRun = "java -cp " + cf.getClassPath() + " " + cf.getClassName();
-        if (!cmd.isRunning()) {
-          cmd.run(cmdRun);
-        } else {
-          try {
-            cmd.send(cmdRun + "\n");
-          } catch (IOException ex) {
-            ErrorPopupWindow
-                .throwMessage("!! Failed to send run command to process:" + ex.getMessage());
-          }
-        }
+        command = "java -cp " + cf.getClassPath() + " " + cf.getClassName();
         break;
       case INPUT:
         if (userInputField.getText() != null) {
-          if (!cmd.isRunning()) {
-            cmd.input(userInputField.getText());
-          } else {
-            try {
-              cmd.send(userInputField.getText() + "\n");
-            } catch (IOException ex) {
-              ErrorPopupWindow
-                  .throwMessage("!! Failed to send run command to process:" + ex.getMessage());
-            }
-          }
+          command = userInputField.getText();
         }
         break;
       default:
@@ -124,6 +96,17 @@ public class Output extends JScrollPane implements CommandListener {
             .throwMessage("Commands other than compiling and running java are not allowed");
         break;
     }
+    if (!cmd.isRunning()) {
+      return cmd.run(command);
+    } else {
+      try {
+        cmd.send(command + "\n");
+      } catch (IOException ex) {
+        ErrorPopupWindow
+            .throwMessage("!! Failed to send compile command to process:" + ex.getMessage());
+      }
+    }
+    return false;
   }
 
 

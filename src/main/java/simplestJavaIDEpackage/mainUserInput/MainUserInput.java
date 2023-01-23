@@ -190,7 +190,7 @@ public class MainUserInput {
     userInputTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        terminal.run(CommandType.INPUT, codingFile, btnCompileAndRun);
+        terminal.tryRunning(CommandType.INPUT, codingFile, btnCompileAndRun);
         btnCompileAndRun.setEnabled(false);
         userInputTextField.setText(null);
       }
@@ -329,15 +329,13 @@ public class MainUserInput {
     });
     btnCompileAndRun.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        // COMPILE AND SAVE
-        CommandType ct = CommandType.COMPILE;
-        CommandType ct2 = CommandType.RUN;
+        // Save, compile and run
         save(codingArea, codingFile);
         btnSave.setEnabled(false);
         informationTextPane.append("Compiling Code...!\n");
-        terminal.run(ct, codingFile, btnCompileAndRun);
-        // TODO only if compile did not fail
-        terminal.run(ct2, codingFile, btnCompileAndRun);
+        if (terminal.tryRunning(CommandType.COMPILE, codingFile, btnCompileAndRun)) {
+          terminal.tryRunning(CommandType.RUN, codingFile, btnCompileAndRun);
+        }
       }
     });
     btnClearConsole.addActionListener(new ActionListener() {
