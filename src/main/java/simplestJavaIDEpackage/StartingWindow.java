@@ -89,6 +89,7 @@ public class StartingWindow {
     frmSimplestJavaIDE_startingWindow.getContentPane().add(btnHelp, BorderLayout.SOUTH);
     panelAppButtons.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
+    // TODO Change to one button. Functionality to similar.
     JButton btnOpenExistingCode = new JButton("Open existing code");
     btnOpenExistingCode.setPreferredSize(new Dimension(200, 30));
     panelAppButtons.add(btnOpenExistingCode);

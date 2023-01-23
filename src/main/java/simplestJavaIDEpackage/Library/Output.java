@@ -98,7 +98,17 @@ public class Output extends JScrollPane implements CommandListener {
         break;
     }
     if (!isRunning()) {
-      return run(command);
+      runner = new ProcessRunner(this, getValues(command));
+      try {
+        runner.join();
+        if (runner.ranWithErrors()) {
+          return false;
+        } else {
+          return true;
+        }
+      } catch (InterruptedException e) {
+        ErrorPopupWindow.throwMessage(e.getMessage());
+      }
     } else {
       try {
         runner.write(command + "\n");
@@ -110,21 +120,7 @@ public class Output extends JScrollPane implements CommandListener {
     return false;
   }
 
-  public boolean run(String cmd) {
-    runner = new ProcessRunner(this, getValues(cmd));
-    try {
-      runner.join();
-      if (runner.ranWithErrors()) {
-        return false;
-      } else {
-        return true;
-      }
-    } catch (InterruptedException e) {
-      ErrorPopupWindow.throwMessage(e.getMessage());
-    }
-    return false;
-  }
-
+  // TODO Make obsolete
   public List<String> getValues(String cmd) {
     if (!cmd.trim().isEmpty()) {
       List<String> values = new ArrayList<>(25);
