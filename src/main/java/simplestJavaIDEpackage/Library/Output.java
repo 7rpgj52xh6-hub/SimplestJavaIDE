@@ -163,15 +163,19 @@ public class Output extends JPanel implements CommandListener {
     }
     if (!isRunning()) {
       runner = new ProcessRunner(this, getValues(command));
-      try {
-        runner.join();
-        if (runner.ranWithErrors()) {
-          return false;
-        } else {
-          return true;
+      if (ct == CommandType.COMPILE) {
+        try {
+          runner.join();
+          if (runner.ranWithErrors()) {
+            return false;
+          } else {
+            return true;
+          }
+        } catch (InterruptedException e) {
+          ErrorPopupWindow.throwMessage(e.getMessage());
         }
-      } catch (InterruptedException e) {
-        ErrorPopupWindow.throwMessage(e.getMessage());
+      } else {
+        return true;
       }
     } else {
       try {
