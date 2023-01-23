@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.Image;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -14,7 +12,6 @@ import java.awt.event.KeyListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -34,7 +31,12 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.InfoTextPane;
 import simplestJavaIDEpackage.Library.Output;
-import simplestJavaIDEpackage.Library.Output.CommandType;;
+import simplestJavaIDEpackage.Library.Output.CommandType;
+import simplestJavaIDEpackage.mainUserInput.Components.HelpButton;
+import simplestJavaIDEpackage.mainUserInput.Components.RunButton;
+import simplestJavaIDEpackage.mainUserInput.Components.SaveButton;
+import simplestJavaIDEpackage.mainUserInput.Components.ZoomInButton;
+import simplestJavaIDEpackage.mainUserInput.Components.ZoomOutButton;;
 
 /**
  * 
@@ -134,6 +136,10 @@ public class MainUserInput {
     btnAddImports.setBounds(10, 6, 126, 36);
     panelButtons.add(btnAddImports);
 
+    JButton btnSwitchCodeMode = new JButton("Mode: Standard");
+    btnSwitchCodeMode.setBounds(146, 6, 126, 36);
+    panelButtons.add(btnSwitchCodeMode);
+
     // Action Panel
     JPanel actionPanel = new JPanel();
     actionPanel.setBounds(6, 48, 264, 36);
@@ -141,156 +147,20 @@ public class MainUserInput {
     actionPanel.setOpaque(false);
     panelButtons.add(actionPanel);
 
-    // Help button
-    JPanel panelBtnHelp = new JPanel(new BorderLayout());
-    panelBtnHelp.setPreferredSize(new Dimension(44, 36));
-    panelBtnHelp.setOpaque(false);
-    JButton btnHelp = new JButton("Help");
-    try {
-      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnHelp.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnHelp = new ImageIcon(tmpImage);
-      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnHelpPressed.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnHelpPressed = new ImageIcon(tmpImage);
-      btnHelp.setIcon(iconBtnHelp);
-      btnHelp.setPressedIcon(iconBtnHelpPressed);
-      btnHelp.setText(null);
-      btnHelp.setBorderPainted(false);
-      btnHelp.setBorder(null);
-      btnHelp.setMargin(new Insets(0, 0, 0, 0));
-      btnHelp.setContentAreaFilled(false);
-      btnHelp.setBounds(95, 90, 30, 30);
-    } catch (IOException e1) {
-      ErrorPopupWindow.throwMessage(e1.getMessage());
-    }
-    panelBtnHelp.add(btnHelp, BorderLayout.CENTER);
 
+    // Action buttons
+    SaveButton saveButton = new SaveButton();
+    RunButton runButton = new RunButton();
+    HelpButton helpButton = new HelpButton();
+    ZoomInButton zoomInButton = new ZoomInButton();
+    ZoomOutButton zoomOutButton = new ZoomOutButton();
 
-    JButton btnSwitchCodeMode = new JButton("Mode: Standard");
-    btnSwitchCodeMode.setBounds(146, 6, 126, 36);
-    panelButtons.add(btnSwitchCodeMode);
-
-    // Save button
-    JPanel panelBtnSave = new JPanel(new BorderLayout());
-    panelBtnSave.setPreferredSize(new Dimension(66, 36));
-    panelBtnSave.setOpaque(false);
-    JButton btnSave = new JButton("Save");
-    try {
-      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSave.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnSave = new ImageIcon(tmpImage);
-      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSavePressed.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnSavePressed = new ImageIcon(tmpImage);
-      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSaveDisabled.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnSaveDisabled = new ImageIcon(tmpImage);
-      btnSave.setIcon(iconBtnSave);
-      btnSave.setPressedIcon(iconBtnSavePressed);
-      btnSave.setDisabledIcon(iconBtnSaveDisabled);
-      btnSave.setText(null);
-      btnSave.setBorderPainted(false);
-      btnSave.setBorder(null);
-      btnSave.setMargin(new Insets(0, 0, 0, 0));
-      btnSave.setContentAreaFilled(false);
-      btnSave.setBounds(95, 90, 30, 30);
-    } catch (IOException e1) {
-      ErrorPopupWindow.throwMessage(e1.getMessage());
-    }
-    panelBtnSave.add(btnSave, BorderLayout.CENTER);
-
-
-    // Run button
-    JPanel panelBtnRun = new JPanel(new BorderLayout());
-    panelBtnRun.setPreferredSize(new Dimension(66, 36));
-    panelBtnRun.setOpaque(false);
-    JButton btnCompileAndRun = new JButton("Run code");
-    try {
-      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnRun.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnCompileAndRun = new ImageIcon(tmpImage);
-      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnRunPressed.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnCompileAndRunPressed = new ImageIcon(tmpImage);
-      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnRunDisabled.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnCompileAndRunDisabled = new ImageIcon(tmpImage);
-      btnCompileAndRun.setIcon(iconBtnCompileAndRun);
-      btnCompileAndRun.setPressedIcon(iconBtnCompileAndRunPressed);
-      btnCompileAndRun.setDisabledIcon(iconBtnCompileAndRunDisabled);
-      btnCompileAndRun.setText(null);
-      btnCompileAndRun.setBorderPainted(false);
-      btnCompileAndRun.setBorder(null);
-      btnCompileAndRun.setMargin(new Insets(0, 0, 0, 0));
-      btnCompileAndRun.setContentAreaFilled(false);
-      btnCompileAndRun.setBounds(95, 90, 30, 30);
-    } catch (IOException e1) {
-      ErrorPopupWindow.throwMessage(e1.getMessage());
-    }
-    panelBtnRun.add(btnCompileAndRun, BorderLayout.CENTER);
-
-
-    // ZoomIn Button
-    JPanel panelBtnZoomIn = new JPanel(new BorderLayout());
-    panelBtnZoomIn.setPreferredSize(new Dimension(44, 36));
-    panelBtnZoomIn.setOpaque(false);
-    JButton btnZoomIn = new JButton("+");
-    btnZoomIn.setBounds(6, 48, 42, 36);
-    try {
-      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnZoomIn.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnZoomIn = new ImageIcon(tmpImage);
-      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnZoomInPressed.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnZoomInPressed = new ImageIcon(tmpImage);
-      btnZoomIn.setIcon(iconBtnZoomIn);
-      btnZoomIn.setPressedIcon(iconBtnZoomInPressed);
-      btnZoomIn.setText(null);
-      btnZoomIn.setBorderPainted(false);
-      btnZoomIn.setBorder(null);
-      btnZoomIn.setMargin(new Insets(0, 0, 0, 0));
-      btnZoomIn.setContentAreaFilled(false);
-      btnZoomIn.setBounds(95, 90, 30, 30);
-    } catch (IOException e1) {
-      ErrorPopupWindow.throwMessage(e1.getMessage());
-    }
-    panelBtnZoomIn.add(btnZoomIn, BorderLayout.CENTER);
-
-
-    // ZoomOut Button
-    JPanel panelBtnZoomOut = new JPanel(new BorderLayout());
-    panelBtnZoomOut.setPreferredSize(new Dimension(44, 36));
-    panelBtnZoomOut.setOpaque(false);
-    JButton btnZoomOut = new JButton("-");
-    btnZoomOut.setBounds(50, 48, 42, 36);
-    try {
-      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnZoomOut.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnZoomOut = new ImageIcon(tmpImage);
-      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnZoomOutPressed.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-      ImageIcon iconBtnZoomOutPressed = new ImageIcon(tmpImage);
-      btnZoomOut.setIcon(iconBtnZoomOut);
-      btnZoomOut.setPressedIcon(iconBtnZoomOutPressed);
-      btnZoomOut.setText(null);
-      btnZoomOut.setBorderPainted(false);
-      btnZoomOut.setBorder(null);
-      btnZoomOut.setMargin(new Insets(0, 0, 0, 0));
-      btnZoomOut.setContentAreaFilled(false);
-      btnZoomOut.setBounds(95, 90, 30, 30);
-    } catch (IOException e1) {
-      ErrorPopupWindow.throwMessage(e1.getMessage());
-    }
-    panelBtnZoomOut.add(btnZoomOut, BorderLayout.CENTER);
-
-
-    // Action panel layout
-    actionPanel.add(panelBtnHelp);
-    actionPanel.add(panelBtnZoomIn);
-    actionPanel.add(panelBtnZoomOut);
-    actionPanel.add(panelBtnSave);
-    actionPanel.add(panelBtnRun);
+    // Add buttons to action panel
+    actionPanel.add(helpButton);
+    actionPanel.add(zoomInButton);
+    actionPanel.add(zoomOutButton);
+    actionPanel.add(saveButton);
+    actionPanel.add(runButton);
 
     // Coding input and load code if code is not null (from loading file)
     RSyntaxTextArea codingArea = new RSyntaxTextArea(20, 60);
@@ -315,15 +185,15 @@ public class MainUserInput {
       @Override
       public void insertUpdate(DocumentEvent e) {
         codingFile.isSaved = false;
-        btnSave.setEnabled(true);
-        btnCompileAndRun.setEnabled(true);
+        saveButton.getButton().setEnabled(true);
+        runButton.getButton().setEnabled(true);
       }
 
       @Override
       public void removeUpdate(DocumentEvent e) {
         codingFile.isSaved = false;
-        btnSave.setEnabled(true);
-        btnCompileAndRun.setEnabled(true);
+        saveButton.getButton().setEnabled(true);
+        runButton.getButton().setEnabled(true);
       }
     });
     codingArea.addKeyListener(new KeyListener() {
@@ -333,7 +203,7 @@ public class MainUserInput {
         boolean macOSCTRLpressed = ((e.getModifiersEx() & KeyEvent.VK_META) != 0);
         if ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
           save(codingArea, codingFile);
-          btnSave.setEnabled(false);
+          saveButton.getButton().setEnabled(false);
         }
       }
 
@@ -347,13 +217,10 @@ public class MainUserInput {
         // do nothing
       }
     });
-
-    // Coding Panel without code completion for standard and extended mode
-    JPanel codingPanel = new JPanel(new BorderLayout(0, 0));
     RTextScrollPane codingScrollPane = new RTextScrollPane(codingArea);
-    codingPanel.add(codingScrollPane, BorderLayout.CENTER);
-    contentSplitPane.setTopComponent(codingPanel);
+    contentSplitPane.setTopComponent(codingScrollPane);
     // Load Code if possible
+    // TODO Find better solution
     boolean loadingEnabled = true;
     while (loadingEnabled) {
       if (codingFile.isFinishedProcessing) {
@@ -363,7 +230,7 @@ public class MainUserInput {
     }
 
     // Output
-    terminal = new Output(userInputTextField, codingFile, btnCompileAndRun);
+    terminal = new Output(userInputTextField, codingFile, runButton.getButton());
     bottomPanel.add(terminal);
 
     // Manage interactions
@@ -399,7 +266,7 @@ public class MainUserInput {
         }
       }
     });
-    btnHelp.addActionListener(new ActionListener() {
+    helpButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         ImprintWindow.main(null);
       }
@@ -414,27 +281,27 @@ public class MainUserInput {
               .throwMessage("Error with mode switch button. Mode was not set correcty.");
         }
         save(codingArea, codingFile); // Also save other code
-        btnSave.setEnabled(false);
+        saveButton.getButton().setEnabled(false);
       }
     });
-    btnSave.addActionListener(new ActionListener() {
+    saveButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         save(codingArea, codingFile);
-        btnSave.setEnabled(false);
+        saveButton.getButton().setEnabled(false);
       }
     });
-    btnCompileAndRun.addActionListener(new ActionListener() {
+    runButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // Save, compile and run
         save(codingArea, codingFile);
-        btnSave.setEnabled(false);
+        saveButton.getButton().setEnabled(false);
         informationTextPane.append("Compiling Code...!\n");
         if (terminal.tryRunning(CommandType.COMPILE)) {
           terminal.tryRunning(CommandType.RUN);
         }
       }
     });
-    btnZoomIn.addActionListener(new ActionListener() {
+    zoomInButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // Add Zoom
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
@@ -451,7 +318,7 @@ public class MainUserInput {
         }
       }
     });
-    btnZoomOut.addActionListener(new ActionListener() {
+    zoomOutButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // Subtract Zoom
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
