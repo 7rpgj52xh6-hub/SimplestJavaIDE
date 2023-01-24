@@ -31,7 +31,7 @@ public class CommandRunner extends Thread {
       } else {
         ranWithErrors = false;
       }
-      int result = process.waitFor();
+      process.waitFor();
       reader.join();
       listener.commandCompleted();
     } catch (Exception e) {
