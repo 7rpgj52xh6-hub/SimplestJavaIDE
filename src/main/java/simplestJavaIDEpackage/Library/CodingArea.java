@@ -78,6 +78,7 @@ public class CodingArea extends JPanel {
     syntaxTextAreaExpert.setBackground(new Color(47, 47, 47));
     syntaxTextAreaExpert.getDocument().addDocumentListener(syntaxTextAreaInputListener);
     syntaxTextAreaExpert.addKeyListener(inputListener);
+
     // Load Code if possible
     // TODO Find better solution
     boolean loadingEnabled = true;
@@ -115,17 +116,18 @@ public class CodingArea extends JPanel {
   private KeyListener inputListener = new KeyListener() {
     @Override
     public void keyTyped(KeyEvent e) {
-      boolean windowsCTRLpressed = ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0);
-      boolean macOSCTRLpressed = ((e.getModifiersEx() & KeyEvent.VK_META) != 0);
-      if ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
-        save(codingFile);
-        saveButton.setEnabled(false);
-      }
+      // do nothing
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-      // do nothing
+      // TODO Test on macos and linux
+      boolean windowsCTRLpressed = (e.isControlDown());
+      boolean macOSCTRLpressed = ((e.getModifiersEx() & KeyEvent.VK_META) != 0);
+      if ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
+        System.out.println("Test");
+        save(codingFile);
+      }
     }
 
     @Override
