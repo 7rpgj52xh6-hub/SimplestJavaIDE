@@ -52,27 +52,20 @@ public class CodingFile {
     return str.replaceAll("(?m)^\\s+$", "").replaceAll("(?m)^\\n", "");
   }
 
-  private String deleteMainFuctionCodeFromCode(String code) {
-    if (code.contains("public static void main(String[] args){")) {
-      return trim(code.replace("public static void main(String[] args){", "")
-          .replaceFirst("(?s)(.*)" + "}", "$1" + ""));
-    } else {
-      return code;
-    }
-  }
-
-  private String deleteClassFuctionCodeFromCode(String code) {
+  private String deleteMainAndClass(String code) {
+    String result = "";
     if ((code.contains("public class")) && (code.contains("\n"))) {
       String toBeDeleted = code.substring(code.indexOf("public class"), code.indexOf("{\n") + 1);
-      return trim(code.replace(toBeDeleted, "").replaceFirst("\n", "")
+      result = trim(code.replace(toBeDeleted, "").replaceFirst("\n", "")
           .replaceFirst("(?s)(.*)" + "}", "$1" + ""));
     } else {
-      return code;
+      result = code;
     }
-  }
-
-  private String getStandardCode(String wholeCode) {
-    return deleteMainFuctionCodeFromCode(deleteClassFuctionCodeFromCode(wholeCode));
+    if (result.contains("public static void main(String[] args){")) {
+      result = trim(result.replace("public static void main(String[] args){", "")
+          .replaceFirst("(?s)(.*)" + "}", "$1" + ""));
+    }
+    return result;
   }
 
   public void getClassNameFromFile(String fileName) {
@@ -117,9 +110,9 @@ public class CodingFile {
     }
   }
 
-  private void setWrittenCode(String input) {
-    if (input.contains("\n")) {
-      String[] inputLines = input.split("\n");
+  private void setWrittenCode(String text) {
+    if (text.contains("\n")) {
+      String[] inputLines = text.split("\n");
       String result = "";
       for (String i : inputLines) {
         i = i.replaceAll("\t", "");
@@ -127,7 +120,7 @@ public class CodingFile {
       }
       fullCode.set(3, result);
     } else {
-      fullCode.set(3, input.replaceAll("\t", ""));
+      fullCode.set(3, text.replaceAll("\t", ""));
     }
   }
 
@@ -207,7 +200,7 @@ public class CodingFile {
     if (this.className != null) {
       fullCode.set(1, "public class " + this.className + " {"); // set class stump
     }
-    setWrittenCode(trim(getStandardCode(wholeCode.replace(allImports, ""))));
+    setWrittenCode(trim(deleteMainAndClass(wholeCode.replace(allImports, ""))));
   }
 
   public String getClassName() {
@@ -215,19 +208,10 @@ public class CodingFile {
   }
 
   public void writeAllCodeToArray(String text, CodeMode codeMode) {
-    switch (codeMode) {
-      case ADVANCED:
-        setWrittenCode(getStandardCode(text));
-        break;
-      case STANDARD:
-        setWrittenCode(text);
-        break;
-      case EXPERT:
-        setWrittenCode(getStandardCode(text));
-        break;
-      default:
-        ErrorPopupWindow.throwMessage("Error with mode switch button. Mode was not set correcty.");
-        break;
+    if ((codeMode == CodeMode.ADVANCED) || (codeMode == CodeMode.EXPERT)) {
+      setWrittenCode(deleteMainAndClass(text));
+    } else {
+      setWrittenCode(text);
     }
   }
 }

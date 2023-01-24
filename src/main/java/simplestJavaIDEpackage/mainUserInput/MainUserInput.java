@@ -7,8 +7,6 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -18,17 +16,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.text.DefaultCaret;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rsyntaxtextarea.Theme;
-import org.fife.ui.rtextarea.RTextScrollPane;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
+import simplestJavaIDEpackage.Library.CodingArea;
 import simplestJavaIDEpackage.Library.CustomTextPane;
 import simplestJavaIDEpackage.Library.Terminal;
 import simplestJavaIDEpackage.Library.Terminal.CommandType;
@@ -136,10 +129,6 @@ public class MainUserInput {
     btnAddImports.setBounds(10, 6, 126, 36);
     panelButtons.add(btnAddImports);
 
-    JButton btnSwitchCodeMode = new JButton("Mode: Standard");
-    btnSwitchCodeMode.setBounds(146, 6, 126, 36);
-    panelButtons.add(btnSwitchCodeMode);
-
     // Action Panel
     JPanel actionPanel = new JPanel();
     actionPanel.setBounds(6, 48, 264, 36);
@@ -162,109 +151,14 @@ public class MainUserInput {
     actionPanel.add(runButton);
 
     // Coding input and load code if code is not null (from loading file)
-    RSyntaxTextArea codingArea = new RSyntaxTextArea(20, 60);
-    codingArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-    codingArea.setCodeFoldingEnabled(true);
-    try {
-      Theme theme = Theme
-          .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
-      theme.apply(codingArea);
-    } catch (IOException e) {
-      ErrorPopupWindow.throwMessage(e.getMessage());
-    }
-    codingArea.setCurrentLineHighlightColor(new Color(55, 55, 55));
-    codingArea.setBackground(new Color(47, 47, 47));
-    codingArea.getDocument().addDocumentListener(new DocumentListener() {
-
-      @Override
-      public void changedUpdate(DocumentEvent arg0) {
-        // Do nothing
-      }
-
-      @Override
-      public void insertUpdate(DocumentEvent e) {
-        codingFile.isSaved = false;
-        saveButton.getButton().setEnabled(true);
-        runButton.getButton().setEnabled(true);
-      }
-
-      @Override
-      public void removeUpdate(DocumentEvent e) {
-        codingFile.isSaved = false;
-        saveButton.getButton().setEnabled(true);
-        runButton.getButton().setEnabled(true);
-      }
-    });
-    codingArea.addKeyListener(new KeyListener() {
-      @Override
-      public void keyPressed(KeyEvent e) {
-        boolean windowsCTRLpressed = ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0);
-        boolean macOSCTRLpressed = ((e.getModifiersEx() & KeyEvent.VK_META) != 0);
-        if ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
-          save(codingArea, codingFile);
-          saveButton.getButton().setEnabled(false);
-        }
-      }
-
-      @Override
-      public void keyReleased(KeyEvent arg0) {
-        // do nothing
-      }
-
-      @Override
-      public void keyTyped(KeyEvent arg0) {
-        // do nothing
-      }
-    });
-    RTextScrollPane codingScrollPane = new RTextScrollPane(codingArea);
-    contentSplitPane.setTopComponent(codingScrollPane);
-    // Load Code if possible
-    // TODO Find better solution
-    boolean loadingEnabled = true;
-    while (loadingEnabled) {
-      if (codingFile.isFinishedProcessing) {
-        loadingEnabled = false;
-        codingArea.setText(codingFile.getCode(codeMode));
-      }
-    }
+    CodingArea codingArea =
+        new CodingArea(codingFile, runButton.getButton(), saveButton.getButton());
+    contentSplitPane.setTopComponent(codingArea);
 
     // Output
     terminal = new Terminal(userInputTextField, codingFile, runButton.getButton());
     bottomPanel.add(terminal);
 
-    // Manage interactions
-    btnSwitchCodeMode.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        save(codingArea, codingFile);
-        switch (codeMode) {
-          case STANDARD:
-            // Change to extended mode
-            codeMode = CodeMode.ADVANCED;
-            btnSwitchCodeMode.setText("Mode: Advanced");
-            codingArea.setText(null);
-            codingArea.append(codingFile.getCode(codeMode));
-            break;
-          case ADVANCED:
-            // Change to full mode
-            codeMode = CodeMode.EXPERT;
-            btnSwitchCodeMode.setText("Mode: Expert");
-            codingArea.setText(null);
-            codingArea.append(codingFile.getCode(codeMode));
-            break;
-          case EXPERT:
-            // Change to standard mode
-            codeMode = CodeMode.STANDARD;
-            btnSwitchCodeMode.setText("Mode: Standard");
-            codingArea.setText(null);
-            codingArea.append(codingFile.getCode(codeMode));
-            break;
-          default:
-            ErrorPopupWindow
-                .throwMessage("Error with mode switch button. Mode was not set correcty.");
-            break;
-        }
-      }
-    });
     helpButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         ImprintWindow.main(null);
@@ -274,26 +168,24 @@ public class MainUserInput {
       public void actionPerformed(ActionEvent e) {
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
             || codeMode == CodeMode.EXPERT) {
-          AddImportsWindow.main(codingFile, codingArea.getText(), codeMode, codingArea.getFont());
+          AddImportsWindow.main(codingFile, codingArea.getTextArea().getText(), codeMode,
+              codingArea.getFont());
         } else {
           ErrorPopupWindow
               .throwMessage("Error with mode switch button. Mode was not set correcty.");
         }
-        save(codingArea, codingFile); // Also save other code
-        saveButton.getButton().setEnabled(false);
+        codingArea.save(codingFile); // Also save other code
       }
     });
     saveButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        save(codingArea, codingFile);
-        saveButton.getButton().setEnabled(false);
+        codingArea.save(codingFile);
       }
     });
     runButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // Save, compile and run
-        save(codingArea, codingFile);
-        saveButton.getButton().setEnabled(false);
+        codingArea.save(codingFile);
         informationTextPane.append("Compiling Code...!\n");
         if (terminal.tryRunning(CommandType.COMPILE)) {
           terminal.tryRunning(CommandType.RUN);
@@ -338,10 +230,5 @@ public class MainUserInput {
 
   public static CustomTextPane getInformationTextPane() {
     return informationTextPane;
-  }
-
-  public void save(RSyntaxTextArea codingArea, CodingFile codingFile) {
-    codingFile.writeAllCodeToArray(codingArea.getText(), codeMode);
-    codingFile.saveToFile();
   }
 }
