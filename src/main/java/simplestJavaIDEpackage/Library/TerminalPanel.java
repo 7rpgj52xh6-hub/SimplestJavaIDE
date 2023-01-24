@@ -87,8 +87,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     panelClearBtnAndLabel.setLayout(null);
     panelClearBtnAndLabel.setPreferredSize(new Dimension(184, 48));
     panelClearBtnAndLabel.setBackground(new Color(47, 47, 47));
-    JButton btnClearConsole = new JButton("Clear");
-    btnClearConsole.setPreferredSize(new Dimension(86, 36));
+    JButton btnClearConsole = new JButton("Clear Console");
     btnClearConsole.setBounds(6, 6, 86, 36);
     btnClearConsole.addActionListener(new ActionListener() {
       @Override
@@ -111,18 +110,21 @@ public class TerminalPanel extends JPanel implements CommandListener {
     actionPanel.setLayout(new BoxLayout(actionPanel, BoxLayout.X_AXIS));
     actionPanel.setOpaque(false);
 
+    // Button to add imports
+    this.btnAddImports = new JButton("Add imports");
+    btnAddImports.setPreferredSize(new Dimension(100, 36));
+    btnAddImports.setBorder(BorderFactory.createLineBorder(new Color(47, 47, 47), 6));
+
     // Add elements to top panel
     JPanel panelActionAndClear = new JPanel();
     panelActionAndClear.setLayout(new BorderLayout());
     panelActionAndClear.setBackground(new Color(47, 47, 47));
     panelActionAndClear.add(actionPanel, BorderLayout.WEST);
+    panelActionAndClear.add(btnAddImports, BorderLayout.CENTER);
     panelActionAndClear.add(panelClearBtnAndLabel, BorderLayout.EAST);
     topPanel.add(userInputTextField, BorderLayout.CENTER);
     topPanel.add(panelActionAndClear, BorderLayout.WEST);
 
-    // Button to add imports
-    this.btnAddImports = new JButton("Add imports");
-    btnAddImports.setBounds(10, 6, 126, 36);
 
     // Action buttons
     this.saveButton = new SaveButton();

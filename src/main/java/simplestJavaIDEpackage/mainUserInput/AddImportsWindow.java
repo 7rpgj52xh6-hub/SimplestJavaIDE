@@ -17,6 +17,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
+import simplestJavaIDEpackage.Library.CodingArea;
 
 public class AddImportsWindow {
 
@@ -25,12 +26,12 @@ public class AddImportsWindow {
   /**
    * Launch the application.
    */
-  public static boolean main(CodingFile codingFile, String textToSafe, CodeMode codeMode,
+  public static boolean main(CodingFile codingFile, CodingArea codingArea, CodeMode codeMode,
       Font font) {
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
-          AddImportsWindow window = new AddImportsWindow(codingFile, textToSafe, codeMode, font);
+          AddImportsWindow window = new AddImportsWindow(codingFile, codingArea, codeMode, font);
           window.frmImportWindow.setVisible(true);
         } catch (Exception e) {
           ErrorPopupWindow.throwMessage(e.getMessage());
@@ -43,14 +44,16 @@ public class AddImportsWindow {
   /**
    * Create the application.
    */
-  public AddImportsWindow(CodingFile codingFile, String textToSafe, CodeMode codeMode, Font font) {
-    initialize(codingFile, textToSafe, codeMode, font);
+  public AddImportsWindow(CodingFile codingFile, CodingArea codingArea, CodeMode codeMode,
+      Font font) {
+    initialize(codingFile, codingArea, codeMode, font);
   }
 
   /**
    * Initialize the contents of the frame.
    */
-  private void initialize(CodingFile codingFile, String textToSafe, CodeMode codeMode, Font font) {
+  private void initialize(CodingFile codingFile, CodingArea codingArea, CodeMode codeMode,
+      Font font) {
 
     frmImportWindow = new JFrame();
     frmImportWindow.setBounds(100, 100, 640, 360);
@@ -91,15 +94,10 @@ public class AddImportsWindow {
         } else {
           codingFile.setImports(importArea.getText());
         }
-        saveAll(codingFile, textToSafe, codeMode);
+        codingArea.save(codingFile);
         frmImportWindow.dispose();
       }
     });
     frmImportWindow.getContentPane().add(btnSaveAndClose, BorderLayout.SOUTH);
-  }
-
-  private void saveAll(CodingFile codingFile, String textToSafe, CodeMode codeMode) {
-    codingFile.writeAllCodeToArray(textToSafe, codeMode);
-    codingFile.saveToFile();
   }
 }

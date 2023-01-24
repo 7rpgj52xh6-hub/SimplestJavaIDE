@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -90,8 +92,8 @@ public class CodingArea extends JPanel {
     }
   }
 
-  public RSyntaxTextArea getTextArea() {
-    return syntaxTextAreaStandard;
+  public List<RSyntaxTextArea> getTextAreas() {
+    return Arrays.asList(syntaxTextAreaStandard, syntaxTextAreaAdvanced, syntaxTextAreaExpert);
   }
 
   public void save(CodingFile codingFile) {

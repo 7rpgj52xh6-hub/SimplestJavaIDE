@@ -12,6 +12,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
@@ -81,7 +82,7 @@ public class MainUserInput {
     contentSplitPane.setResizeWeight(0.9);
     contentSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 300);
     contentSplitPane.getBottomComponent().setMinimumSize(new Dimension(20000, 286));
-    
+
     // Output
     JPanel bottomPanel = new JPanel();
     contentSplitPane.setBottomComponent(bottomPanel);
@@ -120,9 +121,11 @@ public class MainUserInput {
         // Add Zoom
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
             || codeMode == CodeMode.EXPERT) {
-          Font font = codingArea.getFont();
-          if (font.getSize() <= 45) {
-            codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+          Font font = codingArea.getTextAreas().get(0).getFont();
+          if (font.getSize() <= 60) {
+            for (RSyntaxTextArea i : codingArea.getTextAreas()) {
+              i.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+            }
             terminal.getTextArea()
                 .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
           }
@@ -137,9 +140,11 @@ public class MainUserInput {
         // Subtract Zoom
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
             || codeMode == CodeMode.EXPERT) {
-          Font font = codingArea.getFont();
+          Font font = codingArea.getTextAreas().get(0).getFont();
           if (font.getSize() >= 4) {
-            codingArea.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+            for (RSyntaxTextArea i : codingArea.getTextAreas()) {
+              i.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+            }
             terminal.getTextArea()
                 .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
           }
@@ -153,8 +158,8 @@ public class MainUserInput {
       public void actionPerformed(ActionEvent e) {
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
             || codeMode == CodeMode.EXPERT) {
-          AddImportsWindow.main(codingFile, codingArea.getTextArea().getText(), codeMode,
-              codingArea.getFont());
+          AddImportsWindow.main(codingFile, codingArea, codeMode,
+              codingArea.getTextAreas().get(0).getFont());
         } else {
           ErrorPopupWindow
               .throwMessage("Error with mode switch button. Mode was not set correcty.");
