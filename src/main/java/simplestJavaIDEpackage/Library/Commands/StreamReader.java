@@ -16,6 +16,7 @@ public class StreamReader extends Thread {
 
   @Override
   public void run() {
+    System.out.println("Stream reader runs");
     try {
       int value = -1;
       while ((value = is.read()) != -1) {
@@ -24,5 +25,14 @@ public class StreamReader extends Thread {
     } catch (IOException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
     }
+  }
+
+  public int checkIfStreamIsEmpty() {
+    try {
+      return is.read();
+    } catch (IOException e) {
+      ErrorPopupWindow.throwMessage(e.getMessage());
+    }
+    return 69;
   }
 }

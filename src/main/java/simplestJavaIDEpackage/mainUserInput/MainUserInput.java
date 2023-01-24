@@ -18,8 +18,7 @@ import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.CodingArea;
-import simplestJavaIDEpackage.Library.TerminalPanel;
-import simplestJavaIDEpackage.Library.TerminalPanel.CommandType;;
+import simplestJavaIDEpackage.Library.TerminalPanel;;
 
 /**
  * 
@@ -111,9 +110,9 @@ public class MainUserInput {
       public void actionPerformed(ActionEvent e) {
         // Save, compile and run
         codingArea.save(codingFile);
-        if (terminal.tryRunning(CommandType.COMPILE)) {
-          terminal.tryRunning(CommandType.RUN);
-        }
+        terminal.compile();
+        // terminal.run();
+
       }
     });
     terminal.getZoomInButton().addActionListener(new ActionListener() {
