@@ -25,11 +25,6 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.CommandRunner;
 import simplestJavaIDEpackage.Library.Commands.CommitRunner;
-import simplestJavaIDEpackage.mainUserInput.Components.HelpButton;
-import simplestJavaIDEpackage.mainUserInput.Components.RunButton;
-import simplestJavaIDEpackage.mainUserInput.Components.SaveButton;
-import simplestJavaIDEpackage.mainUserInput.Components.ZoomInButton;
-import simplestJavaIDEpackage.mainUserInput.Components.ZoomOutButton;
 
 /**
  * This class implements the terminal with all possible functions

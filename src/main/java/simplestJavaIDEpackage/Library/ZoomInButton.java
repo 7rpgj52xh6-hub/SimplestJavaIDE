@@ -1,4 +1,4 @@
-package simplestJavaIDEpackage.mainUserInput.Components;
+package simplestJavaIDEpackage.Library;
 
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
