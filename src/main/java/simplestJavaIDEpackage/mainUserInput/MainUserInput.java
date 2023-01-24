@@ -1,7 +1,6 @@
 package simplestJavaIDEpackage.mainUserInput;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -9,27 +8,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-import javax.swing.text.DefaultCaret;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.CodingArea;
-import simplestJavaIDEpackage.Library.CustomTextPane;
-import simplestJavaIDEpackage.Library.Terminal;
-import simplestJavaIDEpackage.Library.Terminal.CommandType;
-import simplestJavaIDEpackage.mainUserInput.Components.HelpButton;
-import simplestJavaIDEpackage.mainUserInput.Components.RunButton;
-import simplestJavaIDEpackage.mainUserInput.Components.SaveButton;
-import simplestJavaIDEpackage.mainUserInput.Components.ZoomInButton;
-import simplestJavaIDEpackage.mainUserInput.Components.ZoomOutButton;;
+import simplestJavaIDEpackage.Library.TerminalPanel;
+import simplestJavaIDEpackage.Library.TerminalPanel.CommandType;;
 
 /**
  * 
@@ -39,8 +28,7 @@ import simplestJavaIDEpackage.mainUserInput.Components.ZoomOutButton;;
 public class MainUserInput {
 
   private JFrame frmSimplestJavaIDE;
-  private Terminal terminal;
-  private static CustomTextPane informationTextPane;
+  private TerminalPanel terminal;
   private CodeMode codeMode;
   private JTextField userInputTextField;
 
@@ -93,106 +81,41 @@ public class MainUserInput {
     contentSplitPane.setResizeWeight(0.9);
     contentSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 300);
     contentSplitPane.getBottomComponent().setMinimumSize(new Dimension(20000, 286));
-
+    
+    // Output
     JPanel bottomPanel = new JPanel();
     contentSplitPane.setBottomComponent(bottomPanel);
     bottomPanel.setPreferredSize(new Dimension(200, 286));
     bottomPanel.setLayout(new BorderLayout(0, 0));
-
-    JPanel panelButtonsAndInformationTextPane = new JPanel();
-    bottomPanel.add(panelButtonsAndInformationTextPane, BorderLayout.LINE_START);
-    panelButtonsAndInformationTextPane.setMaximumSize(new Dimension(278, 286));
-    panelButtonsAndInformationTextPane.setPreferredSize(new Dimension(278, 286));
-    panelButtonsAndInformationTextPane.setLayout(new BorderLayout(0, 0));
-    panelButtonsAndInformationTextPane.setBackground(new Color(47, 47, 47));
-
-    // Information field on the bottom
-    informationTextPane = new CustomTextPane();
-    informationTextPane.setText(null);
-    informationTextPane.setEditable(false);
-    informationTextPane.setFocusable(false);
-    informationTextPane.setBackground(new Color(40, 40, 40));
-    DefaultCaret informationTextPaneCaret = (DefaultCaret) informationTextPane.getCaret();
-    informationTextPaneCaret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
-    JScrollPane scrollPaneInformationTextPane = new JScrollPane(informationTextPane);
-    scrollPaneInformationTextPane.setBounds(6, 173, 264, 70);
-    panelButtonsAndInformationTextPane.add(scrollPaneInformationTextPane, BorderLayout.CENTER);
-
-    JPanel panelButtons = new JPanel();
-    panelButtonsAndInformationTextPane.add(panelButtons, BorderLayout.NORTH);
-    panelButtons.setMaximumSize(new Dimension(278, 90));
-    panelButtons.setPreferredSize(new Dimension(278, 90));
-    panelButtons.setBackground(new Color(47, 47, 47));
-    panelButtons.setLayout(null);
-
-    JButton btnAddImports = new JButton("Add imports");
-    btnAddImports.setBounds(10, 6, 126, 36);
-    panelButtons.add(btnAddImports);
-
-    // Action Panel
-    JPanel actionPanel = new JPanel();
-    actionPanel.setBounds(6, 48, 264, 36);
-    actionPanel.setLayout(new BoxLayout(actionPanel, BoxLayout.X_AXIS));
-    actionPanel.setOpaque(false);
-    panelButtons.add(actionPanel);
-
-    // Action buttons
-    SaveButton saveButton = new SaveButton();
-    RunButton runButton = new RunButton();
-    HelpButton helpButton = new HelpButton();
-    ZoomInButton zoomInButton = new ZoomInButton();
-    ZoomOutButton zoomOutButton = new ZoomOutButton();
-
-    // Add buttons to action panel
-    actionPanel.add(helpButton);
-    actionPanel.add(zoomInButton);
-    actionPanel.add(zoomOutButton);
-    actionPanel.add(saveButton);
-    actionPanel.add(runButton);
+    terminal = new TerminalPanel(userInputTextField, codingFile);
+    bottomPanel.add(terminal);
 
     // Coding input and load code if code is not null (from loading file)
     CodingArea codingArea =
-        new CodingArea(codingFile, runButton.getButton(), saveButton.getButton());
+        new CodingArea(codingFile, terminal.getRunButton(), terminal.getSaveButton());
     contentSplitPane.setTopComponent(codingArea);
 
-    // Output
-    terminal = new Terminal(userInputTextField, codingFile, runButton.getButton());
-    bottomPanel.add(terminal);
-
-    helpButton.getButton().addActionListener(new ActionListener() {
+    // Action button interactions
+    terminal.getHelpButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         ImprintWindow.main(null);
       }
     });
-    btnAddImports.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
-            || codeMode == CodeMode.EXPERT) {
-          AddImportsWindow.main(codingFile, codingArea.getTextArea().getText(), codeMode,
-              codingArea.getFont());
-        } else {
-          ErrorPopupWindow
-              .throwMessage("Error with mode switch button. Mode was not set correcty.");
-        }
-        codingArea.save(codingFile); // Also save other code
-      }
-    });
-    saveButton.getButton().addActionListener(new ActionListener() {
+    terminal.getSaveButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         codingArea.save(codingFile);
       }
     });
-    runButton.getButton().addActionListener(new ActionListener() {
+    terminal.getRunButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // Save, compile and run
         codingArea.save(codingFile);
-        informationTextPane.append("Compiling Code...!\n");
         if (terminal.tryRunning(CommandType.COMPILE)) {
           terminal.tryRunning(CommandType.RUN);
         }
       }
     });
-    zoomInButton.getButton().addActionListener(new ActionListener() {
+    terminal.getZoomInButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // Add Zoom
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
@@ -209,7 +132,7 @@ public class MainUserInput {
         }
       }
     });
-    zoomOutButton.getButton().addActionListener(new ActionListener() {
+    terminal.getZoomOutButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // Subtract Zoom
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
@@ -226,9 +149,18 @@ public class MainUserInput {
         }
       }
     });
-  }
-
-  public static CustomTextPane getInformationTextPane() {
-    return informationTextPane;
+    terminal.getAddImportsButton().addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
+            || codeMode == CodeMode.EXPERT) {
+          AddImportsWindow.main(codingFile, codingArea.getTextArea().getText(), codeMode,
+              codingArea.getFont());
+        } else {
+          ErrorPopupWindow
+              .throwMessage("Error with mode switch button. Mode was not set correcty.");
+        }
+        codingArea.save(codingFile); // Also save other code
+      }
+    });
   }
 }

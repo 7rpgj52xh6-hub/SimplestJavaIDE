@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,6 +25,11 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.CommandRunner;
 import simplestJavaIDEpackage.Library.Commands.CommitRunner;
+import simplestJavaIDEpackage.mainUserInput.Components.HelpButton;
+import simplestJavaIDEpackage.mainUserInput.Components.RunButton;
+import simplestJavaIDEpackage.mainUserInput.Components.SaveButton;
+import simplestJavaIDEpackage.mainUserInput.Components.ZoomInButton;
+import simplestJavaIDEpackage.mainUserInput.Components.ZoomOutButton;
 
 /**
  * This class implements the terminal with all possible functions
@@ -31,7 +37,7 @@ import simplestJavaIDEpackage.Library.Commands.CommitRunner;
  * @author Daniel Trageser
  * 
  */
-public class Terminal extends JPanel implements CommandListener {
+public class TerminalPanel extends JPanel implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
   private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
   private JTextArea terminalOutput;
@@ -40,19 +46,22 @@ public class Terminal extends JPanel implements CommandListener {
   private CodingFile codingFile;
   private JScrollPane terminalTextAreaScrollPane;
   private JTextField userInputTextField;
-  private JButton btnCompileAndRun;
-  private Terminal terminal;
+  private TerminalPanel terminal = this;
   private List<String> outputList;
+  private SaveButton saveButton;
+  private RunButton runButton;
+  private HelpButton helpButton;
+  private ZoomInButton zoomInButton;
+  private ZoomOutButton zoomOutButton;
+  private JButton btnAddImports;
 
   public enum CommandType {
     COMPILE, RUN, INPUT
   }
 
-  public Terminal(JTextField userInputField, CodingFile codingFile, JButton btnCompileAndRun) {
+  public TerminalPanel(JTextField userInputField, CodingFile codingFile) {
     initializeUI();
     this.codingFile = codingFile;
-    this.btnCompileAndRun = btnCompileAndRun;
-    this.terminal = this;
     outputList = new ArrayList<String>();
   }
 
@@ -65,7 +74,9 @@ public class Terminal extends JPanel implements CommandListener {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (!terminal.tryRunning(CommandType.INPUT)) {
-          btnCompileAndRun.setEnabled(false);
+          if (runButton != null) {
+            runButton.setEnabled(false);
+          }
         }
         userInputTextField.setText(null);
       }
@@ -83,8 +94,6 @@ public class Terminal extends JPanel implements CommandListener {
       @Override
       public void actionPerformed(ActionEvent e) {
         terminal.getTextArea().setText(null);
-        // TODO enable following line
-        // informationTextPane.setText(null);
       }
     });
     panelClearBtnAndLabel.add(btnClearConsole);
@@ -95,8 +104,39 @@ public class Terminal extends JPanel implements CommandListener {
     JPanel topPanel = new JPanel();
     topPanel.setPreferredSize(new Dimension(200, 48));
     topPanel.setLayout(new BorderLayout());
+
+    // Action Panel
+    JPanel actionPanel = new JPanel();
+    actionPanel.setBounds(6, 48, 264, 36);
+    actionPanel.setLayout(new BoxLayout(actionPanel, BoxLayout.X_AXIS));
+    actionPanel.setOpaque(false);
+
+    // Add elements to top panel
+    JPanel panelActionAndClear = new JPanel();
+    panelActionAndClear.setLayout(new BorderLayout());
+    panelActionAndClear.setBackground(new Color(47, 47, 47));
+    panelActionAndClear.add(actionPanel, BorderLayout.WEST);
+    panelActionAndClear.add(panelClearBtnAndLabel, BorderLayout.EAST);
     topPanel.add(userInputTextField, BorderLayout.CENTER);
-    topPanel.add(panelClearBtnAndLabel, BorderLayout.LINE_START);
+    topPanel.add(panelActionAndClear, BorderLayout.WEST);
+
+    // Button to add imports
+    this.btnAddImports = new JButton("Add imports");
+    btnAddImports.setBounds(10, 6, 126, 36);
+
+    // Action buttons
+    this.saveButton = new SaveButton();
+    this.runButton = new RunButton();
+    this.helpButton = new HelpButton();
+    this.zoomInButton = new ZoomInButton();
+    this.zoomOutButton = new ZoomOutButton();
+
+    // Add buttons to action panel
+    actionPanel.add(helpButton);
+    actionPanel.add(zoomInButton);
+    actionPanel.add(zoomOutButton);
+    actionPanel.add(saveButton);
+    actionPanel.add(runButton);
 
     // Output
     terminalOutput = new JTextArea();
@@ -112,6 +152,30 @@ public class Terminal extends JPanel implements CommandListener {
     this.setLayout(new BorderLayout());
     this.add(terminalTextAreaScrollPane, BorderLayout.CENTER);
     this.add(topPanel, BorderLayout.NORTH);
+  }
+
+  public JButton getAddImportsButton() {
+    return this.btnAddImports;
+  }
+
+  public JButton getSaveButton() {
+    return this.saveButton.getButton();
+  }
+
+  public JButton getRunButton() {
+    return this.runButton.getButton();
+  }
+
+  public JButton getHelpButton() {
+    return this.helpButton.getButton();
+  }
+
+  public JButton getZoomInButton() {
+    return this.zoomInButton.getButton();
+  }
+
+  public JButton getZoomOutButton() {
+    return this.zoomOutButton.getButton();
   }
 
   public JTextArea getTextArea() {

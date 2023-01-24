@@ -1,13 +1,13 @@
 package simplestJavaIDEpackage.Library.Commands;
 
-import simplestJavaIDEpackage.Library.Terminal;
+import simplestJavaIDEpackage.Library.TerminalPanel;
 
 public class AppendTask implements Runnable {
 
-  private Terminal terminal;
+  private TerminalPanel terminal;
   private String text;
 
-  public AppendTask(Terminal textArea, String text) {
+  public AppendTask(TerminalPanel textArea, String text) {
     this.terminal = textArea;
     this.text = text;
   }
