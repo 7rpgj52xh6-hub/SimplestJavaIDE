@@ -174,13 +174,11 @@ public class TerminalPanel extends JPanel implements CommandListener {
     return this.terminalOutput;
   }
 
-  public void appendText(String text) {
-    this.getTextArea().append(text);
-  }
 
   @Override
   public void commandOutput(String text) {
-    appendText(text);
+    // outputList.add(text);
+    this.getTextArea().append(text);
   }
 
   @Override
@@ -192,22 +190,22 @@ public class TerminalPanel extends JPanel implements CommandListener {
     // for (String i : outputList) {
     // output = output + i;
     // }
-    // appendText(prefix + output + "\n");
+    // this.getTextArea().append(prefix + output + "\n");
     // outputList.clear();
-    appendText("\n");
+    // appendText("Command completed");
   }
 
   @Override
   public void compileSuccessful() {
     // TODO delete
-    appendText("Compile successful\n");
+    // appendText("Compile successful\n");
     run(CommandType.RUN);
   }
 
   @Override
   public void compileFailed() {
     // TODO delete
-    appendText("Compile failed");
+    this.getTextArea().append("Compile failed");
   }
 
   @Override
