@@ -18,11 +18,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultCaret;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
-import simplestJavaIDEpackage.Library.Commands.AppendTask;
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.Runner;
 
@@ -182,8 +180,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   @Override
   public void commandOutput(String text) {
-    SwingUtilities.invokeLater(new AppendTask(terminal, text));
-    // outputList.add(text);
+    appendText(text);
   }
 
   @Override
