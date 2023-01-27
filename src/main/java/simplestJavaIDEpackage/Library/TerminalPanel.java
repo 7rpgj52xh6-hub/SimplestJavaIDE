@@ -6,8 +6,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.BorderFactory;
@@ -32,14 +30,12 @@ import simplestJavaIDEpackage.Library.Commands.Runner;
  */
 public class TerminalPanel extends JPanel implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
-  private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
   private JTextArea terminalOutput;
   private Runner runner;
   private CodingFile codingFile;
   private JScrollPane terminalTextAreaScrollPane;
   private JTextField userInputTextField;
   private TerminalPanel terminal = this;
-  private List<String> outputList;
   private SaveButton saveButton;
   private RunButton runButton;
   private HelpButton helpButton;
@@ -54,7 +50,6 @@ public class TerminalPanel extends JPanel implements CommandListener {
   public TerminalPanel(JTextField userInputField, CodingFile codingFile) {
     initializeUI();
     this.codingFile = codingFile;
-    outputList = new ArrayList<String>();
   }
 
   public void initializeUI() {
@@ -177,28 +172,12 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   @Override
   public void commandOutput(String text) {
-    // outputList.add(text);
     this.getTextArea().append(text);
   }
 
   @Override
-  public void commandCompleted() {
-    // Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-    // String prefix = "[" + sdf.format(timestamp) + "] - ";
-    // String output = "";
-    // System.out.println(outputList.size());
-    // for (String i : outputList) {
-    // output = output + i;
-    // }
-    // this.getTextArea().append(prefix + output + "\n");
-    // outputList.clear();
-    // appendText("Command completed");
-  }
-
-  @Override
   public void compileSuccessful() {
-    // TODO delete
-    // appendText("Compile successful\n");
+    // run java programm if compile was successful
     run(CommandType.RUN);
   }
 
@@ -210,7 +189,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   @Override
   public void commandFailed(Exception exp) {
-    ErrorPopupWindow.throwMessage("Command failed - " + exp.getMessage());
+    this.getTextArea().append("Command failed - " + exp.getMessage());
   }
 
   public boolean isRunnerRunning() {
@@ -218,15 +197,15 @@ public class TerminalPanel extends JPanel implements CommandListener {
   }
 
   public void compile() {
-    String command = "";
-    runner =
-        new Runner(this, getValues("javac " + codingFile.getAbsolutePath()), CommandType.COMPILE);
+    List<String> commandValues = Arrays.asList("javac", codingFile.getAbsolutePath());
+    runner = new Runner(this, commandValues, CommandType.COMPILE);
   }
 
   public void run(CommandType ct) {
     if (ct == CommandType.RUN) {
-      String command = "java -cp " + codingFile.getClassPath() + " " + codingFile.getClassName();
-      runner = new Runner(this, getValues(command), CommandType.RUN);
+      List<String> commandValues =
+          Arrays.asList("java", "-cp", codingFile.getClassPath(), codingFile.getClassName());
+      runner = new Runner(this, commandValues, CommandType.RUN);
     } else if (ct == CommandType.INPUT) {
       try {
         String command = this.userInputTextField.getText();
@@ -236,46 +215,5 @@ public class TerminalPanel extends JPanel implements CommandListener {
       }
     }
 
-  }
-
-
-  // TODO Make obsolete
-  public List<String> getValues(String cmd) {
-    if (!cmd.trim().isEmpty()) {
-      List<String> values = new ArrayList<>(25);
-      if (cmd.contains("\"")) {
-
-        while (cmd.contains("\"")) {
-
-          String start = cmd.substring(0, cmd.indexOf("\""));
-          cmd = cmd.substring(start.length());
-          String quote = cmd.substring(cmd.indexOf("\"") + 1);
-          cmd = cmd.substring(cmd.indexOf("\"") + 1);
-          quote = quote.substring(0, cmd.indexOf("\""));
-          cmd = cmd.substring(cmd.indexOf("\"") + 1);
-
-          if (!start.trim().isEmpty()) {
-            String parts[] = start.trim().split(" ");
-            values.addAll(Arrays.asList(parts));
-          }
-          values.add(quote.trim());
-
-        }
-
-        if (!cmd.trim().isEmpty()) {
-          String parts[] = cmd.trim().split(" ");
-          values.addAll(Arrays.asList(parts));
-        }
-      } else {
-
-        if (!cmd.trim().isEmpty()) {
-          String parts[] = cmd.trim().split(" ");
-          values.addAll(Arrays.asList(parts));
-        }
-
-      }
-      return values;
-    }
-    return null;
   }
 }
