@@ -12,6 +12,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.CodingFile.CodeMode;
@@ -115,8 +118,8 @@ public class MainUserInput {
 
       }
     });
-    terminal.getZoomInButton().addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+    terminal.getZoomInButton().getModel().addChangeListener(new ChangeListener() {
+      public void zoomIn() {
         // Add Zoom
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
             || codeMode == CodeMode.EXPERT) {
@@ -137,14 +140,31 @@ public class MainUserInput {
               .throwMessage("Error with mode switch button. Mode was not set correcty.");
         }
       }
+
+      private Timer trigger = new Timer(125, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          zoomIn();
+        }
+      });
+
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        if (terminal.getZoomInButton().getModel().isPressed()) {
+          zoomIn();
+          trigger.start();
+        } else {
+          trigger.stop();
+        }
+      }
     });
-    terminal.getZoomOutButton().addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+    terminal.getZoomOutButton().getModel().addChangeListener(new ChangeListener() {
+      public void zoomOut() {
         // Subtract Zoom
         if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
             || codeMode == CodeMode.EXPERT) {
           Font font = codingArea.getTextAreas().get(0).getFont();
-          if (font.getSize() >= 4) {
+          if (font.getSize() >= 10) {
             for (RSyntaxTextArea i : codingArea.getTextAreas()) {
               i.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
             }
@@ -152,7 +172,7 @@ public class MainUserInput {
                 .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
             terminal.getZoomInButton().setEnabled(true);
           }
-          if (font.getSize() <= 6) {
+          if (font.getSize() <= 12) {
             terminal.getZoomOutButton().setEnabled(false);
           }
         } else {
@@ -160,6 +180,24 @@ public class MainUserInput {
               .throwMessage("Error with mode switch button. Mode was not set correcty.");
         }
       }
+
+      private Timer trigger = new Timer(125, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          zoomOut();
+        }
+      });
+
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        if (terminal.getZoomOutButton().getModel().isPressed()) {
+          zoomOut();
+          trigger.start();
+        } else {
+          trigger.stop();
+        }
+      }
+
     });
     terminal.getAddImportsButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
