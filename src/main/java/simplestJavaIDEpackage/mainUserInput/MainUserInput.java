@@ -127,6 +127,10 @@ public class MainUserInput {
             }
             terminal.getTextArea()
                 .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+            terminal.getZoomOutButton().setEnabled(true);
+          }
+          if (font.getSize() >= 58) {
+            terminal.getZoomInButton().setEnabled(false);
           }
         } else {
           ErrorPopupWindow
@@ -146,6 +150,10 @@ public class MainUserInput {
             }
             terminal.getTextArea()
                 .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+            terminal.getZoomInButton().setEnabled(true);
+          }
+          if (font.getSize() <= 6) {
+            terminal.getZoomOutButton().setEnabled(false);
           }
         } else {
           ErrorPopupWindow
@@ -155,14 +163,7 @@ public class MainUserInput {
     });
     terminal.getAddImportsButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (codeMode == CodeMode.STANDARD || codeMode == CodeMode.ADVANCED
-            || codeMode == CodeMode.EXPERT) {
-          AddImportsWindow.main(codingFile, codingArea, codeMode,
-              codingArea.getTextAreas().get(0).getFont());
-        } else {
-          ErrorPopupWindow
-              .throwMessage("Error with mode switch button. Mode was not set correcty.");
-        }
+        AddImportsWindow.main(codingFile, codingArea, codingArea.getTextAreas().get(0).getFont());
         codingArea.save(codingFile); // Also save other code
       }
     });

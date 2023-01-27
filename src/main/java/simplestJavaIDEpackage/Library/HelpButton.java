@@ -21,10 +21,10 @@ public class HelpButton extends JPanel {
     this.setLayout(new GridBagLayout());
     try {
       Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnHelp.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+          .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
       ImageIcon iconBtn1 = new ImageIcon(tmpImage);
       tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnHelpPressed.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+          .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
       ImageIcon iconBtn2 = new ImageIcon(tmpImage);
       button = new JButton();
       this.add(button);
