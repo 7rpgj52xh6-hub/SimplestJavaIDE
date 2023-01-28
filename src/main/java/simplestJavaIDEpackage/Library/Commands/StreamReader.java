@@ -16,7 +16,6 @@ public class StreamReader extends Thread {
 
   @Override
   public void run() {
-    System.out.println("Stream reader runs");
     try {
       int value = -1;
       while ((value = is.read()) != -1) {

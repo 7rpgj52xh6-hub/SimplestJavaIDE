@@ -25,7 +25,6 @@ public class Runner extends Thread {
 
   public void run() {
     try {
-      System.out.println("running: " + cmds);
       ProcessBuilder pb = new ProcessBuilder(cmds);
       pb.redirectErrorStream();
       process = pb.start();
@@ -39,7 +38,6 @@ public class Runner extends Thread {
           listener.compileFailed();
         }
       } else {
-        System.out.println("Command successful");
         if (commandType == CommandType.COMPILE) {
           listener.compileSuccessful();
         }
@@ -55,7 +53,6 @@ public class Runner extends Thread {
 
   public void write(String text) throws IOException {
     if (process != null && process.isAlive()) {
-      System.out.println("Sending " + text);
       process.getOutputStream().write(text.getBytes());
       process.getOutputStream().flush();
     }
