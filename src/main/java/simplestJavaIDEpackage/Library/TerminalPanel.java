@@ -18,6 +18,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.text.DefaultCaret;
 import simplestJavaIDEpackage.CodingFile;
+import simplestJavaIDEpackage.CodingFile.CodeMode;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.Runner;
@@ -206,8 +207,10 @@ public class TerminalPanel extends JPanel implements CommandListener {
       List<String> commandValues =
           Arrays.asList("java", "-cp", codingFile.getClassPath(), codingFile.getClassName());
       runner = new Runner(this, commandValues, CommandType.RUN);
+      System.out.println(codingFile.getCode(CodeMode.EXPERT));
     } else if (ct == CommandType.INPUT) {
       try {
+        // TODO Make possible to just press enter on input (empty input)
         String command = this.userInputTextField.getText();
         runner.write(command + "\n");
       } catch (IOException ex) {
