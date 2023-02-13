@@ -27,6 +27,8 @@ public class CodingFile {
     STANDARD, ADVANCED, EXPERT
   }
 
+  // TODO Rewrite, eliminate Bugs
+
   CodingFile(File sf, Boolean isNewFile) {
     fullCode = new ArrayList<String>();
     fullCode.add(""); // Imports
