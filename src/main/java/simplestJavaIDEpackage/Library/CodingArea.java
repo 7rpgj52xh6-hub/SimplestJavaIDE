@@ -24,12 +24,9 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class CodingArea extends JPanel {
   private static final long serialVersionUID = -3178874378975696478L;
-  private RTextScrollPane scrollPaneStandard;
-  private RSyntaxTextArea syntaxTextAreaStandard;
-  private RTextScrollPane scrollPaneAdvanced;
-  private RSyntaxTextArea syntaxTextAreaAdvanced;
-  private RTextScrollPane scrollPaneExpert;
-  private RSyntaxTextArea syntaxTextAreaExpert;
+  private RTextScrollPane scrollPaneMainMethod;
+  private JPanel newMethodPanel;
+  private RSyntaxTextArea syntaxTextAreaMainMethod;
   private JTabbedPane tabbedPane;
   private JButton runButton;
   private JButton saveButton;
@@ -37,49 +34,31 @@ public class CodingArea extends JPanel {
   private CodeMode codeMode = CodeMode.STANDARD;
 
   public CodingArea(CodingFile codingFileTmp, JButton runButtonTmp, JButton saveButtonTmp) {
-    syntaxTextAreaStandard = new RSyntaxTextArea(20, 60);
-    scrollPaneStandard = new RTextScrollPane(syntaxTextAreaStandard);
-    syntaxTextAreaAdvanced = new RSyntaxTextArea(20, 60);
-    scrollPaneAdvanced = new RTextScrollPane(syntaxTextAreaAdvanced);
-    syntaxTextAreaExpert = new RSyntaxTextArea(20, 60);
-    scrollPaneExpert = new RTextScrollPane(syntaxTextAreaExpert);
+    syntaxTextAreaMainMethod = new RSyntaxTextArea(20, 60);
+    scrollPaneMainMethod = new RTextScrollPane(syntaxTextAreaMainMethod);
+    newMethodPanel = new JPanel();
     tabbedPane = new JTabbedPane();
-    tabbedPane.addTab("Standard", scrollPaneStandard);
-    tabbedPane.addTab("Advanced", scrollPaneAdvanced);
-    tabbedPane.addTab("Expert", scrollPaneExpert);
+    tabbedPane.addTab("main", scrollPaneMainMethod);
+    tabbedPane.addTab("Add new method", newMethodPanel);
     tabbedPane.addChangeListener(tabbedPaneChangeListener);
     this.setLayout(new BorderLayout());
     this.add(tabbedPane, BorderLayout.CENTER);
     this.runButton = runButtonTmp;
     this.saveButton = saveButtonTmp;
     this.codingFile = codingFileTmp;
-    syntaxTextAreaStandard.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-    syntaxTextAreaStandard.setCodeFoldingEnabled(true);
-    syntaxTextAreaAdvanced.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-    syntaxTextAreaAdvanced.setCodeFoldingEnabled(true);
-    syntaxTextAreaExpert.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-    syntaxTextAreaExpert.setCodeFoldingEnabled(true);
+    syntaxTextAreaMainMethod.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+    syntaxTextAreaMainMethod.setCodeFoldingEnabled(true);
     try {
       Theme theme = Theme
           .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
-      theme.apply(syntaxTextAreaStandard);
-      theme.apply(syntaxTextAreaAdvanced);
-      theme.apply(syntaxTextAreaExpert);
+      theme.apply(syntaxTextAreaMainMethod);
     } catch (IOException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
     }
-    syntaxTextAreaStandard.setCurrentLineHighlightColor(new Color(55, 55, 55));
-    syntaxTextAreaStandard.setBackground(new Color(47, 47, 47));
-    syntaxTextAreaStandard.getDocument().addDocumentListener(syntaxTextAreaInputListener);
-    syntaxTextAreaStandard.addKeyListener(inputListener);
-    syntaxTextAreaAdvanced.setCurrentLineHighlightColor(new Color(55, 55, 55));
-    syntaxTextAreaAdvanced.setBackground(new Color(47, 47, 47));
-    syntaxTextAreaAdvanced.getDocument().addDocumentListener(syntaxTextAreaInputListener);
-    syntaxTextAreaAdvanced.addKeyListener(inputListener);
-    syntaxTextAreaExpert.setCurrentLineHighlightColor(new Color(55, 55, 55));
-    syntaxTextAreaExpert.setBackground(new Color(47, 47, 47));
-    syntaxTextAreaExpert.getDocument().addDocumentListener(syntaxTextAreaInputListener);
-    syntaxTextAreaExpert.addKeyListener(inputListener);
+    syntaxTextAreaMainMethod.setCurrentLineHighlightColor(new Color(55, 55, 55));
+    syntaxTextAreaMainMethod.setBackground(new Color(47, 47, 47));
+    syntaxTextAreaMainMethod.getDocument().addDocumentListener(syntaxTextAreaInputListener);
+    syntaxTextAreaMainMethod.addKeyListener(inputListener);
 
     // Load Code if possible
     // TODO Find better solution
@@ -87,31 +66,18 @@ public class CodingArea extends JPanel {
     while (loadingEnabled) {
       if (codingFile.isFinishedProcessing) {
         loadingEnabled = false;
-        syntaxTextAreaStandard.setText(codingFile.getCode(codeMode));
+        syntaxTextAreaMainMethod.setText(codingFile.getCode(codeMode));
       }
     }
   }
 
   public List<RSyntaxTextArea> getTextAreas() {
-    return Arrays.asList(syntaxTextAreaStandard, syntaxTextAreaAdvanced, syntaxTextAreaExpert);
+    return Arrays.asList(syntaxTextAreaMainMethod);
   }
 
   public void save(CodingFile codingFile) {
     saveButton.setEnabled(false);
-    switch (codeMode) {
-      case STANDARD:
-        codingFile.writeAllCodeToArray(syntaxTextAreaStandard.getText(), codeMode);
-        break;
-      case ADVANCED:
-        codingFile.writeAllCodeToArray(syntaxTextAreaAdvanced.getText(), codeMode);
-        break;
-      case EXPERT:
-        codingFile.writeAllCodeToArray(syntaxTextAreaExpert.getText(), codeMode);
-        break;
-      default:
-        ErrorPopupWindow.throwMessage("Error with changing of code modes. Please restart.");
-        break;
-    }
+    // TODO Save
     codingFile.saveToFile();
   }
 
@@ -163,28 +129,7 @@ public class CodingArea extends JPanel {
     @Override
     public void stateChanged(ChangeEvent e) {
       save(codingFile);
-      syntaxTextAreaStandard.setText(null);
-      syntaxTextAreaAdvanced.setText(null);
-      syntaxTextAreaExpert.setText(null);
-      JTabbedPane sourceTabbedPane = (JTabbedPane) e.getSource();
-      int newModeIndex = sourceTabbedPane.getSelectedIndex();
-      switch (newModeIndex) {
-        case 0:
-          codeMode = CodeMode.STANDARD;
-          syntaxTextAreaStandard.setText(codingFile.getCode(codeMode));
-          break;
-        case 1:
-          codeMode = CodeMode.ADVANCED;
-          syntaxTextAreaAdvanced.setText(codingFile.getCode(codeMode));
-          break;
-        case 2:
-          codeMode = CodeMode.EXPERT;
-          syntaxTextAreaExpert.setText(codingFile.getCode(codeMode));
-          break;
-        default:
-          ErrorPopupWindow.throwMessage("Error while changing coding mode. Please restart");
-          break;
-      }
+      // TODO load contents maybe
     }
   };
 }
