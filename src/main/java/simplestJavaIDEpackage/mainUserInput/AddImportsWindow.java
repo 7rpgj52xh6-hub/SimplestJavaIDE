@@ -7,32 +7,37 @@ import java.awt.Font;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
+import javax.swing.WindowConstants;
+
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
+
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.CodingArea;
+import simplestJavaIDEpackage.Library.TerminalPanel;
 
 public class AddImportsWindow {
 
   private JFrame frmImportWindow;
   private RSyntaxTextArea importArea;
   private CodingFile codingFile;
-  private CodingArea codingArea;
   private Font font;
 
   /**
    * Launch the application.
    */
-  public static void main(CodingFile codingFile, CodingArea codingArea, Font font) {
+  public static void main(CodingFile codingFile, CodingArea codingArea, Font font, TerminalPanel terminal) {
     EventQueue.invokeLater(new Runnable() {
-      public void run() {
+      @Override
+	public void run() {
         try {
-          AddImportsWindow window = new AddImportsWindow(codingFile, codingArea, font);
+          AddImportsWindow window = new AddImportsWindow(codingFile, codingArea, font, terminal);
           window.frmImportWindow.setVisible(true);
         } catch (Exception e) {
           ErrorPopupWindow.throwMessage(e.getMessage());
@@ -44,9 +49,8 @@ public class AddImportsWindow {
   /**
    * Create the application.
    */
-  public AddImportsWindow(CodingFile codingFile, CodingArea codingArea, Font font) {
+  public AddImportsWindow(CodingFile codingFile, CodingArea codingArea, Font font, TerminalPanel terminal) {
     this.codingFile = codingFile;
-    this.codingArea = codingArea;
     this.font = font;
     initialize();
   }
@@ -58,7 +62,7 @@ public class AddImportsWindow {
 
     frmImportWindow = new JFrame("[Saved automatically] - Add imports with 'import ...;'");
     frmImportWindow.setBounds(100, 100, 640, 360);
-    frmImportWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    frmImportWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frmImportWindow.addWindowListener(saveOnClosing);
     frmImportWindow.setResizable(false);
 
@@ -126,13 +130,10 @@ public class AddImportsWindow {
   };
 
   public void saveImports() {
-    String importsText = importArea.getText();
-    if (!importsText.contains("import")) {
-      codingFile.setImports("");
-    } else {
-      codingFile.setImports(importArea.getText());
-    }
-    codingArea.save(codingFile);
+	String[] imports = importArea.getText().split("import");
+	for(int i = 0; i<imports.length-1; i++) {
+		System.out.println(i + imports[i+1]);
+	}
     frmImportWindow.dispose();
   }
 

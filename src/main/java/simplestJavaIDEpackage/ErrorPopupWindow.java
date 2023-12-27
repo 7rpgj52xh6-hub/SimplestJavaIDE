@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -15,6 +16,7 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.WindowConstants;
 
 public class ErrorPopupWindow {
 
@@ -25,7 +27,8 @@ public class ErrorPopupWindow {
    */
   public static void throwMessage(String errorText) {
     EventQueue.invokeLater(new Runnable() {
-      public void run() {
+      @Override
+	public void run() {
         try {
           ErrorPopupWindow window = new ErrorPopupWindow(errorText);
           window.frmErrorPopupWindow.setVisible(true);
@@ -48,7 +51,7 @@ public class ErrorPopupWindow {
    * Initialize the contents of the frame.
    */
   private void initialize(String errorText) {
-    List<String> errors = new ArrayList<String>();
+    List<String> errors = new ArrayList<>();
     if (errorText != null) {
       errors.add(errorText);
     }
@@ -56,7 +59,7 @@ public class ErrorPopupWindow {
     frmErrorPopupWindow.setTitle("Error");
     frmErrorPopupWindow.setAlwaysOnTop(true);
     frmErrorPopupWindow.setBounds(100, 100, 1000, 300);
-    frmErrorPopupWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    frmErrorPopupWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frmErrorPopupWindow.setResizable(false);
 
     // Set Icon
@@ -69,7 +72,8 @@ public class ErrorPopupWindow {
 
     JButton btnClose = new JButton("Close");
     btnClose.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         frmErrorPopupWindow.dispose();
       }
     });
@@ -84,7 +88,8 @@ public class ErrorPopupWindow {
     JScrollPane errorTextPaneScrollPane = new JScrollPane(textPaneErrors);
     JScrollBar errorTextPaneScrollPaneScrollBar = errorTextPaneScrollPane.getVerticalScrollBar();
     javax.swing.SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
+      @Override
+	public void run() {
         errorTextPaneScrollPaneScrollBar.setValue(errorTextPaneScrollPaneScrollBar.getMinimum());
       }
     });

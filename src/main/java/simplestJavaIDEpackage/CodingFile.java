@@ -1,219 +1,122 @@
 package simplestJavaIDEpackage;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.regex.Pattern;
 
 /**
- * 
- * @author Daniel Trageser This class regulates loading, saving and formatting of the code
+ *
+ * @author Daniel Trageser This class regulates loading, saving and formatting
+ *         of the code
  *
  */
-public class CodingFile {
-  File savefile;
-  String className;
-  List<String> fullCode;
-  public boolean isFinishedProcessing = false;
-  public boolean isSaved = false;
-  public InputStream is;
+public class CodingFile implements Serializable {
+	private static final long serialVersionUID = -5935126133647208562L;
+	String filepath;
+	public ArrayList<String> imports;
+	public ArrayList<String> methods;
+	public String className;
+	public String classHead;
+	public String classFooter;
 
-  public enum CodeMode {
-    STANDARD, ADVANCED, EXPERT
-  }
+	public CodingFile(String filepath) {
+		this.filepath = filepath;
+		this.imports = new ArrayList<>();
+		this.methods = new ArrayList<>();
+		this.methods.add("public static void main(String[] args){\n\tSystem.out.println(\"Hello World\");\n}");
+		this.className = this.generateClassName();
+		this.classHead = "public class " + this.className + " {\n";
+		this.classFooter = "}";
+	}
 
-  // TODO Rewrite, eliminate Bugs
+	public String generateFullClassCode() {
+		String result = classHead;
+		// Get code of all methods
+		for (String i : methods) {
+			result = result + i + "\n";
+		}
+		// Add footer
+		result = result + "\n" + classFooter;
+		return result;
+	}
 
-  CodingFile(File sf, Boolean isNewFile) {
-    fullCode = new ArrayList<String>();
-    fullCode.add(""); // Imports
-    fullCode.add(""); // ClassStump
-    fullCode.add("public static void main(String[] args){"); // MainMethodStump
-    fullCode.add(""); // WrittenCode
-    fullCode.add("\t}"); // End of Method(s)
-    fullCode.add("}"); // End of Class
-    getClassNameFromFile(sf.getName());
-    if (!isNewFile) {
-      loadCodeFromFile(sf);
-      fullCode.set(1, "public class " + this.className + " {"); // Set class stump
-      isFinishedProcessing = true;
-    } else {
-      fullCode.set(3, "System.out.println(\"Hello World\");");
-      fullCode.set(1, "public class " + this.className + " {"); // Set class stump
-      isFinishedProcessing = true;
-    }
-    savefile = sf;
-  }
+	public String generateCodeOfMethods() {
+		String result = "";
+		for (String i : this.methods) {
+			result = result + i + "\n\n";
+		}
+		return result;
+	}
 
-  private String trim(String str) {
-    return str.replaceAll("(?m)^\\s+$", "").replaceAll("(?m)^\\n", "");
-  }
+	public String getFilepath() {
+		return this.filepath;
+	}
 
-  private String deleteMainAndClass(String code) {
-    String result = "";
-    if ((code.contains("public class")) && (code.contains("\n"))) {
-      String toBeDeleted = code.substring(code.indexOf("public class"), code.indexOf("{\n") + 1);
-      result = trim(code.replace(toBeDeleted, "").replaceFirst("\n", "")
-          .replaceFirst("(?s)(.*)" + "}", "$1" + ""));
-    } else {
-      result = code;
-    }
-    if (result.contains("public static void main(String[] args){")) {
-      result = trim(result.replace("public static void main(String[] args){", "")
-          .replaceFirst("(?s)(.*)" + "}", "$1" + ""));
-    }
-    return result;
-  }
+	public String generateClassName() {
+		String[] pathContents = this.filepath.split(Pattern.quote("/"));
+		String result = pathContents[pathContents.length - 1].replace(".sji", "");
+		return result;
+	}
 
-  public void getClassNameFromFile(String fileName) {
-    String cn = fileName.replace(".java", "");
-    className = cn;
-  }
+	public String generateClassPath() {
+		return this.filepath.replace(this.className, "").replace(".sji", "");
 
-  public void saveToFile() {
-    isSaved = true;
-    String finalCode = getFileCode();
-    try {
-      FileOutputStream fos = new FileOutputStream(savefile);
-      fos.write(finalCode.getBytes());
-      fos.close();
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
+	}
 
-  public String getAbsolutePath() {
-    return savefile.getAbsolutePath();
-  }
+	public String getImports() {
+		String result = "";
+		for (String i : this.imports) {
+			result = result + i + "\n\n";
+		}
+		return result;
+	}
 
-  public String getClassPath() {
-    return getAbsolutePath().replace(this.className, "").replace(".java", "");
+	public String generateFullJavaCode() {
+		String result = getImports() + generateFullClassCode();
+		return result;
+	}
 
-  }
+	public void tmpSaveAndRunJavaCode() {
+		File output = new File(getJavaTmpFilePath());
+		if (!output.exists()) {
+			try {
+				output.createNewFile();
+			} catch (IOException e) {
+				ErrorPopupWindow.throwMessage(e.getMessage());
+			}
+		}
+		try {
+			FileOutputStream fos = new FileOutputStream(getJavaTmpFilePath());
+			byte[] outputInBytes = generateFullJavaCode().getBytes();
+			try {
+				fos.write(outputInBytes);
+			} catch (IOException e) {
+				ErrorPopupWindow.throwMessage(e.getMessage());
+			}
+		} catch (FileNotFoundException e) {
+			ErrorPopupWindow.throwMessage(e.getMessage());
+		}
 
-  public String getCode(CodeMode codeMode) {
-    switch (codeMode) {
-      case STANDARD:
-        return this.getWrittenCode(0);
-      case ADVANCED:
-        return this.getExtendedCode();
-      case EXPERT:
-        return this.getFullCode();
-      default:
-        ErrorPopupWindow.throwMessage("Error with mode switch button. Mode was not set correcty.");
-        return null;
-    }
-  }
+	}
 
-  private void setWrittenCode(String text) {
-    if (text.contains("\n")) {
-      String[] inputLines = text.split("\n");
-      String result = "";
-      for (String i : inputLines) {
-        i = i.replaceAll("\t", "");
-        result = result + i + "\n";
-      }
-      fullCode.set(3, result);
-    } else {
-      fullCode.set(3, text.replaceAll("\t", ""));
-    }
-  }
+	public String getJavaTmpFilePath() {
+		return getFilepath().replace(".sji", ".java");
+	}
 
-  private String getWrittenCode(Integer amountOfTabs) {
-    String source = fullCode.get(3).toString();
-    List<String> output = new ArrayList<String>();
-    if (source.contains("\n")) {
-      String[] linesOfWrittenCode = source.split("\n");
-      for (String s : linesOfWrittenCode) {
-        for (int i = 0; i < amountOfTabs; i++) {
-          s = "\t" + s;
-        }
-        output.add(s);
-      }
-      source = String.join("\n", output);
-    } else {
-      for (int i = 0; i < amountOfTabs; i++) {
-        source = "\t" + source;
-      }
-    }
-    return source;
-  }
+	public void saveMethodCode(int methodIndex, String code) {
+		methods.set(methodIndex, code);
+	}
 
-  private String getExtendedCode() {
-    return trim(this.fullCode.get(2).toString() + "\n" + getWrittenCode(1) + "\n"
-        + this.fullCode.get(4).toString().replaceFirst("(?s)(.*)" + "\\t", "$1" + ""));
-  }
+	public void saveImportCode(int importIndex, String code) {
+		imports.set(importIndex, code);
+	}
 
-  private String getFullCode() {
-    return trim(
-        fullCode.get(1).toString() + "\n\t" + fullCode.get(2).toString() + "\n" + getWrittenCode(2)
-            + "\n" + fullCode.get(4).toString() + "\n" + fullCode.get(5).toString());
-  }
+	public String getJavaTmpClassPath() {
+		return getFilepath().replace(".sji", ".class");
+	}
 
-  private String getFileCode() {
-    if (this.fullCode.get(0).toString().contains("import")) { // different if imports exist
-                                                              // (additional new line)
-      return trim(fullCode.get(0).toString() + "\n" + getFullCode());
-    } else {
-      return trim(getFullCode());
-    }
-  }
-
-  public void setImports(String i) {
-    this.fullCode.set(0, i);
-  }
-
-  public String getImports() {
-    return this.fullCode.get(0).toString();
-  }
-
-  public void loadCodeFromFile(File file) {
-    String sCurrentLine;
-    StringBuilder contentBuilder = new StringBuilder();
-    try (BufferedReader br = new BufferedReader(new FileReader(file.getAbsolutePath()))) {
-      while ((sCurrentLine = br.readLine()) != null) {
-        contentBuilder.append(sCurrentLine).append("\n");
-      }
-    } catch (IOException e) {
-      ErrorPopupWindow.throwMessage(e.getMessage());
-    }
-
-    String wholeCode = contentBuilder.toString();
-
-    String[] wholeCodeInLines = wholeCode.split("\n");
-    String allImports = "";
-    for (String i : wholeCodeInLines) {
-      // Get all imports
-      if (i.matches("(?s).*\\bimport\\s*(\\S+);$")) {
-        i.replaceAll("\n", "");
-        i = i + "\n";
-        allImports = allImports + i;
-      }
-    }
-    fullCode.set(0, allImports); // set import part
-
-    if (this.className != null) {
-      fullCode.set(1, "public class " + this.className + " {"); // set class stump
-    }
-    setWrittenCode(trim(deleteMainAndClass(wholeCode.replace(allImports, ""))));
-  }
-
-  public String getClassName() {
-    return this.className;
-  }
-
-  public void writeAllCodeToArray(String text, CodeMode codeMode) {
-    if ((codeMode == CodeMode.ADVANCED) || (codeMode == CodeMode.EXPERT)) {
-      setWrittenCode(deleteMainAndClass(text));
-    } else {
-      setWrittenCode(text);
-    }
-  }
 }

@@ -3,6 +3,7 @@ package simplestJavaIDEpackage.Library.Commands;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.TerminalPanel.CommandType;
 
@@ -23,7 +24,8 @@ public class Runner extends Thread {
     this.commandType = commandType;
   }
 
-  public void run() {
+  @Override
+public void run() {
     try {
       ProcessBuilder pb = new ProcessBuilder(cmds);
       pb.redirectErrorStream();

@@ -2,6 +2,7 @@ package simplestJavaIDEpackage.Library.Commands;
 
 import java.io.IOException;
 import java.io.InputStream;
+
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class StreamReader extends Thread {
