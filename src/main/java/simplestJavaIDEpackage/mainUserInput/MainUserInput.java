@@ -28,7 +28,8 @@ import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.CodingArea;
 import simplestJavaIDEpackage.Library.FileManager;
 import simplestJavaIDEpackage.Library.Methods;
-import simplestJavaIDEpackage.Library.TerminalPanel;;
+import simplestJavaIDEpackage.Library.TerminalPanel;
+import javax.swing.JTabbedPane;;
 
 /**
  *
@@ -42,6 +43,7 @@ public class MainUserInput {
 	private TerminalPanel terminal;
 	private JTextField userInputTextField;
 	private List<CodingArea> listOfCodingAreas = new ArrayList<>();
+	private JTabbedPane tabbedPane;
 
 	/**
 	 * Launch the application.
@@ -154,8 +156,18 @@ public class MainUserInput {
 		// Coding input and load code if code is not null (from loading file)
 		CodingArea mainCodingArea = new CodingArea(codingFile.methods.get(0), terminal.getRunButton(),
 				terminal.getSaveButton());
+		
+		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		contentSplitPane.setLeftComponent(tabbedPane);
 		listOfCodingAreas.add(mainCodingArea);
-		contentSplitPane.setTopComponent(mainCodingArea);
+		for(int i = 1; i> codingFile.methods.size(); i++) {
+			listOfCodingAreas.add(new CodingArea(codingFile.methods.get(i), terminal.getRunButton(), terminal.getSaveButton()));
+		}
+		//Add a Tab for every coding area
+		for(CodingArea i: listOfCodingAreas) {
+			tabbedPane.insertTab(i.getMethod().getName(), null, i, null, tabbedPane.getTabCount());
+		}
+		tabbedPane.addTab(">>Methode hinzufügen<<",new JPanel()); //TODO design Add panel
 
 		// Action button interactions
 		terminal.getHelpButton().addActionListener(new ActionListener() {

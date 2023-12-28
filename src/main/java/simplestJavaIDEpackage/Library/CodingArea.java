@@ -55,6 +55,11 @@ public class CodingArea extends JPanel {
 	}
 
 
+	public Methods getMethod() {
+		return method;
+	}
+
+
 	private KeyListener inputListener = new KeyListener() {
 		@Override
 		public void keyTyped(KeyEvent e) {
