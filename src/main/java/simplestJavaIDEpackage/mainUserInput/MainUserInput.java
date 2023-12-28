@@ -27,6 +27,7 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.CodingArea;
 import simplestJavaIDEpackage.Library.FileManager;
+import simplestJavaIDEpackage.Library.Methods;
 import simplestJavaIDEpackage.Library.TerminalPanel;;
 
 /**
@@ -164,7 +165,7 @@ public class MainUserInput {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				for (RSyntaxTextArea i : codingArea.getTextAreas()) {
-					codingFile.methods.set(codingArea.getTextAreas().indexOf(i), i.getText());
+					codingFile.methods.set(codingArea.getTextAreas().indexOf(i), new Methods(i.getText()));
 				}
 				for (String i : codingFile.imports) {
 					// TODO Implement
@@ -180,7 +181,7 @@ public class MainUserInput {
 			public void actionPerformed(ActionEvent e) {
 				// Save, compile and run
 				for (RSyntaxTextArea i : codingArea.getTextAreas()) {
-					codingFile.methods.set(codingArea.getTextAreas().indexOf(i), i.getText());
+					codingFile.methods.set(codingArea.getTextAreas().indexOf(i), new Methods(i.getText()));
 				}
 				for (String i : codingFile.imports) {
 					// TODO Implement

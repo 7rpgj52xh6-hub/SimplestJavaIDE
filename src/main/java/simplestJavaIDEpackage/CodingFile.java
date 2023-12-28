@@ -8,6 +8,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
+import simplestJavaIDEpackage.Library.Classes;
+import simplestJavaIDEpackage.Library.Methods;
+
 /**
  *
  * @author Daniel Trageser This class regulates loading, saving and formatting
@@ -18,19 +21,16 @@ public class CodingFile implements Serializable {
 	private static final long serialVersionUID = -5935126133647208562L;
 	String filepath;
 	public ArrayList<String> imports;
-	public ArrayList<String> methods;
-	public String className;
-	public String classHead;
-	public String classFooter;
+	public ArrayList<Methods> methods;
+	public Classes _class;
+
 
 	public CodingFile(String filepath) {
 		this.filepath = filepath;
 		this.imports = new ArrayList<>();
 		this.methods = new ArrayList<>();
-		this.methods.add("public static void main(String[] args){\n\tSystem.out.println(\"Hello World\");\n}");
-		this.className = this.generateClassName();
-		this.classHead = "public class " + this.className + " {\n";
-		this.classFooter = "}";
+		this.methods.add(new Methods("public static void main(String[] args){\n\tSystem.out.println(\"Hello World\");\n}"));
+		this._class = new Classes(this.generateClassName());
 	}
 
 	public String generateFullImportsCode() {
@@ -42,20 +42,20 @@ public class CodingFile implements Serializable {
 	}
 
 	public String generateFullClassCode() {
-		String result = generateFullImportsCode() + classHead;
+		String result = generateFullImportsCode() + _class.getClassHead();
 		// Get code of all methods
-		for (String i : methods) {
-			result = result + i + "\n";
+		for (Methods i : this.methods) {
+			result = result + i.getContent() + "\n";
 		}
 		// Add footer
-		result = result + "\n" + classFooter;
+		result = result + "\n" + _class.getClassFooter();
 		return result;
 	}
 
 	public String generateCodeOfMethods() {
 		String result = "";
-		for (String i : this.methods) {
-			result = result + i + "\n\n";
+		for (Methods i : this.methods) {
+			result = result + i.getContent() + "\n\n";
 		}
 		return result;
 	}
@@ -71,7 +71,7 @@ public class CodingFile implements Serializable {
 	}
 
 	public String generateClassPath() {
-		return this.filepath.replace(this.className, "").replace(".sji", "");
+		return this.filepath.replace(this._class.getClassName(), "").replace(".sji", "");
 
 	}
 
@@ -109,7 +109,7 @@ public class CodingFile implements Serializable {
 	}
 
 	public void saveMethodCode(int methodIndex, String code) {
-		methods.set(methodIndex, code);
+		methods.set(methodIndex, new Methods(code));
 	}
 
 	public void saveImportCode(int importIndex, String code) {
