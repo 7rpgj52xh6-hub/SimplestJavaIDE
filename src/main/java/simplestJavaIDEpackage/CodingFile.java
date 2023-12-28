@@ -33,8 +33,16 @@ public class CodingFile implements Serializable {
 		this.classFooter = "}";
 	}
 
+	public String generateFullImportsCode() {
+		String result = "";
+		for(String i: imports) {
+			result = result + "import " + i + ";\n";
+		}
+		return result;
+	}
+
 	public String generateFullClassCode() {
-		String result = classHead;
+		String result = generateFullImportsCode() + classHead;
 		// Get code of all methods
 		for (String i : methods) {
 			result = result + i + "\n";
@@ -67,16 +75,9 @@ public class CodingFile implements Serializable {
 
 	}
 
-	public String getImports() {
-		String result = "";
-		for (String i : this.imports) {
-			result = result + i + "\n\n";
-		}
-		return result;
-	}
 
 	public String generateFullJavaCode() {
-		String result = getImports() + generateFullClassCode();
+		String result = generateFullClassCode();
 		return result;
 	}
 
