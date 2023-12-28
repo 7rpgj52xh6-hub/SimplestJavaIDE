@@ -169,7 +169,7 @@ public class MainUserInput {
 			public void actionPerformed(ActionEvent e) {
 				for (CodingArea i : listOfCodingAreas) {
 					codingFile.methods.set(listOfCodingAreas.indexOf(i),
-							new Methods("tmpFix", i.getTextArea().getText()));
+							new Methods("MethodennameXY",i.getTextArea().getText()));
 				}
 				for (String i : codingFile.imports) {
 					// TODO Implement
@@ -186,7 +186,7 @@ public class MainUserInput {
 				// Save, compile and run
 				for (CodingArea i : listOfCodingAreas) {
 					codingFile.methods.set(listOfCodingAreas.indexOf(i),
-							new Methods("tmpFix", i.getTextArea().getText()));
+							new Methods("MethodennameXY",i.getTextArea().getText()));
 				}
 				for (String i : codingFile.imports) {
 					// TODO Implement

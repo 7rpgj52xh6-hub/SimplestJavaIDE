@@ -29,7 +29,7 @@ public class CodingFile implements Serializable {
 		this.filepath = filepath;
 		this.imports = new ArrayList<>();
 		this.methods = new ArrayList<>();
-		this.methods.add(new Methods("public static void main(String[] args){","System.out.println(\"Hello World\");"));
+		this.methods.add(new Methods("MethodennameXY","public static void main(String[] args){\n\tSystem.out.println(\"Hello World\");\n}"));
 		this._class = new Classes(this.generateClassName());
 	}
 
@@ -109,7 +109,7 @@ public class CodingFile implements Serializable {
 	}
 
 	public void saveMethodCode(int methodIndex, String code) {
-		methods.set(methodIndex, new Methods("tmpFix2",code));
+		methods.set(methodIndex, new Methods("MethodennameXY",code));
 	}
 
 	public void saveImportCode(int importIndex, String code) {

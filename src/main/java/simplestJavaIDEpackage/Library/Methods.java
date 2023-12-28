@@ -5,17 +5,24 @@ import java.io.Serializable;
 public class Methods implements Serializable {
 
 	private static final long serialVersionUID = 4518889829751756148L;
-	private String head;
-	private String body;
-	private String footer = "}";
+	private String name;
+	private String content;
 
-	public Methods(String head, String body) {
-		this.head = head;
-		this.body = body;
+	public Methods(String name, String content) {
+		this.content = content;
+		this.name = name;
 	}
 
 	public String getContent() {
-		return this.head + "\n" +  this.body + "\n" + this.footer;
+		return content;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }
