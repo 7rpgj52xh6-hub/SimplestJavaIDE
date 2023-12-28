@@ -61,7 +61,7 @@ public class AddImportsWindow {
 	 */
 	private void initialize() {
 
-		frmImportWindow = new JFrame("[Saved automatically] - Add imports with 'import ...;'");
+		frmImportWindow = new JFrame("[Saved automatically] - Add imports with less syntax'");
 		frmImportWindow.setBounds(100, 100, 640, 360);
 		frmImportWindow.addWindowListener(saveOnClosing);
 		frmImportWindow.setResizable(false);

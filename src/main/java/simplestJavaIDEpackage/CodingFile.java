@@ -29,7 +29,7 @@ public class CodingFile implements Serializable {
 		this.filepath = filepath;
 		this.imports = new ArrayList<>();
 		this.methods = new ArrayList<>();
-		this.methods.add(new Methods("MethodennameXY","public static void main(String[] args){\n\tSystem.out.println(\"Hello World\");\n}"));
+		this.methods.add(new Methods("Main Method","public static void main(String[] args){\n\tSystem.out.println(\"Hello World\");\n}"));
 		this._class = new Classes(this.generateClassName());
 	}
 
@@ -44,9 +44,7 @@ public class CodingFile implements Serializable {
 	public String generateFullClassCode() {
 		String result = generateFullImportsCode() + _class.getClassHead();
 		// Get code of all methods
-		for (Methods i : this.methods) {
-			result = result + i.getContent() + "\n";
-		}
+		result = result + generateCodeOfMethods();
 		// Add footer
 		result = result + "\n" + _class.getClassFooter();
 		return result;
@@ -55,7 +53,7 @@ public class CodingFile implements Serializable {
 	public String generateCodeOfMethods() {
 		String result = "";
 		for (Methods i : this.methods) {
-			result = result + i.getContent() + "\n\n";
+			result = result + i.getContent() + "\n";
 		}
 		return result;
 	}
@@ -118,6 +116,24 @@ public class CodingFile implements Serializable {
 
 	public String getJavaTmpClassPath() {
 		return getFilepath().replace(".sji", ".class");
+	}
+
+	public Boolean checkIfMethodWithSameNameExists(String name) {
+		for (Methods i:methods) {
+			if (i.getName().equals(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Methods returnMethodFromName(String name) {
+		for (Methods i:methods) {
+			if (i.getName().equals(name)) {
+				return i;
+			}
+		}
+		return null;
 	}
 
 }

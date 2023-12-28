@@ -14,10 +14,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -28,8 +34,7 @@ import simplestJavaIDEpackage.ImprintWindow;
 import simplestJavaIDEpackage.Library.CodingArea;
 import simplestJavaIDEpackage.Library.FileManager;
 import simplestJavaIDEpackage.Library.Methods;
-import simplestJavaIDEpackage.Library.TerminalPanel;
-import javax.swing.JTabbedPane;;
+import simplestJavaIDEpackage.Library.TerminalPanel;;
 
 /**
  *
@@ -43,7 +48,8 @@ public class MainUserInput {
 	private TerminalPanel terminal;
 	private JTextField userInputTextField;
 	private List<CodingArea> listOfCodingAreas = new ArrayList<>();
-	private JTabbedPane tabbedPane;
+	private JTabbedPane tabbedPaneMethods;
+	private DefaultListModel<String> listModel = new DefaultListModel<>();
 
 	/**
 	 * Launch the application.
@@ -156,18 +162,88 @@ public class MainUserInput {
 		// Coding input and load code if code is not null (from loading file)
 		CodingArea mainCodingArea = new CodingArea(codingFile.methods.get(0), terminal.getRunButton(),
 				terminal.getSaveButton());
-		
-		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		contentSplitPane.setLeftComponent(tabbedPane);
+
+		tabbedPaneMethods = new JTabbedPane(SwingConstants.TOP);
+		contentSplitPane.setLeftComponent(tabbedPaneMethods);
 		listOfCodingAreas.add(mainCodingArea);
-		for(int i = 1; i> codingFile.methods.size(); i++) {
-			listOfCodingAreas.add(new CodingArea(codingFile.methods.get(i), terminal.getRunButton(), terminal.getSaveButton()));
+		for (int i = 1; i < codingFile.methods.size(); i++) {
+			listOfCodingAreas
+					.add(new CodingArea(codingFile.methods.get(i), terminal.getRunButton(), terminal.getSaveButton()));
 		}
-		//Add a Tab for every coding area
-		for(CodingArea i: listOfCodingAreas) {
-			tabbedPane.insertTab(i.getMethod().getName(), null, i, null, tabbedPane.getTabCount());
+		// Add a Tab for every coding area
+		for (CodingArea i : listOfCodingAreas) {
+			int index = tabbedPaneMethods.getTabCount();
+			tabbedPaneMethods.insertTab(i.getMethod().getName(), null, i, null, index);
 		}
-		tabbedPane.addTab(">>Methode hinzufügen<<",new JPanel()); //TODO design Add panel
+
+		// Panel for managing methods
+		JSplitPane splitPaneManagingMethods = new JSplitPane();
+		splitPaneManagingMethods.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		JPanel inputPanel = new JPanel();
+		splitPaneManagingMethods.setLeftComponent(inputPanel);
+
+		JLabel labelImport = new JLabel("Methodname:");
+		inputPanel.add(labelImport);
+
+		JTextField textfieldMethodName = new JTextField();
+		textfieldMethodName.setHorizontalAlignment(SwingConstants.CENTER);
+		textfieldMethodName.setText("");
+		inputPanel.add(textfieldMethodName);
+		textfieldMethodName.setColumns(25);
+
+		JList<String> listOfMethods = new JList<>(listModel);
+		for (Methods i : codingFile.methods) {
+			listModel.add(codingFile.methods.indexOf(i), i.getName());
+		}
+		splitPaneManagingMethods.setRightComponent(listOfMethods);
+
+		JButton btnAddMethod = new JButton("Add");
+		btnAddMethod.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String newMethodName = textfieldMethodName.getText();
+				if (!newMethodName.equals("")) {
+					if (!newMethodName.contains(" ")) {
+						// TODO Check for more forbidden chars
+						if ((!listModel.contains(newMethodName))
+								&& (!codingFile.checkIfMethodWithSameNameExists(newMethodName))) {
+							listModel.addElement(textfieldMethodName.getText());
+							codingFile.methods.add(
+									new Methods(newMethodName, "public static void " + newMethodName + "(){\n\t\n}"));
+							int index = tabbedPaneMethods.getTabCount() - 1;
+							CodingArea newCodingArea = new CodingArea(codingFile.returnMethodFromName(newMethodName),
+									terminal.getRunButton(), terminal.getSaveButton());
+							listOfCodingAreas.add(newCodingArea);
+							tabbedPaneMethods.insertTab(newMethodName, null, newCodingArea, null, index);
+							FileManager.save(codingFile);
+
+						}
+
+					}
+				}
+
+			}
+		});
+		btnAddMethod.setPreferredSize(new Dimension(100, 36));
+		inputPanel.add(btnAddMethod);
+
+		JButton btnDeleteMethod = new JButton("Delete");
+		btnDeleteMethod.addActionListener(new ActionListener() {
+			;
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int toDeleteIndex = listOfMethods.getSelectedIndex();
+				if (toDeleteIndex != 0) {
+					listModel.remove(toDeleteIndex);// remove listModel entry
+					codingFile.methods.remove(toDeleteIndex); // remove method
+					listOfCodingAreas.remove(toDeleteIndex); // remove CodingArea
+					tabbedPaneMethods.removeTabAt(toDeleteIndex); // remove tabbed pane
+				}
+			}
+		});
+		btnDeleteMethod.setPreferredSize(new Dimension(100, 36));
+		inputPanel.add(btnDeleteMethod);
+		tabbedPaneMethods.addTab("<[Manage Methods]>", splitPaneManagingMethods); // TODO design Add panel
 
 		// Action button interactions
 		terminal.getHelpButton().addActionListener(new ActionListener() {
@@ -181,7 +257,7 @@ public class MainUserInput {
 			public void actionPerformed(ActionEvent e) {
 				for (CodingArea i : listOfCodingAreas) {
 					codingFile.methods.set(listOfCodingAreas.indexOf(i),
-							new Methods("MethodennameXY",i.getTextArea().getText()));
+							new Methods(i.getMethod().getName(), i.getTextArea().getText()));
 				}
 				for (String i : codingFile.imports) {
 					// TODO Implement
@@ -198,7 +274,7 @@ public class MainUserInput {
 				// Save, compile and run
 				for (CodingArea i : listOfCodingAreas) {
 					codingFile.methods.set(listOfCodingAreas.indexOf(i),
-							new Methods("MethodennameXY",i.getTextArea().getText()));
+							new Methods(i.getMethod().getName(), i.getTextArea().getText()));
 				}
 				for (String i : codingFile.imports) {
 					// TODO Implement
