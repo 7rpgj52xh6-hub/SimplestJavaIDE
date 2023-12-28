@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -18,7 +16,6 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
-import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class CodingArea extends JPanel {
@@ -27,16 +24,16 @@ public class CodingArea extends JPanel {
 	private RSyntaxTextArea syntaxTextAreaMainMethod;
 	private JButton runButton;
 	private JButton saveButton;
-	private CodingFile codingFile;
+	private Methods method;
 
-	public CodingArea(CodingFile codingFileTmp, JButton runButtonTmp, JButton saveButtonTmp) {
+	public CodingArea(Methods method, JButton runButtonTmp, JButton saveButtonTmp) {
 		syntaxTextAreaMainMethod = new RSyntaxTextArea(20, 60);
 		scrollPaneMainMethod = new RTextScrollPane(syntaxTextAreaMainMethod);
 		this.setLayout(new BorderLayout());
 		this.add(scrollPaneMainMethod, BorderLayout.CENTER);
 		this.runButton = runButtonTmp;
 		this.saveButton = saveButtonTmp;
-		this.codingFile = codingFileTmp;
+		this.method = method;
 		syntaxTextAreaMainMethod.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
 		syntaxTextAreaMainMethod.setCodeFoldingEnabled(true);
 		try {
@@ -49,12 +46,12 @@ public class CodingArea extends JPanel {
 		syntaxTextAreaMainMethod.setBackground(new Color(47, 47, 47));
 		syntaxTextAreaMainMethod.getDocument().addDocumentListener(syntaxTextAreaInputListener);
 		syntaxTextAreaMainMethod.addKeyListener(inputListener);
-		syntaxTextAreaMainMethod.setText(codingFile.generateCodeOfMethods());
+		syntaxTextAreaMainMethod.setText(method.getContent());
 	}
 
 
-	public List<RSyntaxTextArea> getTextAreas() {
-		return Arrays.asList(syntaxTextAreaMainMethod);
+	public RSyntaxTextArea getTextArea() {
+		return syntaxTextAreaMainMethod;
 	}
 
 

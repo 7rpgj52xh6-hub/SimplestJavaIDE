@@ -7,13 +7,13 @@ public class Classes implements Serializable{
 	private String className;
 	private String classHead;
 	private String classFooter;
-	
+
 	public Classes(String className) {
 		this.className = className;
 		this.classHead = "public class " + this.className + " {\n";
 		this.classFooter = "}";
 	}
-	
+
 	public String getClassName() {
 		return className;
 	}

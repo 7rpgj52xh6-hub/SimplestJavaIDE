@@ -10,6 +10,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -19,8 +21,6 @@ import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
@@ -41,6 +41,7 @@ public class MainUserInput {
 	private JFrame frmSimplestJavaIDE;
 	private TerminalPanel terminal;
 	private JTextField userInputTextField;
+	private List<CodingArea> listOfCodingAreas = new ArrayList<>();
 
 	/**
 	 * Launch the application.
@@ -151,8 +152,10 @@ public class MainUserInput {
 		bottomPanel.add(terminal);
 
 		// Coding input and load code if code is not null (from loading file)
-		CodingArea codingArea = new CodingArea(codingFile, terminal.getRunButton(), terminal.getSaveButton());
-		contentSplitPane.setTopComponent(codingArea);
+		CodingArea mainCodingArea = new CodingArea(codingFile.methods.get(0), terminal.getRunButton(),
+				terminal.getSaveButton());
+		listOfCodingAreas.add(mainCodingArea);
+		contentSplitPane.setTopComponent(mainCodingArea);
 
 		// Action button interactions
 		terminal.getHelpButton().addActionListener(new ActionListener() {
@@ -164,8 +167,9 @@ public class MainUserInput {
 		terminal.getSaveButton().addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (RSyntaxTextArea i : codingArea.getTextAreas()) {
-					codingFile.methods.set(codingArea.getTextAreas().indexOf(i), new Methods(i.getText()));
+				for (CodingArea i : listOfCodingAreas) {
+					codingFile.methods.set(listOfCodingAreas.indexOf(i),
+							new Methods("tmpFix", i.getTextArea().getText()));
 				}
 				for (String i : codingFile.imports) {
 					// TODO Implement
@@ -180,8 +184,9 @@ public class MainUserInput {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// Save, compile and run
-				for (RSyntaxTextArea i : codingArea.getTextAreas()) {
-					codingFile.methods.set(codingArea.getTextAreas().indexOf(i), new Methods(i.getText()));
+				for (CodingArea i : listOfCodingAreas) {
+					codingFile.methods.set(listOfCodingAreas.indexOf(i),
+							new Methods("tmpFix", i.getTextArea().getText()));
 				}
 				for (String i : codingFile.imports) {
 					// TODO Implement
@@ -197,10 +202,10 @@ public class MainUserInput {
 		terminal.getZoomInButton().getModel().addChangeListener(new ChangeListener() {
 			public void zoomIn() {
 				// Add Zoom
-				Font font = codingArea.getTextAreas().get(0).getFont();
+				Font font = mainCodingArea.getTextArea().getFont();
 				if (font.getSize() <= 60) {
-					for (RSyntaxTextArea i : codingArea.getTextAreas()) {
-						i.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
+					for (CodingArea i : listOfCodingAreas) {
+						i.getTextArea().setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 					}
 					terminal.getTextArea().setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
 					terminal.getZoomOutButton().setEnabled(true);
@@ -230,10 +235,10 @@ public class MainUserInput {
 		terminal.getZoomOutButton().getModel().addChangeListener(new ChangeListener() {
 			public void zoomOut() {
 				// Subtract Zoom
-				Font font = codingArea.getTextAreas().get(0).getFont();
+				Font font = mainCodingArea.getTextArea().getFont();
 				if (font.getSize() >= 10) {
-					for (RSyntaxTextArea i : codingArea.getTextAreas()) {
-						i.setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
+					for (CodingArea i : listOfCodingAreas) {
+						i.getTextArea().setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 					}
 					terminal.getTextArea().setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
 					terminal.getZoomInButton().setEnabled(true);
@@ -264,7 +269,7 @@ public class MainUserInput {
 		terminal.getAddImportsButton().addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				AddImportsWindow.main(codingFile, codingArea, codingArea.getTextAreas().get(0).getFont(), terminal);
+				AddImportsWindow.main(codingFile, terminal);
 				FileManager.save(codingFile); // Also save other code
 			}
 		});

@@ -3,7 +3,6 @@ package simplestJavaIDEpackage.mainUserInput;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -23,7 +22,6 @@ import javax.swing.SwingConstants;
 
 import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
-import simplestJavaIDEpackage.Library.CodingArea;
 import simplestJavaIDEpackage.Library.FileManager;
 import simplestJavaIDEpackage.Library.TerminalPanel;
 
@@ -36,12 +34,12 @@ public class AddImportsWindow {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(CodingFile codingFile, CodingArea codingArea, Font font, TerminalPanel terminal) {
+	public static void main(CodingFile codingFile, TerminalPanel terminal) {
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					AddImportsWindow window = new AddImportsWindow(codingFile, codingArea, font, terminal);
+					AddImportsWindow window = new AddImportsWindow(codingFile, terminal);
 					window.frmImportWindow.setVisible(true);
 				} catch (Exception e) {
 					ErrorPopupWindow.throwMessage(e.getMessage());
@@ -53,7 +51,7 @@ public class AddImportsWindow {
 	/**
 	 * Create the application.
 	 */
-	public AddImportsWindow(CodingFile codingFile, CodingArea codingArea, Font font, TerminalPanel terminal) {
+	public AddImportsWindow(CodingFile codingFile, TerminalPanel terminal) {
 		this.codingFile = codingFile;
 		initialize();
 	}
