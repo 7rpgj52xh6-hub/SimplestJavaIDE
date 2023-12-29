@@ -243,7 +243,20 @@ public class MainUserInput {
 		});
 		btnDeleteMethod.setPreferredSize(new Dimension(100, 36));
 		inputPanel.add(btnDeleteMethod);
-		tabbedPaneMethods.addTab("<[Manage Methods]>", splitPaneManagingMethods); // TODO design Add panel
+
+		JLabel labelManagingMethods = new JLabel("⚙");
+		labelManagingMethods.setFont(new Font("Tahoma",Font.BOLD,25));
+		tabbedPaneMethods.addTab("[Managing Methods]", splitPaneManagingMethods); // TODO design Add panel
+		int indexOfManagingMethodsTab = -1;
+		for (int i = 1; i<tabbedPaneMethods.getTabCount();i++) {
+			if (tabbedPaneMethods.getTitleAt(i).equals("[Managing Methods]")) {
+				indexOfManagingMethodsTab = i;
+			}
+		}
+		if (indexOfManagingMethodsTab != -1) {
+			tabbedPaneMethods.setTabComponentAt(indexOfManagingMethodsTab, labelManagingMethods);
+		}
+
 
 		// Action button interactions
 		terminal.getHelpButton().addActionListener(new ActionListener() {
