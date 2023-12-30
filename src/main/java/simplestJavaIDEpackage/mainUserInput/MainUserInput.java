@@ -161,14 +161,14 @@ public class MainUserInput {
 
     // Coding input and load code if code is not null (from loading file)
     CodingArea mainCodingArea = new CodingArea(codingFile.methods.get(0), terminal.getRunButton(),
-        terminal.getSaveButton());
+        terminal.getSaveButton(),null);
 
     tabbedPaneMethods = new JTabbedPane(SwingConstants.TOP);
     contentSplitPane.setLeftComponent(tabbedPaneMethods);
     listOfCodingAreas.add(mainCodingArea);
     for (int i = 1; i < codingFile.methods.size(); i++) {
       listOfCodingAreas.add(new CodingArea(codingFile.methods.get(i), terminal.getRunButton(),
-          terminal.getSaveButton()));
+          terminal.getSaveButton(),mainCodingArea.getFont()));
     }
     // Add a Tab for every coding area
     for (CodingArea i : listOfCodingAreas) {
@@ -213,7 +213,7 @@ public class MainUserInput {
               int index = tabbedPaneMethods.getTabCount() - 1;
               CodingArea newCodingArea =
                   new CodingArea(codingFile.returnMethodFromName(newMethodName),
-                      terminal.getRunButton(), terminal.getSaveButton());
+                      terminal.getRunButton(), terminal.getSaveButton(),mainCodingArea.getTextArea().getFont());
               listOfCodingAreas.add(newCodingArea);
               tabbedPaneMethods.insertTab(newMethodName, null, newCodingArea, null, index);
               FileManager.save(codingFile);

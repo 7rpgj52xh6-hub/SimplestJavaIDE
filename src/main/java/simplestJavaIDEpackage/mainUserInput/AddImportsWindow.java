@@ -83,7 +83,7 @@ public class AddImportsWindow {
 
 		textfieldImports = new JTextField();
 		textfieldImports.setHorizontalAlignment(SwingConstants.CENTER);
-		textfieldImports.setText("java.util.*");
+		textfieldImports.setToolTipText("Input your desired import without most of the syntax. For example only \"java.util.*\" is needed.");
 		inputPanel.add(textfieldImports);
 		textfieldImports.setColumns(25);
 

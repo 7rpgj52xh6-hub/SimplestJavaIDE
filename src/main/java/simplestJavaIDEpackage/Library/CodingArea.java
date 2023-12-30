@@ -2,6 +2,7 @@ package simplestJavaIDEpackage.Library;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class CodingArea extends JPanel {
 	private JButton saveButton;
 	private Methods method;
 
-	public CodingArea(Methods method, JButton runButtonTmp, JButton saveButtonTmp) {
+	public CodingArea(Methods method, JButton runButtonTmp, JButton saveButtonTmp, Font font) {
 		syntaxTextAreaMainMethod = new RSyntaxTextArea(20, 60);
 		scrollPaneMainMethod = new RTextScrollPane(syntaxTextAreaMainMethod);
 		this.setLayout(new BorderLayout());
@@ -44,18 +45,21 @@ public class CodingArea extends JPanel {
 		syntaxTextAreaMainMethod.getDocument().addDocumentListener(syntaxTextAreaInputListener);
 		syntaxTextAreaMainMethod.addKeyListener(inputListener);
 		syntaxTextAreaMainMethod.setText(method.getContent());
-	}
+		if (font != null) {
+			if (font.getSize() > 8 && font.getSize() < 60) {
+				this.getTextArea().setFont(font);
+			}
+		}
 
+	}
 
 	public RSyntaxTextArea getTextArea() {
 		return syntaxTextAreaMainMethod;
 	}
 
-
 	public Methods getMethod() {
 		return method;
 	}
-
 
 	private KeyListener inputListener = new KeyListener() {
 		@Override
@@ -70,7 +74,7 @@ public class CodingArea extends JPanel {
 			boolean macOSCTRLpressed = ((e.getModifiersEx() & KeyEvent.VK_META) != 0);
 			if ((e.getKeyCode() == KeyEvent.VK_S) && (windowsCTRLpressed || macOSCTRLpressed)) {
 				System.out.println("Test");
-				//FileManager.save(codingFile); //TODO Fix Saving
+				// FileManager.save(codingFile); //TODO Fix Saving
 			}
 		}
 
