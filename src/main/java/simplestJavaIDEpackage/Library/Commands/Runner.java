@@ -3,7 +3,6 @@ package simplestJavaIDEpackage.Library.Commands;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.TerminalPanel.CommandType;
 

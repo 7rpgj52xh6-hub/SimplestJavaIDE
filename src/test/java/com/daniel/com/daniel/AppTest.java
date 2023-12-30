@@ -1,7 +1,6 @@
 package com.daniel.com.daniel;
 
 import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 /**
