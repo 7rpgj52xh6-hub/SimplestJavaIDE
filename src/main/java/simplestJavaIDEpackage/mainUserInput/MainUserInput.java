@@ -79,11 +79,15 @@ public class MainUserInput {
           public void windowClosing(WindowEvent arg0) {
             File javaFile = new File(codingFile.getJavaTmpFilePath());
             if (javaFile.exists()) {
-              if (!javaFile.delete()) ErrorPopupWindow.throwMessage("File could not be deleted.");
+              if (!javaFile.delete())
+                ErrorPopupWindow.throwMessage(
+                    "File " + javaFile.getName() + " could not be deleted.");
             }
             File classFile = new File(codingFile.getJavaTmpClassPath());
             if (classFile.exists()) {
-              if (!javaFile.delete()) ErrorPopupWindow.throwMessage("File could not be deleted.");
+              if (!classFile.delete())
+                ErrorPopupWindow.throwMessage(
+                    "File " + classFile.getName() + " could not be deleted.");
             }
           }
 

@@ -6,11 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="2ab27329-29e7-4e01-9205-3f6a3018f973" name="Changes" comment="Removed warnings">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/CodingFile.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/CodingFile.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ErrorPopupWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ErrorPopupWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ImprintWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ImprintWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/StartingWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/StartingWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/AddImportsWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/AddImportsWindow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/MainUserInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/MainUserInput.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -140,7 +135,7 @@
       <workItem from="1704926893653" duration="475000" />
       <workItem from="1705007442598" duration="517000" />
       <workItem from="1705007966331" duration="97000" />
-      <workItem from="1705008070028" duration="1954000" />
+      <workItem from="1705008070028" duration="2214000" />
     </task>
     <task id="LOCAL-00001" summary="Moved to IntelliJ">
       <option name="closed" value="true" />
@@ -158,7 +153,15 @@
       <option name="project" value="LOCAL" />
       <updated>1705008512115</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Removed warnings">
+      <option name="closed" value="true" />
+      <created>1705010049751</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1705010049751</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
