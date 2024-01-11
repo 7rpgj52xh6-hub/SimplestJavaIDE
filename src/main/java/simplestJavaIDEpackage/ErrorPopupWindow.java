@@ -2,20 +2,12 @@ package simplestJavaIDEpackage;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 
 public class ErrorPopupWindow {
 
@@ -29,18 +21,29 @@ public class ErrorPopupWindow {
   /** Launch the application only with error. */
   public static void throwMessage(String errorText) {
     EventQueue.invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            try {
-              ErrorPopupWindow window = new ErrorPopupWindow(errorText);
-              window.frmErrorPopupWindow.setVisible(true);
-            } catch (Exception e) {
-              // Can't be added to normal error handling. Danger of endless loop.
-              e.printStackTrace();
-            }
+        () -> {
+          try {
+            ErrorPopupWindow window = new ErrorPopupWindow(errorText);
+            window.frmErrorPopupWindow.setVisible(true);
+          } catch (Exception e) {
+            // Can't be added to normal error handling. Danger of endless loop.
+            System.out.println(e.getMessage());
           }
         });
+  }
+
+  static void setScrollPaneSettings(JTextPane textPaneErrors, JFrame frmErrorPopupWindow) {
+    JScrollPane errorTextPaneScrollPane = new JScrollPane(textPaneErrors);
+    JScrollBar errorTextPaneScrollPaneScrollBar = errorTextPaneScrollPane.getVerticalScrollBar();
+    SwingUtilities.invokeLater(
+        () ->
+            errorTextPaneScrollPaneScrollBar.setValue(
+                errorTextPaneScrollPaneScrollBar.getMinimum()));
+    errorTextPaneScrollPane.setHorizontalScrollBarPolicy(
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    errorTextPaneScrollPane.setVerticalScrollBarPolicy(
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+    frmErrorPopupWindow.getContentPane().add(errorTextPaneScrollPane, BorderLayout.CENTER);
   }
 
   /** Initialize the contents of the frame. */
@@ -59,19 +62,14 @@ public class ErrorPopupWindow {
     // Set Icon
     try {
       frmErrorPopupWindow.setIconImage(
-          ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
+          ImageIO.read(
+              Objects.requireNonNull(getClass().getClassLoader().getResource("favicon.png"))));
     } catch (IOException e) {
       errors.add(e.getMessage());
     }
 
     JButton btnClose = new JButton("Close");
-    btnClose.addActionListener(
-        new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            frmErrorPopupWindow.dispose();
-          }
-        });
+    btnClose.addActionListener(e -> frmErrorPopupWindow.dispose());
     frmErrorPopupWindow.getContentPane().add(btnClose, BorderLayout.SOUTH);
 
     JPanel panelError = new JPanel(new BorderLayout(0, 0));
@@ -80,27 +78,13 @@ public class ErrorPopupWindow {
     panelError.add(textPaneErrors, BorderLayout.CENTER);
     textPaneErrors.setContentType("text/html");
 
-    JScrollPane errorTextPaneScrollPane = new JScrollPane(textPaneErrors);
-    JScrollBar errorTextPaneScrollPaneScrollBar = errorTextPaneScrollPane.getVerticalScrollBar();
-    javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            errorTextPaneScrollPaneScrollBar.setValue(
-                errorTextPaneScrollPaneScrollBar.getMinimum());
-          }
-        });
-    errorTextPaneScrollPane.setHorizontalScrollBarPolicy(
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    errorTextPaneScrollPane.setVerticalScrollBarPolicy(
-        ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-    frmErrorPopupWindow.getContentPane().add(errorTextPaneScrollPane, BorderLayout.CENTER);
+    setScrollPaneSettings(textPaneErrors, frmErrorPopupWindow);
 
     // Show all errors in textPane
-    String output = "";
+    StringBuilder output = new StringBuilder();
     for (String i : errors) {
-      output = output + i + "\n";
+      output.append(i).append("\n");
     }
-    textPaneErrors.setText(output);
+    textPaneErrors.setText(output.toString());
   }
 }

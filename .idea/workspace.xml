@@ -4,28 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2ab27329-29e7-4e01-9205-3f6a3018f973" name="Changes" comment="Moved to IntelliJ">
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+    <list default="true" id="2ab27329-29e7-4e01-9205-3f6a3018f973" name="Changes" comment="Removed warnings">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/CodingFile.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/CodingFile.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ErrorPopupWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ErrorPopupWindow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ImprintWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ImprintWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Classes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Classes.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/CodingArea.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/CodingArea.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Commands/CommandListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Commands/CommandListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Commands/Runner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Commands/Runner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Commands/StreamReader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Commands/StreamReader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/FileManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/FileManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/HelpButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/HelpButton.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Methods.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Methods.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/RunButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/RunButton.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/SaveButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/SaveButton.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/TerminalPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/TerminalPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/ZoomInButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/ZoomInButton.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/ZoomOutButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/ZoomOutButton.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/StartingWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/StartingWindow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/AddImportsWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/AddImportsWindow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/MainUserInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/MainUserInput.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/daniel/com/daniel/AppTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/daniel/com/daniel/AppTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -154,7 +140,7 @@
       <workItem from="1704926893653" duration="475000" />
       <workItem from="1705007442598" duration="517000" />
       <workItem from="1705007966331" duration="97000" />
-      <workItem from="1705008070028" duration="256000" />
+      <workItem from="1705008070028" duration="1954000" />
     </task>
     <task id="LOCAL-00001" summary="Moved to IntelliJ">
       <option name="closed" value="true" />
@@ -164,7 +150,15 @@
       <option name="project" value="LOCAL" />
       <updated>1688666504312</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Moved to IntelliJ and applied google code style">
+      <option name="closed" value="true" />
+      <created>1705008512114</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1705008512115</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -173,6 +167,8 @@
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Moved to IntelliJ" />
-    <option name="LAST_COMMIT_MESSAGE" value="Moved to IntelliJ" />
+    <MESSAGE value="Moved to IntelliJ and applied google code style" />
+    <MESSAGE value="Removed warnings" />
+    <option name="LAST_COMMIT_MESSAGE" value="Removed warnings" />
   </component>
 </project>

@@ -5,14 +5,13 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -43,9 +42,9 @@ public class MainUserInput {
 
   private final List<CodingArea> listOfCodingAreas = new ArrayList<>();
   private final DefaultListModel<String> listModel = new DefaultListModel<>();
+  public JTextField userInputTextField;
   private JFrame frmSimplestJavaIDE;
   private TerminalPanel terminal;
-  private JTextField userInputTextField;
   private JTabbedPane tabbedPaneMethods;
 
   /** Create the application. */
@@ -54,17 +53,14 @@ public class MainUserInput {
   }
 
   /** Launch the application. */
-  public static void main(String[] args, CodingFile savefile) {
+  public static void launch(CodingFile savefile) {
     EventQueue.invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            try {
-              MainUserInput window = new MainUserInput(savefile);
-              window.frmSimplestJavaIDE.setVisible(true);
-            } catch (Exception e) {
-              ErrorPopupWindow.throwMessage(e.getMessage());
-            }
+        () -> {
+          try {
+            MainUserInput window = new MainUserInput(savefile);
+            window.frmSimplestJavaIDE.setVisible(true);
+          } catch (Exception e) {
+            ErrorPopupWindow.throwMessage(e.getMessage());
           }
         });
   }
@@ -83,47 +79,47 @@ public class MainUserInput {
           public void windowClosing(WindowEvent arg0) {
             File javaFile = new File(codingFile.getJavaTmpFilePath());
             if (javaFile.exists()) {
-              javaFile.delete();
+              if (!javaFile.delete()) ErrorPopupWindow.throwMessage("File could not be deleted.");
             }
             File classFile = new File(codingFile.getJavaTmpClassPath());
             if (classFile.exists()) {
-              classFile.delete();
+              if (!javaFile.delete()) ErrorPopupWindow.throwMessage("File could not be deleted.");
             }
           }
 
           @Override
           public void windowActivated(WindowEvent e) {
-            // TODO Auto-generated method stub
+            // Do nothing
 
           }
 
           @Override
           public void windowClosed(WindowEvent e) {
-            // TODO Auto-generated method stub
+            // Do nothing
 
           }
 
           @Override
           public void windowDeactivated(WindowEvent e) {
-            // TODO Auto-generated method stub
+            // Do nothing
 
           }
 
           @Override
           public void windowDeiconified(WindowEvent e) {
-            // TODO Auto-generated method stub
+            // Do nothing
 
           }
 
           @Override
           public void windowIconified(WindowEvent e) {
-            // TODO Auto-generated method stub
+            // Do nothing
 
           }
 
           @Override
           public void windowOpened(WindowEvent e) {
-            // TODO Auto-generated method stub
+            // Do nothing
 
           }
         });
@@ -131,7 +127,8 @@ public class MainUserInput {
     // Set Icon
     try {
       frmSimplestJavaIDE.setIconImage(
-          ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
+          ImageIO.read(
+              Objects.requireNonNull(getClass().getClassLoader().getResource("favicon.png"))));
     } catch (IOException e1) {
       ErrorPopupWindow.throwMessage(e1.getMessage());
     }
@@ -180,14 +177,14 @@ public class MainUserInput {
     JPanel inputPanel = new JPanel();
     splitPaneManagingMethods.setLeftComponent(inputPanel);
 
-    JLabel labelImport = new JLabel("Methodname:");
+    JLabel labelImport = new JLabel("Method name:");
     inputPanel.add(labelImport);
 
-    JTextField textfieldMethodName = new JTextField();
-    textfieldMethodName.setHorizontalAlignment(SwingConstants.CENTER);
-    textfieldMethodName.setText("");
-    inputPanel.add(textfieldMethodName);
-    textfieldMethodName.setColumns(25);
+    JTextField textFieldMethodName = new JTextField();
+    textFieldMethodName.setHorizontalAlignment(SwingConstants.CENTER);
+    textFieldMethodName.setText("");
+    inputPanel.add(textFieldMethodName);
+    textFieldMethodName.setColumns(25);
 
     JList<String> listOfMethods = new JList<>(listModel);
     for (Methods i : codingFile.methods) {
@@ -195,54 +192,10 @@ public class MainUserInput {
     }
     splitPaneManagingMethods.setRightComponent(listOfMethods);
 
-    JButton btnAddMethod = new JButton("Add");
-    btnAddMethod.addActionListener(
-        new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent arg0) {
-            String newMethodName = textfieldMethodName.getText();
-            if (!newMethodName.equals("")) {
-              if (!newMethodName.contains(" ")) {
-                // TODO Check for more forbidden chars
-                if ((!listModel.contains(newMethodName))
-                    && (!codingFile.checkIfMethodWithSameNameExists(newMethodName))) {
-                  listModel.addElement(textfieldMethodName.getText());
-                  codingFile.methods.add(
-                      new Methods(
-                          newMethodName, "public static void " + newMethodName + "(){\n\t\n}"));
-                  int index = tabbedPaneMethods.getTabCount() - 1;
-                  CodingArea newCodingArea =
-                      new CodingArea(
-                          codingFile.returnMethodFromName(newMethodName),
-                          terminal.getRunButton(),
-                          terminal.getSaveButton(),
-                          mainCodingArea.getTextArea().getFont());
-                  listOfCodingAreas.add(newCodingArea);
-                  tabbedPaneMethods.insertTab(newMethodName, null, newCodingArea, null, index);
-                  FileManager.save(codingFile);
-                }
-              }
-            }
-          }
-        });
-    btnAddMethod.setPreferredSize(new Dimension(100, 36));
+    JButton btnAddMethod = getBtnAddMethod(codingFile, textFieldMethodName, mainCodingArea);
     inputPanel.add(btnAddMethod);
 
-    JButton btnDeleteMethod = new JButton("Delete");
-    btnDeleteMethod.addActionListener(
-        new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent arg0) {
-            int toDeleteIndex = listOfMethods.getSelectedIndex();
-            if (toDeleteIndex != 0) {
-              listModel.remove(toDeleteIndex); // remove listModel entry
-              codingFile.methods.remove(toDeleteIndex); // remove method
-              listOfCodingAreas.remove(toDeleteIndex); // remove CodingArea
-              tabbedPaneMethods.removeTabAt(toDeleteIndex); // remove tabbed pane
-            }
-          }
-        });
-    btnDeleteMethod.setPreferredSize(new Dimension(100, 36));
+    JButton btnDeleteMethod = getBtnDeleteMethod(codingFile, listOfMethods);
     inputPanel.add(btnDeleteMethod);
 
     JLabel labelManagingMethods = new JLabel("⚙");
@@ -264,71 +217,43 @@ public class MainUserInput {
     tabbedPaneMethods.setBackground(new Color(55, 58, 60));
 
     // Action button interactions
-    terminal
-        .getHelpButton()
-        .addActionListener(
-            new ActionListener() {
-              @Override
-              public void actionPerformed(ActionEvent e) {
-                ImprintWindow.main(null);
-              }
-            });
+    terminal.getHelpButton().addActionListener(e -> ImprintWindow.main(null));
     terminal
         .getSaveButton()
         .addActionListener(
-            new ActionListener() {
-              @Override
-              public void actionPerformed(ActionEvent e) {
-                for (CodingArea i : listOfCodingAreas) {
-                  codingFile.methods.set(
-                      listOfCodingAreas.indexOf(i),
-                      new Methods(i.getMethod().getName(), i.getTextArea().getText()));
-                }
-                for (String i : codingFile.imports) {
-                  // TODO Implement
-                }
-                if (FileManager.save(codingFile)) {
-                  codingFile.tmpSaveAndRunJavaCode();
-                  terminal.getSaveButton().setEnabled(false);
-                }
+            e -> {
+              for (CodingArea i : listOfCodingAreas) {
+                codingFile.methods.set(
+                    listOfCodingAreas.indexOf(i),
+                    new Methods(i.getMethod().getName(), i.getTextArea().getText()));
+              }
+              if (FileManager.save(codingFile)) {
+                codingFile.tmpSaveAndRunJavaCode();
+                terminal.getSaveButton().setEnabled(false);
               }
             });
     terminal
         .getRunButton()
         .addActionListener(
-            new ActionListener() {
-              @Override
-              public void actionPerformed(ActionEvent e) {
-                // Save, compile and run
-                for (CodingArea i : listOfCodingAreas) {
-                  codingFile.methods.set(
-                      listOfCodingAreas.indexOf(i),
-                      new Methods(i.getMethod().getName(), i.getTextArea().getText()));
-                }
-                for (String i : codingFile.imports) {
-                  // TODO Implement
-                }
-                if (FileManager.save(codingFile)) {
-                  codingFile.tmpSaveAndRunJavaCode();
-                  terminal.getSaveButton().setEnabled(false);
-                }
-                terminal.compile();
+            e -> {
+              // Save, compile and run
+              for (CodingArea i : listOfCodingAreas) {
+                codingFile.methods.set(
+                    listOfCodingAreas.indexOf(i),
+                    new Methods(i.getMethod().getName(), i.getTextArea().getText()));
               }
+              if (FileManager.save(codingFile)) {
+                codingFile.tmpSaveAndRunJavaCode();
+                terminal.getSaveButton().setEnabled(false);
+              }
+              terminal.compile();
             });
     terminal
         .getZoomInButton()
         .getModel()
         .addChangeListener(
             new ChangeListener() {
-              private final Timer trigger =
-                  new Timer(
-                      125,
-                      new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                          zoomIn();
-                        }
-                      });
+              private final Timer trigger = new Timer(125, e -> zoomIn());
 
               public void zoomIn() {
                 // Add Zoom
@@ -363,15 +288,7 @@ public class MainUserInput {
         .getModel()
         .addChangeListener(
             new ChangeListener() {
-              private final Timer trigger =
-                  new Timer(
-                      125,
-                      new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                          zoomOut();
-                        }
-                      });
+              private final Timer trigger = new Timer(125, e -> zoomOut());
 
               public void zoomOut() {
                 // Subtract Zoom
@@ -404,12 +321,57 @@ public class MainUserInput {
     terminal
         .getAddImportsButton()
         .addActionListener(
-            new ActionListener() {
-              @Override
-              public void actionPerformed(ActionEvent e) {
-                AddImportsWindow.main(codingFile, terminal);
-                FileManager.save(codingFile); // Also save other code
-              }
+            e -> {
+              AddImportsWindow.launch(codingFile);
+              FileManager.save(codingFile); // Also save other code
             });
+  }
+
+  private JButton getBtnDeleteMethod(CodingFile codingFile, JList<String> listOfMethods) {
+    JButton btnDeleteMethod = new JButton("Delete");
+    btnDeleteMethod.addActionListener(
+        arg0 -> {
+          int toDeleteIndex = listOfMethods.getSelectedIndex();
+          if (toDeleteIndex != 0) {
+            listModel.remove(toDeleteIndex); // remove listModel entry
+            codingFile.methods.remove(toDeleteIndex); // remove method
+            listOfCodingAreas.remove(toDeleteIndex); // remove CodingArea
+            tabbedPaneMethods.removeTabAt(toDeleteIndex); // remove tabbed pane
+          }
+        });
+    btnDeleteMethod.setPreferredSize(new Dimension(100, 36));
+    return btnDeleteMethod;
+  }
+
+  private JButton getBtnAddMethod(
+      CodingFile codingFile, JTextField textFieldMethodName, CodingArea mainCodingArea) {
+    JButton btnAddMethod = new JButton("Add");
+    btnAddMethod.addActionListener(
+        arg0 -> {
+          String newMethodName = textFieldMethodName.getText();
+          if (!newMethodName.isEmpty()) {
+            if (!newMethodName.contains(" ")) {
+              if ((!listModel.contains(newMethodName))
+                  && (!codingFile.checkIfMethodWithSameNameExists(newMethodName))) {
+                listModel.addElement(textFieldMethodName.getText());
+                codingFile.methods.add(
+                    new Methods(
+                        newMethodName, "public static void " + newMethodName + "(){\n\t\n}"));
+                int index = tabbedPaneMethods.getTabCount() - 1;
+                CodingArea newCodingArea =
+                    new CodingArea(
+                        codingFile.returnMethodFromName(newMethodName),
+                        terminal.getRunButton(),
+                        terminal.getSaveButton(),
+                        mainCodingArea.getTextArea().getFont());
+                listOfCodingAreas.add(newCodingArea);
+                tabbedPaneMethods.insertTab(newMethodName, null, newCodingArea, null, index);
+                FileManager.save(codingFile);
+              }
+            }
+          }
+        });
+    btnAddMethod.setPreferredSize(new Dimension(100, 36));
+    return btnAddMethod;
   }
 }

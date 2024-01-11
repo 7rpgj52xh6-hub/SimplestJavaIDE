@@ -1,7 +1,6 @@
 package simplestJavaIDEpackage;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -31,11 +30,11 @@ public class CodingFile implements Serializable {
   }
 
   public String generateFullImportsCode() {
-    String result = "";
+    StringBuilder result = new StringBuilder();
     for (String i : imports) {
-      result = result + "import " + i + ";\n";
+      result.append("import ").append(i).append(";\n");
     }
-    return result;
+    return result.toString();
   }
 
   public String generateFullClassCode() {
@@ -48,11 +47,11 @@ public class CodingFile implements Serializable {
   }
 
   public String generateCodeOfMethods() {
-    String result = "";
+    StringBuilder result = new StringBuilder();
     for (Methods i : this.methods) {
-      result = result + i.getContent() + "\n";
+      result.append(i.getContent()).append("\n");
     }
-    return result;
+    return result.toString();
   }
 
   public String getFilepath() {
@@ -64,42 +63,34 @@ public class CodingFile implements Serializable {
   }
 
   public String generateFullJavaCode() {
-    String result = generateFullClassCode();
-    return result;
+    return generateFullClassCode();
   }
 
   public void tmpSaveAndRunJavaCode() {
     File output = new File(getJavaTmpFilePath());
     if (!output.exists()) {
       try {
-        output.createNewFile();
+        if (!output.createNewFile()) {
+          ErrorPopupWindow.throwMessage("Output file does already exists.");
+        }
       } catch (IOException e) {
         ErrorPopupWindow.throwMessage(e.getMessage());
       }
     }
-    try {
-      FileOutputStream fos = new FileOutputStream(getJavaTmpFilePath());
+    try (FileOutputStream fos = new FileOutputStream(getJavaTmpFilePath())) {
       byte[] outputInBytes = generateFullJavaCode().getBytes();
       try {
         fos.write(outputInBytes);
       } catch (IOException e) {
         ErrorPopupWindow.throwMessage(e.getMessage());
       }
-    } catch (FileNotFoundException e) {
+    } catch (IOException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
     }
   }
 
   public String getJavaTmpFilePath() {
     return getFilepath().replace(".sji", ".java");
-  }
-
-  public void saveMethodCode(int methodIndex, String code) {
-    methods.set(methodIndex, new Methods("MethodennameXY", code));
-  }
-
-  public void saveImportCode(int importIndex, String code) {
-    imports.set(importIndex, code);
   }
 
   public String getJavaTmpClassPath() {
