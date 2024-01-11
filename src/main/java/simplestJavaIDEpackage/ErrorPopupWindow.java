@@ -21,34 +21,29 @@ public class ErrorPopupWindow {
 
   private JFrame frmErrorPopupWindow;
 
-  /**
-   * Launch the application only with error.
-   */
-  public static void throwMessage(String errorText) {
-    EventQueue.invokeLater(new Runnable() {
-      @Override
-	public void run() {
-        try {
-          ErrorPopupWindow window = new ErrorPopupWindow(errorText);
-          window.frmErrorPopupWindow.setVisible(true);
-        } catch (Exception e) {
-          // Can't be added to normal error handling. Danger of endless loop.
-          e.printStackTrace();
-        }
-      }
-    });
-  }
-
-  /**
-   * Create the application.
-   */
+  /** Create the application. */
   public ErrorPopupWindow(String errorText) {
     initialize(errorText);
   }
 
-  /**
-   * Initialize the contents of the frame.
-   */
+  /** Launch the application only with error. */
+  public static void throwMessage(String errorText) {
+    EventQueue.invokeLater(
+        new Runnable() {
+          @Override
+          public void run() {
+            try {
+              ErrorPopupWindow window = new ErrorPopupWindow(errorText);
+              window.frmErrorPopupWindow.setVisible(true);
+            } catch (Exception e) {
+              // Can't be added to normal error handling. Danger of endless loop.
+              e.printStackTrace();
+            }
+          }
+        });
+  }
+
+  /** Initialize the contents of the frame. */
   private void initialize(String errorText) {
     List<String> errors = new ArrayList<>();
     if (errorText != null) {
@@ -63,19 +58,20 @@ public class ErrorPopupWindow {
 
     // Set Icon
     try {
-      frmErrorPopupWindow
-          .setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
+      frmErrorPopupWindow.setIconImage(
+          ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
     } catch (IOException e) {
       errors.add(e.getMessage());
     }
 
     JButton btnClose = new JButton("Close");
-    btnClose.addActionListener(new ActionListener() {
-      @Override
-	public void actionPerformed(ActionEvent e) {
-        frmErrorPopupWindow.dispose();
-      }
-    });
+    btnClose.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            frmErrorPopupWindow.dispose();
+          }
+        });
     frmErrorPopupWindow.getContentPane().add(btnClose, BorderLayout.SOUTH);
 
     JPanel panelError = new JPanel(new BorderLayout(0, 0));
@@ -86,16 +82,18 @@ public class ErrorPopupWindow {
 
     JScrollPane errorTextPaneScrollPane = new JScrollPane(textPaneErrors);
     JScrollBar errorTextPaneScrollPaneScrollBar = errorTextPaneScrollPane.getVerticalScrollBar();
-    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-      @Override
-	public void run() {
-        errorTextPaneScrollPaneScrollBar.setValue(errorTextPaneScrollPaneScrollBar.getMinimum());
-      }
-    });
-    errorTextPaneScrollPane
-        .setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    errorTextPaneScrollPane
-        .setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+    javax.swing.SwingUtilities.invokeLater(
+        new Runnable() {
+          @Override
+          public void run() {
+            errorTextPaneScrollPaneScrollBar.setValue(
+                errorTextPaneScrollPaneScrollBar.getMinimum());
+          }
+        });
+    errorTextPaneScrollPane.setHorizontalScrollBarPolicy(
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    errorTextPaneScrollPane.setVerticalScrollBarPolicy(
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     frmErrorPopupWindow.getContentPane().add(errorTextPaneScrollPane, BorderLayout.CENTER);
 
     // Show all errors in textPane

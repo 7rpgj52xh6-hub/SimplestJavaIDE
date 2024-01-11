@@ -27,26 +27,21 @@ import simplestJavaIDEpackage.Library.Commands.Runner;
  * This class implements the terminal with all possible functions
  *
  * @author Daniel Trageser
- *
  */
 public class TerminalPanel extends JPanel implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
+  private final CodingFile codingFile;
+  private final TerminalPanel terminal = this;
   private JTextArea terminalOutput;
   private Runner runner;
-  private CodingFile codingFile;
   private JScrollPane terminalTextAreaScrollPane;
   private JTextField userInputTextField;
-  private TerminalPanel terminal = this;
   private SaveButton saveButton;
   private RunButton runButton;
   private HelpButton helpButton;
   private ZoomInButton zoomInButton;
   private ZoomOutButton zoomOutButton;
   private JButton btnAddImports;
-
-  public enum CommandType {
-    COMPILE, RUN, INPUT
-  }
 
   public TerminalPanel(JTextField userInputField, CodingFile codingFile) {
     initializeUI();
@@ -58,13 +53,14 @@ public class TerminalPanel extends JPanel implements CommandListener {
     userInputTextField = new JTextField();
     userInputTextField.setBorder(BorderFactory.createLineBorder(new Color(47, 47, 47), 6));
     userInputTextField.setColumns(1);
-    userInputTextField.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        terminal.run(CommandType.INPUT);
-        userInputTextField.setText(null);
-      }
-    });
+    userInputTextField.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            terminal.run(CommandType.INPUT);
+            userInputTextField.setText(null);
+          }
+        });
 
     // Top Panel
     JPanel panelClearBtnAndLabel = new JPanel();
@@ -73,17 +69,19 @@ public class TerminalPanel extends JPanel implements CommandListener {
     panelClearBtnAndLabel.setBackground(new Color(47, 47, 47));
     JButton btnClearConsole = new JButton("Clear Console");
     btnClearConsole.setBounds(6, 6, 86, 36);
-    btnClearConsole.addActionListener(new ActionListener() {
+    btnClearConsole.addActionListener(
+        new ActionListener() {
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        terminal.getTextArea().setText(null);
-      }
-    });
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            terminal.getTextArea().setText(null);
+          }
+        });
     panelClearBtnAndLabel.add(btnClearConsole);
 
-    JLabel lblUserInput = new JLabel(
-        "<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
+    JLabel lblUserInput =
+        new JLabel(
+            "<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
     lblUserInput.setBounds(104, 6, 86, 36);
     panelClearBtnAndLabel.add(lblUserInput);
     JPanel topPanel = new JPanel();
@@ -204,8 +202,9 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   public void run(CommandType ct) {
     if (ct == CommandType.RUN) {
-      List<String> commandValues = Arrays.asList("java", "-cp", codingFile.generateClassPath(),
-          codingFile._class.getClassName());
+      List<String> commandValues =
+          Arrays.asList(
+              "java", "-cp", codingFile.generateClassPath(), codingFile._class.getClassName());
       runner = new Runner(this, commandValues, CommandType.RUN);
     } else if (ct == CommandType.INPUT) {
       try {
@@ -216,6 +215,11 @@ public class TerminalPanel extends JPanel implements CommandListener {
         ErrorPopupWindow.throwMessage("!! Failed to send command to process:" + ex.getMessage());
       }
     }
+  }
 
+  public enum CommandType {
+    COMPILE,
+    RUN,
+    INPUT
   }
 }

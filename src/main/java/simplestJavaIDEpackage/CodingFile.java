@@ -10,24 +10,23 @@ import simplestJavaIDEpackage.Library.Classes;
 import simplestJavaIDEpackage.Library.Methods;
 
 /**
- *
  * @author Daniel Trageser This class regulates loading, saving and formatting of the code
- *
  */
 public class CodingFile implements Serializable {
   private static final long serialVersionUID = -5935126133647208562L;
-  String filepath;
   public ArrayList<String> imports;
   public ArrayList<Methods> methods;
   public Classes _class;
-
+  String filepath;
 
   public CodingFile(String className, String filepath) {
     this.filepath = filepath;
     this.imports = new ArrayList<>();
     this.methods = new ArrayList<>();
-    this.methods.add(new Methods("Main Method",
-        "public static void main(String[] args){\n\tSystem.out.println(\"Hello World\");\n}"));
+    this.methods.add(
+        new Methods(
+            "Main Method",
+            "public static void main(String[] args){\n\tSystem.out.println(\"Hello World\");\n}"));
     this._class = new Classes(className);
   }
 
@@ -62,9 +61,7 @@ public class CodingFile implements Serializable {
 
   public String generateClassPath() {
     return this.filepath.replace(this._class.getClassName(), "").replace(".sji", "");
-
   }
-
 
   public String generateFullJavaCode() {
     String result = generateFullClassCode();
@@ -91,7 +88,6 @@ public class CodingFile implements Serializable {
     } catch (FileNotFoundException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
     }
-
   }
 
   public String getJavaTmpFilePath() {

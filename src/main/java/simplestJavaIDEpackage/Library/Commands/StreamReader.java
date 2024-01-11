@@ -5,8 +5,8 @@ import java.io.InputStream;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class StreamReader extends Thread {
-  private InputStream is;
-  private CommandListener listener;
+  private final InputStream is;
+  private final CommandListener listener;
 
   public StreamReader(CommandListener listener, InputStream is) {
     this.is = is;

@@ -25,155 +25,151 @@ import simplestJavaIDEpackage.Library.TerminalPanel;
 
 public class AddImportsWindow {
 
-	private JFrame frmImportWindow;
-	private CodingFile codingFile;
-	private DefaultListModel<String> listModel = new DefaultListModel<>();
+  private final CodingFile codingFile;
+  private final DefaultListModel<String> listModel = new DefaultListModel<>();
+  private final WindowListener saveOnClosing =
+      new WindowListener() {
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(CodingFile codingFile, TerminalPanel terminal) {
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					AddImportsWindow window = new AddImportsWindow(codingFile, terminal);
-					window.frmImportWindow.setVisible(true);
-				} catch (Exception e) {
-					ErrorPopupWindow.throwMessage(e.getMessage());
-				}
-			}
-		});
-	}
+        @Override
+        public void windowOpened(WindowEvent e) {
+          loadImports();
+        }
 
-	/**
-	 * Create the application.
-	 */
-	public AddImportsWindow(CodingFile codingFile, TerminalPanel terminal) {
-		this.codingFile = codingFile;
-		initialize();
-	}
+        @Override
+        public void windowIconified(WindowEvent e) {}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
-	private void initialize() {
+        @Override
+        public void windowDeiconified(WindowEvent e) {}
 
-		frmImportWindow = new JFrame("[Saved automatically] - Add imports with less syntax'");
-		frmImportWindow.setBounds(100, 100, 640, 360);
-		frmImportWindow.addWindowListener(saveOnClosing);
-		frmImportWindow.setResizable(false);
+        @Override
+        public void windowDeactivated(WindowEvent e) {
+          FileManager.save(codingFile);
+        }
 
-		// Set Icon
-		try {
-			frmImportWindow.setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
-		} catch (IOException e1) {
-			ErrorPopupWindow.throwMessage(e1.getMessage());
-		}
+        @Override
+        public void windowClosing(WindowEvent e) {
+          FileManager.save(codingFile);
+        }
 
-		JSplitPane splitPane = new JSplitPane();
-		splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		frmImportWindow.getContentPane().add(splitPane, BorderLayout.CENTER);
+        @Override
+        public void windowClosed(WindowEvent e) {
+          FileManager.save(codingFile);
+        }
 
-		JPanel inputPanel = new JPanel();
-		splitPane.setLeftComponent(inputPanel);
+        @Override
+        public void windowActivated(WindowEvent e) {
+          loadImports();
+        }
+      };
+  private JFrame frmImportWindow;
+  private JTextField textfieldImports;
 
-		JLabel labelImport = new JLabel("import");
-		inputPanel.add(labelImport);
+  /** Create the application. */
+  public AddImportsWindow(CodingFile codingFile, TerminalPanel terminal) {
+    this.codingFile = codingFile;
+    initialize();
+  }
 
-		textfieldImports = new JTextField();
-		textfieldImports.setHorizontalAlignment(SwingConstants.CENTER);
-		textfieldImports.setToolTipText("Input your desired import without most of the syntax. For example only \"java.util.*\" is needed.");
-		inputPanel.add(textfieldImports);
-		textfieldImports.setColumns(25);
+  /** Launch the application. */
+  public static void main(CodingFile codingFile, TerminalPanel terminal) {
+    EventQueue.invokeLater(
+        new Runnable() {
+          @Override
+          public void run() {
+            try {
+              AddImportsWindow window = new AddImportsWindow(codingFile, terminal);
+              window.frmImportWindow.setVisible(true);
+            } catch (Exception e) {
+              ErrorPopupWindow.throwMessage(e.getMessage());
+            }
+          }
+        });
+  }
 
-		JLabel labelSemicolon = new JLabel(";");
-		inputPanel.add(labelSemicolon);
+  /** Initialize the contents of the frame. */
+  private void initialize() {
 
-		JList<String> listOfImports = new JList<>(listModel);
-		splitPane.setRightComponent(listOfImports);
+    frmImportWindow = new JFrame("[Saved automatically] - Add imports with less syntax'");
+    frmImportWindow.setBounds(100, 100, 640, 360);
+    frmImportWindow.addWindowListener(saveOnClosing);
+    frmImportWindow.setResizable(false);
 
-		JButton btnAddImport = new JButton("Add");
-		btnAddImport.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				addImport(textfieldImports.getText());
-				textfieldImports.setText("");
-			}
-		});
-		btnAddImport.setPreferredSize(new Dimension(100, 36));
-		inputPanel.add(btnAddImport);
+    // Set Icon
+    try {
+      frmImportWindow.setIconImage(
+          ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
+    } catch (IOException e1) {
+      ErrorPopupWindow.throwMessage(e1.getMessage());
+    }
 
-		JButton btnDeleteImport = new JButton("Delete");
-		btnDeleteImport.addActionListener(new ActionListener() {;
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int toDeleteIndex = listOfImports.getSelectedIndex();
-				listModel.remove(toDeleteIndex);
-				codingFile.imports.remove(toDeleteIndex);
-			}
-		});
-		btnDeleteImport.setPreferredSize(new Dimension(100, 36));
-		inputPanel.add(btnDeleteImport);
-	}
+    JSplitPane splitPane = new JSplitPane();
+    splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+    frmImportWindow.getContentPane().add(splitPane, BorderLayout.CENTER);
 
-	private WindowListener saveOnClosing = new WindowListener() {
+    JPanel inputPanel = new JPanel();
+    splitPane.setLeftComponent(inputPanel);
 
-		@Override
-		public void windowOpened(WindowEvent e) {
-			loadImports();
-		}
+    JLabel labelImport = new JLabel("import");
+    inputPanel.add(labelImport);
 
-		@Override
-		public void windowIconified(WindowEvent e) {
-		}
+    textfieldImports = new JTextField();
+    textfieldImports.setHorizontalAlignment(SwingConstants.CENTER);
+    textfieldImports.setToolTipText(
+        "Input your desired import without most of the syntax. For example only \"java.util.*\" is needed.");
+    inputPanel.add(textfieldImports);
+    textfieldImports.setColumns(25);
 
-		@Override
-		public void windowDeiconified(WindowEvent e) {
-		}
+    JLabel labelSemicolon = new JLabel(";");
+    inputPanel.add(labelSemicolon);
 
-		@Override
-		public void windowDeactivated(WindowEvent e) {
-			FileManager.save(codingFile);
-		}
+    JList<String> listOfImports = new JList<>(listModel);
+    splitPane.setRightComponent(listOfImports);
 
-		@Override
-		public void windowClosing(WindowEvent e) {
-			FileManager.save(codingFile);
-		}
+    JButton btnAddImport = new JButton("Add");
+    btnAddImport.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            addImport(textfieldImports.getText());
+            textfieldImports.setText("");
+          }
+        });
+    btnAddImport.setPreferredSize(new Dimension(100, 36));
+    inputPanel.add(btnAddImport);
 
-		@Override
-		public void windowClosed(WindowEvent e) {
-			FileManager.save(codingFile);
-		}
+    JButton btnDeleteImport = new JButton("Delete");
+    btnDeleteImport.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+            int toDeleteIndex = listOfImports.getSelectedIndex();
+            listModel.remove(toDeleteIndex);
+            codingFile.imports.remove(toDeleteIndex);
+          }
+        });
+    btnDeleteImport.setPreferredSize(new Dimension(100, 36));
+    inputPanel.add(btnDeleteImport);
+  }
 
-		@Override
-		public void windowActivated(WindowEvent e) {
-			loadImports();
-		}
-	};
-	private JTextField textfieldImports;
+  private String castToFullImport(String line) {
+    return "import " + line + ";";
+  }
 
+  public void loadImports() {
+    listModel.clear();
+    for (String element : codingFile.imports) {
+      listModel.addElement(castToFullImport(element));
+    }
+  }
 
-	private String castToFullImport(String line) {
-		return "import " + line + ";";
-	}
-
-	public void loadImports() {
-		listModel.clear();
-		for (String element : codingFile.imports) {
-			listModel.addElement(castToFullImport(element));
-		}
-	}
-
-	public void addImport(String importString) {
-		if (!codingFile.imports.contains(importString)) {
-			codingFile.imports.add(importString);
-			listModel.clear();
-			for(String i: codingFile.imports) {
-				listModel.addElement(castToFullImport(i));
-			}
-			FileManager.save(codingFile);
-		}
-	}
+  public void addImport(String importString) {
+    if (!codingFile.imports.contains(importString)) {
+      codingFile.imports.add(importString);
+      listModel.clear();
+      for (String i : codingFile.imports) {
+        listModel.addElement(castToFullImport(i));
+      }
+      FileManager.save(codingFile);
+    }
+  }
 }

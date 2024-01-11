@@ -19,33 +19,28 @@ public class ImprintWindow {
 
   private JFrame frmSimplestjavaideImprint;
 
-  /**
-   * Launch the application.
-   */
-  public static void main(String[] args) {
-    EventQueue.invokeLater(new Runnable() {
-      @Override
-	public void run() {
-        try {
-          ImprintWindow window = new ImprintWindow();
-          window.frmSimplestjavaideImprint.setVisible(true);
-        } catch (Exception e) {
-          ErrorPopupWindow.throwMessage(e.getMessage());
-        }
-      }
-    });
-  }
-
-  /**
-   * Create the application.
-   */
+  /** Create the application. */
   public ImprintWindow() {
     initialize();
   }
 
-  /**
-   * Initialize the contents of the frame.
-   */
+  /** Launch the application. */
+  public static void main(String[] args) {
+    EventQueue.invokeLater(
+        new Runnable() {
+          @Override
+          public void run() {
+            try {
+              ImprintWindow window = new ImprintWindow();
+              window.frmSimplestjavaideImprint.setVisible(true);
+            } catch (Exception e) {
+              ErrorPopupWindow.throwMessage(e.getMessage());
+            }
+          }
+        });
+  }
+
+  /** Initialize the contents of the frame. */
   private void initialize() {
     frmSimplestjavaideImprint = new JFrame();
     frmSimplestjavaideImprint.setTitle("SimplestJavaIDE - Imprint");
@@ -56,19 +51,20 @@ public class ImprintWindow {
 
     // Set Icon
     try {
-      frmSimplestjavaideImprint
-          .setIconImage(ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
+      frmSimplestjavaideImprint.setIconImage(
+          ImageIO.read(getClass().getClassLoader().getResource("favicon.png")));
     } catch (IOException e1) {
       ErrorPopupWindow.throwMessage(e1.getMessage());
     }
 
     JButton btnClose = new JButton("Close");
-    btnClose.addActionListener(new ActionListener() {
-      @Override
-	public void actionPerformed(ActionEvent e) {
-        frmSimplestjavaideImprint.dispose();
-      }
-    });
+    btnClose.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            frmSimplestjavaideImprint.dispose();
+          }
+        });
     frmSimplestjavaideImprint.getContentPane().add(btnClose, BorderLayout.SOUTH);
 
     JPanel panelCredits = new JPanel(new BorderLayout(0, 0));
@@ -81,18 +77,20 @@ public class ImprintWindow {
     JScrollPane imprintAndCopyrightScrollPane = new JScrollPane(textPaneCredits);
     JScrollBar imprintAndCopyrightScrollPaneScrollBar =
         imprintAndCopyrightScrollPane.getVerticalScrollBar();
-    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-      @Override
-	public void run() {
-        imprintAndCopyrightScrollPaneScrollBar
-            .setValue(imprintAndCopyrightScrollPaneScrollBar.getMinimum());
-      }
-    });
-    imprintAndCopyrightScrollPane
-        .setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    imprintAndCopyrightScrollPane
-        .setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-    frmSimplestjavaideImprint.getContentPane().add(imprintAndCopyrightScrollPane,
-        BorderLayout.CENTER);
+    javax.swing.SwingUtilities.invokeLater(
+        new Runnable() {
+          @Override
+          public void run() {
+            imprintAndCopyrightScrollPaneScrollBar.setValue(
+                imprintAndCopyrightScrollPaneScrollBar.getMinimum());
+          }
+        });
+    imprintAndCopyrightScrollPane.setHorizontalScrollBarPolicy(
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    imprintAndCopyrightScrollPane.setVerticalScrollBarPolicy(
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+    frmSimplestjavaideImprint
+        .getContentPane()
+        .add(imprintAndCopyrightScrollPane, BorderLayout.CENTER);
   }
 }

@@ -7,8 +7,8 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.TerminalPanel.CommandType;
 
 public class Runner extends Thread {
-  private List<String> cmds;
-  private CommandListener listener;
+  private final List<String> cmds;
+  private final CommandListener listener;
   private Process process;
   private CommandType commandType;
 
@@ -24,7 +24,7 @@ public class Runner extends Thread {
   }
 
   @Override
-public void run() {
+  public void run() {
     try {
       ProcessBuilder pb = new ProcessBuilder(cmds);
       pb.redirectErrorStream();
@@ -50,7 +50,6 @@ public void run() {
       listener.commandFailed(e);
     }
   }
-
 
   public void write(String text) throws IOException {
     if (process != null && process.isAlive()) {

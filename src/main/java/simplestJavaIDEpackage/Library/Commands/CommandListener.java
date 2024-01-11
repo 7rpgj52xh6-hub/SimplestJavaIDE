@@ -2,11 +2,11 @@ package simplestJavaIDEpackage.Library.Commands;
 
 public interface CommandListener {
 
-  public void commandOutput(String text);
+  void commandOutput(String text);
 
-  public void commandFailed(Exception exp);
+  void commandFailed(Exception exp);
 
-  public void compileFailed();
+  void compileFailed();
 
-  public void compileSuccessful();
+  void compileSuccessful();
 }

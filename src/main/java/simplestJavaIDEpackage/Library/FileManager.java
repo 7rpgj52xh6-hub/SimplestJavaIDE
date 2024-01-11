@@ -51,10 +51,8 @@ public class FileManager {
       } catch (IOException e) {
         e.printStackTrace();
       }
-
     }
     return null;
-
   }
 
   private static CodingFile createNewAndSave(String className, String filepath) {

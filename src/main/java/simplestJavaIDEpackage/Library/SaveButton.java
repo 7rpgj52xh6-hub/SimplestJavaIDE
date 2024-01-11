@@ -20,14 +20,17 @@ public class SaveButton extends JPanel {
     this.setOpaque(false);
     this.setLayout(new GridBagLayout());
     try {
-      Image tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSave.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      Image tmpImage =
+          ImageIO.read(getClass().getClassLoader().getResource("btnSave.png"))
+              .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
       ImageIcon iconBtn1 = new ImageIcon(tmpImage);
-      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSavePressed.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      tmpImage =
+          ImageIO.read(getClass().getClassLoader().getResource("btnSavePressed.png"))
+              .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
       ImageIcon iconBtn2 = new ImageIcon(tmpImage);
-      tmpImage = ImageIO.read(getClass().getClassLoader().getResource("btnSaveDisabled.png"))
-          .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+      tmpImage =
+          ImageIO.read(getClass().getClassLoader().getResource("btnSaveDisabled.png"))
+              .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
       ImageIcon iconBtn3 = new ImageIcon(tmpImage);
       button = new JButton();
       this.add(button);
