@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.io.IOException;
+import java.util.Objects;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -21,15 +22,20 @@ public class SaveButton extends JPanel {
     this.setLayout(new GridBagLayout());
     try {
       Image tmpImage =
-          ImageIO.read(getClass().getClassLoader().getResource("btnSave.png"))
+          ImageIO.read(
+                  Objects.requireNonNull(getClass().getClassLoader().getResource("btnSave.png")))
               .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
       ImageIcon iconBtn1 = new ImageIcon(tmpImage);
       tmpImage =
-          ImageIO.read(getClass().getClassLoader().getResource("btnSavePressed.png"))
+          ImageIO.read(
+                  Objects.requireNonNull(
+                      getClass().getClassLoader().getResource("btnSavePressed.png")))
               .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
       ImageIcon iconBtn2 = new ImageIcon(tmpImage);
       tmpImage =
-          ImageIO.read(getClass().getClassLoader().getResource("btnSaveDisabled.png"))
+          ImageIO.read(
+                  Objects.requireNonNull(
+                      getClass().getClassLoader().getResource("btnSaveDisabled.png")))
               .getScaledInstance(30, 30, Image.SCALE_SMOOTH);
       ImageIcon iconBtn3 = new ImageIcon(tmpImage);
       button = new JButton();

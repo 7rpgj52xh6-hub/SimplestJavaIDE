@@ -60,7 +60,7 @@ public class AddImportsWindow {
         }
       };
   private JFrame frmImportWindow;
-  private JTextField textfieldImports;
+  private JTextField textFieldImports;
 
   /** Create the application. */
   public AddImportsWindow(CodingFile codingFile) {
@@ -71,14 +71,14 @@ public class AddImportsWindow {
   /** Launch the application. */
   public static void launch(CodingFile codingFile) {
     EventQueue.invokeLater(
-            () -> {
-              try {
-                AddImportsWindow window = new AddImportsWindow(codingFile);
-                window.frmImportWindow.setVisible(true);
-              } catch (Exception e) {
-                ErrorPopupWindow.throwMessage(e.getMessage());
-              }
-            });
+        () -> {
+          try {
+            AddImportsWindow window = new AddImportsWindow(codingFile);
+            window.frmImportWindow.setVisible(true);
+          } catch (Exception e) {
+            ErrorPopupWindow.throwMessage(e.getMessage());
+          }
+        });
   }
 
   /** Initialize the contents of the frame. */
@@ -92,7 +92,8 @@ public class AddImportsWindow {
     // Set Icon
     try {
       frmImportWindow.setIconImage(
-          ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource("favicon.png"))));
+          ImageIO.read(
+              Objects.requireNonNull(getClass().getClassLoader().getResource("favicon.png"))));
     } catch (IOException e1) {
       ErrorPopupWindow.throwMessage(e1.getMessage());
     }
@@ -107,12 +108,12 @@ public class AddImportsWindow {
     JLabel labelImport = new JLabel("import");
     inputPanel.add(labelImport);
 
-    textfieldImports = new JTextField();
-    textfieldImports.setHorizontalAlignment(SwingConstants.CENTER);
-    textfieldImports.setToolTipText(
+    textFieldImports = new JTextField();
+    textFieldImports.setHorizontalAlignment(SwingConstants.CENTER);
+    textFieldImports.setToolTipText(
         "Input your desired import without most of the syntax. For example only \"java.util.*\" is needed.");
-    inputPanel.add(textfieldImports);
-    textfieldImports.setColumns(25);
+    inputPanel.add(textFieldImports);
+    textFieldImports.setColumns(25);
 
     JLabel labelSemicolon = new JLabel(";");
     inputPanel.add(labelSemicolon);
@@ -122,20 +123,20 @@ public class AddImportsWindow {
 
     JButton btnAddImport = new JButton("Add");
     btnAddImport.addActionListener(
-            arg0 -> {
-              addImport(textfieldImports.getText());
-              textfieldImports.setText("");
-            });
+        arg0 -> {
+          addImport(textFieldImports.getText());
+          textFieldImports.setText("");
+        });
     btnAddImport.setPreferredSize(new Dimension(100, 36));
     inputPanel.add(btnAddImport);
 
     JButton btnDeleteImport = new JButton("Delete");
     btnDeleteImport.addActionListener(
-            arg0 -> {
-              int toDeleteIndex = listOfImports.getSelectedIndex();
-              listModel.remove(toDeleteIndex);
-              codingFile.imports.remove(toDeleteIndex);
-            });
+        arg0 -> {
+          int toDeleteIndex = listOfImports.getSelectedIndex();
+          listModel.remove(toDeleteIndex);
+          codingFile.imports.remove(toDeleteIndex);
+        });
     btnDeleteImport.setPreferredSize(new Dimension(100, 36));
     inputPanel.add(btnDeleteImport);
   }

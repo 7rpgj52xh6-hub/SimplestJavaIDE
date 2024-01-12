@@ -43,7 +43,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private ZoomOutButton zoomOutButton;
   private JButton btnAddImports;
 
-  public TerminalPanel(JTextField userInputField, CodingFile codingFile) {
+  public TerminalPanel(CodingFile codingFile) {
     initializeUI();
     this.codingFile = codingFile;
   }

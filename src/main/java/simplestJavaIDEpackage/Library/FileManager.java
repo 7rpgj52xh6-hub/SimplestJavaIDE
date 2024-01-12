@@ -1,12 +1,12 @@
 package simplestJavaIDEpackage.Library;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import simplestJavaIDEpackage.CodingFile;
+import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class FileManager {
   public static Boolean save(CodingFile codingFile) {
@@ -19,10 +19,8 @@ public class FileManager {
       oos.close();
       fos.close();
       return true;
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
     } catch (IOException e) {
-      e.printStackTrace();
+      ErrorPopupWindow.throwMessage(e.getMessage());
     }
     return false;
   }
@@ -42,14 +40,12 @@ public class FileManager {
           ois.close();
           return result;
         } catch (ClassNotFoundException e) {
-          e.printStackTrace();
+          ErrorPopupWindow.throwMessage(e.getMessage());
         }
         fis.close();
         ois.close();
-      } catch (FileNotFoundException e) {
-        e.printStackTrace();
       } catch (IOException e) {
-        e.printStackTrace();
+        ErrorPopupWindow.throwMessage(e.getMessage());
       }
     }
     return null;

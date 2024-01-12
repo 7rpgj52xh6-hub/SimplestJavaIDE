@@ -42,7 +42,6 @@ public class MainUserInput {
 
   private final List<CodingArea> listOfCodingAreas = new ArrayList<>();
   private final DefaultListModel<String> listModel = new DefaultListModel<>();
-  public JTextField userInputTextField;
   private JFrame frmSimplestJavaIDE;
   private TerminalPanel terminal;
   private JTabbedPane tabbedPaneMethods;
@@ -138,19 +137,19 @@ public class MainUserInput {
     }
 
     // Structure of main window
-    JSplitPane contentSplitPane = new JSplitPane();
-    contentSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-    frmSimplestJavaIDE.getContentPane().add(contentSplitPane, BorderLayout.CENTER);
-    contentSplitPane.setResizeWeight(0.9);
-    contentSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 300);
-    contentSplitPane.getBottomComponent().setMinimumSize(new Dimension(20000, 286));
+    JSplitPane MainUserInputSplitPane = new JSplitPane();
+    MainUserInputSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+    frmSimplestJavaIDE.getContentPane().add(MainUserInputSplitPane, BorderLayout.CENTER);
+    MainUserInputSplitPane.setResizeWeight(0.9);
+    MainUserInputSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 300);
+    MainUserInputSplitPane.getBottomComponent().setMinimumSize(new Dimension(20000, 286));
 
     // Output
     JPanel bottomPanel = new JPanel();
-    contentSplitPane.setBottomComponent(bottomPanel);
+    MainUserInputSplitPane.setBottomComponent(bottomPanel);
     bottomPanel.setPreferredSize(new Dimension(200, 286));
     bottomPanel.setLayout(new BorderLayout(0, 0));
-    terminal = new TerminalPanel(userInputTextField, codingFile);
+    terminal = new TerminalPanel(codingFile);
     bottomPanel.add(terminal);
 
     // Coding input and load code if code is not null (from loading file)
@@ -159,7 +158,7 @@ public class MainUserInput {
             codingFile.methods.get(0), terminal.getRunButton(), terminal.getSaveButton(), null);
 
     tabbedPaneMethods = new JTabbedPane(SwingConstants.TOP);
-    contentSplitPane.setLeftComponent(tabbedPaneMethods);
+    MainUserInputSplitPane.setLeftComponent(tabbedPaneMethods);
     listOfCodingAreas.add(mainCodingArea);
     for (int i = 1; i < codingFile.methods.size(); i++) {
       listOfCodingAreas.add(

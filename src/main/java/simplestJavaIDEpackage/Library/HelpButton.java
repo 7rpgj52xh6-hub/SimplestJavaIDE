@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.io.IOException;
+import java.util.Objects;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -21,11 +22,14 @@ public class HelpButton extends JPanel {
     this.setLayout(new GridBagLayout());
     try {
       Image tmpImage =
-          ImageIO.read(getClass().getClassLoader().getResource("btnHelp.png"))
+          ImageIO.read(
+                  Objects.requireNonNull(getClass().getClassLoader().getResource("btnHelp.png")))
               .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
       ImageIcon iconBtn1 = new ImageIcon(tmpImage);
       tmpImage =
-          ImageIO.read(getClass().getClassLoader().getResource("btnHelpPressed.png"))
+          ImageIO.read(
+                  Objects.requireNonNull(
+                      getClass().getClassLoader().getResource("btnHelpPressed.png")))
               .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
       ImageIcon iconBtn2 = new ImageIcon(tmpImage);
       button = new JButton();

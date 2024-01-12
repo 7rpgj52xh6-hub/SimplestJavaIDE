@@ -6,7 +6,7 @@ public class Methods implements Serializable {
 
   private static final long serialVersionUID = 4518889829751756148L;
   private final String content;
-  private String name;
+  private final String name;
 
   public Methods(String name, String content) {
     this.content = content;
@@ -19,9 +19,5 @@ public class Methods implements Serializable {
 
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 }
