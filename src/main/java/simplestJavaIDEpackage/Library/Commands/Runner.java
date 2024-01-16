@@ -7,27 +7,22 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.TerminalPanel.CommandType;
 
 public class Runner extends Thread {
-  private final List<String> cmds;
+  private final List<String> commands;
   private final CommandListener listener;
+  private final CommandType commandType;
   private Process process;
-  private CommandType commandType;
 
-  public Runner(CommandListener listener, List<String> cmds, CommandType commandType) {
+  public Runner(CommandListener listener, List<String> commands, CommandType commandType) {
     this.commandType = commandType;
-    this.cmds = cmds;
+    this.commands = commands;
     this.listener = listener;
     start();
-  }
-
-  public void setCommandType(CommandType commandType) {
-    this.commandType = commandType;
   }
 
   @Override
   public void run() {
     try {
-      ProcessBuilder pb = new ProcessBuilder(cmds);
-      pb.redirectErrorStream();
+      ProcessBuilder pb = new ProcessBuilder(commands);
       process = pb.start();
       InputStream inputStream = process.getInputStream();
       InputStream errorStream = process.getErrorStream();

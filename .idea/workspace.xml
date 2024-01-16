@@ -4,10 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2ab27329-29e7-4e01-9205-3f6a3018f973" name="Changes" comment="Fixed more warnings">
+    <list default="true" id="2ab27329-29e7-4e01-9205-3f6a3018f973" name="Changes" comment="code restructuring">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Commands/Runner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Commands/Runner.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/TerminalPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/TerminalPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/MainUserInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/MainUserInput.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/MainUserInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/MainUserInput.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/StartingWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/StartingWindow.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,6 +69,11 @@
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/resources" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="simplestJavaIDEpackage.Library.CodeStructure" />
+      <recent name="simplestJavaIDEpackage" />
+      <recent name="simplestJavaIDEpackage.Library" />
     </key>
   </component>
   <component name="RunManager" selected="Application.SimpleJavaIDE">
@@ -179,7 +187,15 @@
       <option name="project" value="LOCAL" />
       <updated>1705056014982</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="code restructuring">
+      <option name="closed" value="true" />
+      <created>1705397528060</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1705397528060</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -204,6 +220,7 @@
     <MESSAGE value="fixed bug" />
     <MESSAGE value="Fixed warnings" />
     <MESSAGE value="Fixed more warnings" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed more warnings" />
+    <MESSAGE value="code restructuring" />
+    <option name="LAST_COMMIT_MESSAGE" value="code restructuring" />
   </component>
 </project>

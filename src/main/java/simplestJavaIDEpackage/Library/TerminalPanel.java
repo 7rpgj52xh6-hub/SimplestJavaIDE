@@ -32,7 +32,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private final TerminalPanel terminal = this;
   private JTextArea terminalOutput;
   private Runner runner;
-    private JTextField userInputTextField;
+  private JTextField userInputTextField;
   private SaveButton saveButton;
   private RunButton runButton;
   private HelpButton helpButton;
@@ -51,10 +51,10 @@ public class TerminalPanel extends JPanel implements CommandListener {
     userInputTextField.setBorder(BorderFactory.createLineBorder(new Color(47, 47, 47), 6));
     userInputTextField.setColumns(1);
     userInputTextField.addActionListener(
-            e -> {
-              terminal.run(CommandType.INPUT);
-              userInputTextField.setText(null);
-            });
+        e -> {
+          terminal.run(CommandType.INPUT);
+          userInputTextField.setText(null);
+        });
 
     // Top Panel
     JPanel panelClearBtnAndLabel = getPanelClearBtnAndLabel();
@@ -99,7 +99,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
     // Output
     terminalOutput = new JTextArea();
-      JScrollPane terminalTextAreaScrollPane = new JScrollPane();
+    JScrollPane terminalTextAreaScrollPane = new JScrollPane();
     terminalTextAreaScrollPane.setViewportView(terminalOutput);
     DefaultCaret terminalTextAreaCaret = (DefaultCaret) terminalOutput.getCaret();
     terminalTextAreaCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -120,8 +120,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     panelClearBtnAndLabel.setBackground(new Color(47, 47, 47));
     JButton btnClearConsole = new JButton("Clear Console");
     btnClearConsole.setBounds(6, 6, 86, 36);
-    btnClearConsole.addActionListener(
-            e -> terminal.getTextArea().setText(null));
+    btnClearConsole.addActionListener(e -> terminal.getTextArea().setText(null));
     panelClearBtnAndLabel.add(btnClearConsole);
 
     JLabel lblUserInput =
@@ -173,7 +172,6 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   @Override
   public void compileFailed() {
-    // TODO delete
     this.getTextArea().append("Compile failed");
   }
 

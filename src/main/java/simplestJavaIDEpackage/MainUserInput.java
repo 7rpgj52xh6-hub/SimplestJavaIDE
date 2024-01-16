@@ -194,7 +194,7 @@ public class MainUserInput {
     Font currentFont = labelManagingMethods.getFont();
     Font newFont = currentFont.deriveFont(currentFont.getSize() * 2F);
     labelManagingMethods.setFont(newFont);
-    tabbedPaneMethods.addTab("[Managing Methods]", splitPaneManagingMethods); // TODO design Add
+    tabbedPaneMethods.addTab("[Managing Methods]", splitPaneManagingMethods);
     // panel
     int indexOfManagingMethodsTab = -1;
     for (int i = 1; i < tabbedPaneMethods.getTabCount(); i++) {
