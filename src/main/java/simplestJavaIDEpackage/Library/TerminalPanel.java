@@ -3,8 +3,6 @@ package simplestJavaIDEpackage.Library;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -34,8 +32,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private final TerminalPanel terminal = this;
   private JTextArea terminalOutput;
   private Runner runner;
-  private JScrollPane terminalTextAreaScrollPane;
-  private JTextField userInputTextField;
+    private JTextField userInputTextField;
   private SaveButton saveButton;
   private RunButton runButton;
   private HelpButton helpButton;
@@ -54,36 +51,13 @@ public class TerminalPanel extends JPanel implements CommandListener {
     userInputTextField.setBorder(BorderFactory.createLineBorder(new Color(47, 47, 47), 6));
     userInputTextField.setColumns(1);
     userInputTextField.addActionListener(
-        new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            terminal.run(CommandType.INPUT);
-            userInputTextField.setText(null);
-          }
-        });
+            e -> {
+              terminal.run(CommandType.INPUT);
+              userInputTextField.setText(null);
+            });
 
     // Top Panel
-    JPanel panelClearBtnAndLabel = new JPanel();
-    panelClearBtnAndLabel.setLayout(null);
-    panelClearBtnAndLabel.setPreferredSize(new Dimension(184, 48));
-    panelClearBtnAndLabel.setBackground(new Color(47, 47, 47));
-    JButton btnClearConsole = new JButton("Clear Console");
-    btnClearConsole.setBounds(6, 6, 86, 36);
-    btnClearConsole.addActionListener(
-        new ActionListener() {
-
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            terminal.getTextArea().setText(null);
-          }
-        });
-    panelClearBtnAndLabel.add(btnClearConsole);
-
-    JLabel lblUserInput =
-        new JLabel(
-            "<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
-    lblUserInput.setBounds(104, 6, 86, 36);
-    panelClearBtnAndLabel.add(lblUserInput);
+    JPanel panelClearBtnAndLabel = getPanelClearBtnAndLabel();
     JPanel topPanel = new JPanel();
     topPanel.setPreferredSize(new Dimension(200, 48));
     topPanel.setLayout(new BorderLayout());
@@ -125,7 +99,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
     // Output
     terminalOutput = new JTextArea();
-    terminalTextAreaScrollPane = new JScrollPane();
+      JScrollPane terminalTextAreaScrollPane = new JScrollPane();
     terminalTextAreaScrollPane.setViewportView(terminalOutput);
     DefaultCaret terminalTextAreaCaret = (DefaultCaret) terminalOutput.getCaret();
     terminalTextAreaCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -137,6 +111,25 @@ public class TerminalPanel extends JPanel implements CommandListener {
     this.setLayout(new BorderLayout());
     this.add(terminalTextAreaScrollPane, BorderLayout.CENTER);
     this.add(topPanel, BorderLayout.NORTH);
+  }
+
+  private JPanel getPanelClearBtnAndLabel() {
+    JPanel panelClearBtnAndLabel = new JPanel();
+    panelClearBtnAndLabel.setLayout(null);
+    panelClearBtnAndLabel.setPreferredSize(new Dimension(184, 48));
+    panelClearBtnAndLabel.setBackground(new Color(47, 47, 47));
+    JButton btnClearConsole = new JButton("Clear Console");
+    btnClearConsole.setBounds(6, 6, 86, 36);
+    btnClearConsole.addActionListener(
+            e -> terminal.getTextArea().setText(null));
+    panelClearBtnAndLabel.add(btnClearConsole);
+
+    JLabel lblUserInput =
+        new JLabel(
+            "<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
+    lblUserInput.setBounds(104, 6, 86, 36);
+    panelClearBtnAndLabel.add(lblUserInput);
+    return panelClearBtnAndLabel;
   }
 
   public JButton getAddImportsButton() {
@@ -174,7 +167,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   @Override
   public void compileSuccessful() {
-    // run java programm if compile was successful
+    // run java program if compile was successful
     run(CommandType.RUN);
   }
 
@@ -187,10 +180,6 @@ public class TerminalPanel extends JPanel implements CommandListener {
   @Override
   public void commandFailed(Exception exp) {
     this.getTextArea().append("Command failed - " + exp.getMessage());
-  }
-
-  public boolean isRunnerRunning() {
-    return runner != null && runner.isAlive();
   }
 
   public void compile() {

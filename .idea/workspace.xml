@@ -4,19 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2ab27329-29e7-4e01-9205-3f6a3018f973" name="Changes" comment="fixed bug">
+    <list default="true" id="2ab27329-29e7-4e01-9205-3f6a3018f973" name="Changes" comment="Fixed more warnings">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ImprintWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/ImprintWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/CodingArea.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/CodingArea.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/FileManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/FileManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/HelpButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/HelpButton.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Methods.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/Methods.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/RunButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/RunButton.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/SaveButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/SaveButton.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/TerminalPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/TerminalPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/ZoomInButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/ZoomInButton.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/ZoomOutButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/Library/ZoomOutButton.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/AddImportsWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/AddImportsWindow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/MainUserInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/simplestJavaIDEpackage/mainUserInput/MainUserInput.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -50,29 +40,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "Application.SimpleJavaIDE.executor": "Run",
-    "Application.StartingWindow.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "kotlin-language-version-configured": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.345977",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "google-java-format.settings",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Application.SimpleJavaIDE.executor&quot;: &quot;Run&quot;,
+    &quot;Application.StartingWindow.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.345977&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;google-java-format.settings&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/resources" />
@@ -146,7 +136,8 @@
       <workItem from="1704926893653" duration="475000" />
       <workItem from="1705007442598" duration="517000" />
       <workItem from="1705007966331" duration="97000" />
-      <workItem from="1705008070028" duration="4062000" />
+      <workItem from="1705008070028" duration="5924000" />
+      <workItem from="1705396400506" duration="236000" />
     </task>
     <task id="LOCAL-00001" summary="Moved to IntelliJ">
       <option name="closed" value="true" />
@@ -180,7 +171,15 @@
       <option name="project" value="LOCAL" />
       <updated>1705010344582</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Fixed warnings">
+      <option name="closed" value="true" />
+      <created>1705056014982</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1705056014982</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -203,6 +202,8 @@
     <MESSAGE value="Moved to IntelliJ and applied google code style" />
     <MESSAGE value="Removed warnings" />
     <MESSAGE value="fixed bug" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed bug" />
+    <MESSAGE value="Fixed warnings" />
+    <MESSAGE value="Fixed more warnings" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed more warnings" />
   </component>
 </project>

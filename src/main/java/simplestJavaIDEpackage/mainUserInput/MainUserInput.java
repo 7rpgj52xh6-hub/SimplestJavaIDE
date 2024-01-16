@@ -13,18 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.Timer;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import simplestJavaIDEpackage.CodingFile;
@@ -58,6 +47,7 @@ public class MainUserInput {
           try {
             MainUserInput window = new MainUserInput(savefile);
             window.frmSimplestJavaIDE.setVisible(true);
+            window.frmSimplestJavaIDE.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
           } catch (Exception e) {
             ErrorPopupWindow.throwMessage(e.getMessage());
           }
