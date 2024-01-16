@@ -1,4 +1,4 @@
-package simplestJavaIDEpackage.mainUserInput;
+package simplestJavaIDEpackage.Library;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -17,9 +17,9 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
-import simplestJavaIDEpackage.Library.FileManager;
+import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
+import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
 
 public class AddImportsWindow {
 

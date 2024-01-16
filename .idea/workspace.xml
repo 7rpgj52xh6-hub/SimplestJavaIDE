@@ -81,7 +81,7 @@
       <module name="com.daniel" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="simplestJavaIDEpackage.*" />
+          <option name="PATTERN" value="simplestJavaIDEpackage.Library.CodeStructure.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>

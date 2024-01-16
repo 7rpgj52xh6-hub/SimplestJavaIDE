@@ -21,8 +21,8 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import simplestJavaIDEpackage.Library.FileManager;
-import simplestJavaIDEpackage.mainUserInput.MainUserInput;
+import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
+import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
 
 /**
  * @author Daniel Trageser

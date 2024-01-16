@@ -1,4 +1,4 @@
-package simplestJavaIDEpackage.mainUserInput;
+package simplestJavaIDEpackage;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -16,12 +16,11 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import simplestJavaIDEpackage.CodingFile;
-import simplestJavaIDEpackage.ErrorPopupWindow;
-import simplestJavaIDEpackage.ImprintWindow;
+import simplestJavaIDEpackage.Library.AddImportsWindow;
+import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
+import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
+import simplestJavaIDEpackage.Library.CodeStructure.Methods;
 import simplestJavaIDEpackage.Library.CodingArea;
-import simplestJavaIDEpackage.Library.FileManager;
-import simplestJavaIDEpackage.Library.Methods;
 import simplestJavaIDEpackage.Library.TerminalPanel;
 
 /**

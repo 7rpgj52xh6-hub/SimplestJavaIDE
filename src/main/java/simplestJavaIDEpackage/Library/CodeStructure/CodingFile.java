@@ -1,12 +1,11 @@
-package simplestJavaIDEpackage;
+package simplestJavaIDEpackage.Library.CodeStructure;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import simplestJavaIDEpackage.Library.Classes;
-import simplestJavaIDEpackage.Library.Methods;
+import simplestJavaIDEpackage.ErrorPopupWindow;
 
 /**
  * @author Daniel Trageser This class regulates loading, saving and formatting of the code

@@ -15,6 +15,7 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import simplestJavaIDEpackage.ErrorPopupWindow;
+import simplestJavaIDEpackage.Library.CodeStructure.Methods;
 
 public class CodingArea extends JPanel {
   private static final long serialVersionUID = -3178874378975696478L;

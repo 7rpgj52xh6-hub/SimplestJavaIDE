@@ -16,8 +16,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.text.DefaultCaret;
-import simplestJavaIDEpackage.CodingFile;
 import simplestJavaIDEpackage.ErrorPopupWindow;
+import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.Runner;
 

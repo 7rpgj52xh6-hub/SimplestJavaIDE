@@ -1,4 +1,4 @@
-package simplestJavaIDEpackage.Library;
+package simplestJavaIDEpackage.Library.CodeStructure;
 
 import java.io.Serializable;
 
