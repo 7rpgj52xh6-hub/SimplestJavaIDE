@@ -22,6 +22,7 @@ import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
 import simplestJavaIDEpackage.Library.CodeStructure.Methods;
 import simplestJavaIDEpackage.Library.CodingArea;
 import simplestJavaIDEpackage.Library.MethodManagerPanel;
+import simplestJavaIDEpackage.Library.MethodTabsPanel;
 import simplestJavaIDEpackage.Library.TerminalPanel;
 
 /**
@@ -29,10 +30,9 @@ import simplestJavaIDEpackage.Library.TerminalPanel;
  */
 public class MainUserInput {
 
-  private final List<CodingArea> listOfCodingAreas = new ArrayList<>();
+
   private JFrame frmSimplestJavaIDE;
   private TerminalPanel terminal;
-  private JTabbedPane tabbedPaneMethods;
 
   /** Create the application. */
   public MainUserInput(CodingFile savefile) {
@@ -141,46 +141,9 @@ public class MainUserInput {
     terminal = new TerminalPanel(codingFile);
     bottomPanel.add(terminal);
 
-    // Coding input and load code if code is not null (from loading file)
-    CodingArea mainCodingArea =
-        new CodingArea(
-            codingFile.methods.get(0), terminal.getRunButton(), terminal.getSaveButton(), null);
-
-    tabbedPaneMethods = new JTabbedPane(SwingConstants.TOP);
-    MainUserInputSplitPane.setLeftComponent(tabbedPaneMethods);
-    listOfCodingAreas.add(mainCodingArea);
-    for (int i = 1; i < codingFile.methods.size(); i++) {
-      listOfCodingAreas.add(
-          new CodingArea(
-              codingFile.methods.get(i),
-              terminal.getRunButton(),
-              terminal.getSaveButton(),
-              mainCodingArea.getFont()));
-    }
-    // Add a Tab for every coding area
-    for (CodingArea i : listOfCodingAreas) {
-      int index = tabbedPaneMethods.getTabCount();
-      tabbedPaneMethods.insertTab(i.getMethod().getName(), null, i, null, index);
-    }
-
-    MethodManagerPanel methodManagerPanel = new MethodManagerPanel(codingFile, mainCodingArea, listOfCodingAreas, tabbedPaneMethods, terminal);
-    JLabel labelManagingMethods = new JLabel("⚙");
-    Font currentFont = labelManagingMethods.getFont();
-    Font newFont = currentFont.deriveFont(currentFont.getSize() * 2F);
-    labelManagingMethods.setFont(newFont);
-    tabbedPaneMethods.addTab("[Managing Methods]", methodManagerPanel);
-    // panel
-    int indexOfManagingMethodsTab = -1;
-    for (int i = 1; i < tabbedPaneMethods.getTabCount(); i++) {
-      if (tabbedPaneMethods.getTitleAt(i).equals("[Managing Methods]")) {
-        indexOfManagingMethodsTab = i;
-      }
-    }
-    if (indexOfManagingMethodsTab != -1) {
-      tabbedPaneMethods.setTabComponentAt(indexOfManagingMethodsTab, labelManagingMethods);
-    }
-    tabbedPaneMethods.setBorder(BorderFactory.createLineBorder(new Color(50, 53, 55)));
-    tabbedPaneMethods.setBackground(new Color(55, 58, 60));
+    MethodTabsPanel methodTabsPanel = new MethodTabsPanel(codingFile, terminal);
+    MainUserInputSplitPane.setLeftComponent(methodTabsPanel);
+    
 
     // Action button interactions
     terminal.getHelpButton().addActionListener(e -> ImprintWindow.main(null));
@@ -188,9 +151,9 @@ public class MainUserInput {
         .getSaveButton()
         .addActionListener(
             e -> {
-              for (CodingArea i : listOfCodingAreas) {
+              for (CodingArea i : methodTabsPanel.getListOfCodingAreas()) {
                 codingFile.methods.set(
-                    listOfCodingAreas.indexOf(i),
+                		methodTabsPanel.getListOfCodingAreas().indexOf(i),
                     new Methods(i.getMethod().getName(), i.getTextArea().getText()));
               }
               if (FileManager.save(codingFile)) {
@@ -203,9 +166,9 @@ public class MainUserInput {
         .addActionListener(
             e -> {
               // Save, compile and run
-              for (CodingArea i : listOfCodingAreas) {
+              for (CodingArea i : methodTabsPanel.getListOfCodingAreas()) {
                 codingFile.methods.set(
-                    listOfCodingAreas.indexOf(i),
+                		methodTabsPanel.getListOfCodingAreas().indexOf(i),
                     new Methods(i.getMethod().getName(), i.getTextArea().getText()));
               }
               if (FileManager.save(codingFile)) {
@@ -223,9 +186,9 @@ public class MainUserInput {
 
               public void zoomIn() {
                 // Add Zoom
-                Font font = mainCodingArea.getTextArea().getFont();
+                Font font = methodTabsPanel.getMainCodingArea().getTextArea().getFont();
                 if (font.getSize() <= 60) {
-                  for (CodingArea i : listOfCodingAreas) {
+                  for (CodingArea i : methodTabsPanel.getListOfCodingAreas()) {
                     i.getTextArea()
                         .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() + 2));
                   }
@@ -258,9 +221,9 @@ public class MainUserInput {
 
               public void zoomOut() {
                 // Subtract Zoom
-                Font font = mainCodingArea.getTextArea().getFont();
+                Font font = methodTabsPanel.getMainCodingArea().getTextArea().getFont();
                 if (font.getSize() >= 10) {
-                  for (CodingArea i : listOfCodingAreas) {
+                  for (CodingArea i : methodTabsPanel.getListOfCodingAreas()) {
                     i.getTextArea()
                         .setFont(new Font(font.getFontName(), font.getStyle(), font.getSize() - 2));
                   }
