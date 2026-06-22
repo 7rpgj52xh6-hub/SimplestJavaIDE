@@ -7,7 +7,8 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 /**
  * Runs the user's compiled program in a separate process and streams its output
  * (stdout and stderr) back to the terminal. Kept separate from compilation so
- * the program gets its own stdin/stdout and an endless loop can't freeze the IDE.
+ * the program gets its own stdin/stdout and an endless loop can't freeze the IDE
+ * (and can be stopped via {@link #kill()}).
  *
  * @author Daniel Trageser
  */
@@ -35,6 +36,8 @@ public class Runner extends Thread {
     } catch (Exception e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
       listener.commandFailed(e);
+    } finally {
+      listener.commandFinished();
     }
   }
 
@@ -42,6 +45,22 @@ public class Runner extends Thread {
     if (process != null && process.isAlive()) {
       process.getOutputStream().write(text.getBytes());
       process.getOutputStream().flush();
+    }
+  }
+
+  public boolean isRunning() {
+    return process != null && process.isAlive();
+  }
+
+  /** Forcibly stops the running program (and its descendants). */
+  public void kill() {
+    if (process == null) {
+      return;
+    }
+    process.descendants().forEach(ProcessHandle::destroy);
+    process.destroy();
+    if (process.isAlive()) {
+      process.destroyForcibly();
     }
   }
 }

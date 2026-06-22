@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -43,11 +45,13 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private JTextField userInputTextField;
   private JButton saveButton;
   private JButton runButton;
+  private JButton stopButton;
   private JButton helpButton;
   private JButton zoomInButton;
   private JButton zoomOutButton;
   private JButton btnAddImports;
   private MethodTabsPanel methodTabsPanel;
+  private volatile GeneratedSource lastSource;
 
   public TerminalPanel(CodingFile codingFile) {
     this.codingFile = codingFile;
@@ -62,6 +66,9 @@ public class TerminalPanel extends JPanel implements CommandListener {
     toolBar.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
 
     runButton = toolButton("Run", KeyEvent.VK_R, "Compile and run (F5)");
+    stopButton = toolButton("Stop", KeyEvent.VK_T, "Stop the running program");
+    stopButton.setEnabled(false);
+    stopButton.addActionListener(e -> stopRunningProgram());
     saveButton = toolButton("Save", KeyEvent.VK_S, "Save the project (Ctrl/Cmd+S)");
     zoomOutButton = toolButton("A-", KeyEvent.VK_MINUS, "Smaller font (Ctrl/Cmd+-)");
     zoomInButton = toolButton("A+", KeyEvent.VK_PLUS, "Larger font (Ctrl/Cmd++)");
@@ -69,6 +76,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     helpButton = toolButton("Help", KeyEvent.VK_H, "Help & about");
 
     toolBar.add(runButton);
+    toolBar.add(stopButton);
     toolBar.add(saveButton);
     toolBar.addSeparator();
     toolBar.add(zoomOutButton);
@@ -155,7 +163,8 @@ public class TerminalPanel extends JPanel implements CommandListener {
   @Override
   public void commandOutput(String text) {
     // Called from the reader threads, so hand the UI update to the EDT.
-    SwingUtilities.invokeLater(() -> terminalOutput.append(text));
+    String annotated = annotateStackTrace(text);
+    SwingUtilities.invokeLater(() -> terminalOutput.append(annotated));
   }
 
   @Override
@@ -164,12 +173,46 @@ public class TerminalPanel extends JPanel implements CommandListener {
         () -> terminalOutput.append("Command failed - " + exp.getMessage() + "\n"));
   }
 
+  @Override
+  public void commandFinished() {
+    SwingUtilities.invokeLater(() -> stopButton.setEnabled(false));
+  }
+
+  /** Adds a [method:line] hint to stack-trace lines that point at generated code. */
+  private String annotateStackTrace(String text) {
+    GeneratedSource source = lastSource;
+    if (source == null || !text.contains(".java:")) {
+      return text;
+    }
+    Pattern pattern =
+        Pattern.compile(Pattern.quote(codingFile.javaClass.className() + ".java") + ":(\\d+)");
+    Matcher matcher = pattern.matcher(text);
+    StringBuilder result = new StringBuilder();
+    while (matcher.find()) {
+      MethodLocation location = source.locate(Integer.parseInt(matcher.group(1)));
+      String replacement =
+          location == null
+              ? matcher.group()
+              : matcher.group() + " [" + location.methodName() + ":" + location.localLine() + "]";
+      matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+    }
+    matcher.appendTail(result);
+    return result.toString();
+  }
+
+  public void stopRunningProgram() {
+    if (runner != null) {
+      runner.kill();
+    }
+  }
+
   /** Compiles the generated source in the background and reports the result. */
   public void compile() {
     if (methodTabsPanel != null) {
       methodTabsPanel.clearErrorHighlights();
     }
     GeneratedSource source = codingFile.buildSource();
+    lastSource = source; // used to annotate runtime stack traces
     codingFile.tmpSaveAndRunJavaCode();
     new Thread(
             () -> {
@@ -222,6 +265,10 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   public void run(CommandType ct) {
     if (ct == CommandType.RUN) {
+      // Stop a previous run before starting a new one (no piling-up processes).
+      if (runner != null) {
+        runner.kill();
+      }
       String javaExecutable =
           System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
       List<String> commandValues =
@@ -231,6 +278,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
               codingFile.generateClassPath(),
               codingFile.javaClass.className());
       runner = new Runner(this, commandValues);
+      stopButton.setEnabled(true);
     } else if (ct == CommandType.INPUT) {
       if (runner == null) {
         return;

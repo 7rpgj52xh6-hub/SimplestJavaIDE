@@ -22,12 +22,17 @@ A project is stored in a `.sji` file (JSON) containing:
 
 - Tabbed editor with Java syntax highlighting (RSyntaxTextArea) and a dark theme
   (FlatLaf).
-- One-click **compile & run** with an interactive terminal (program input/output).
+- One-click **compile & run** with an interactive terminal (program input/output),
+  plus a **Stop** button to end a running program (e.g. an endless loop).
 - **Compiler errors are mapped back to the method tab and the local line** the
   student actually sees, and the offending line is highlighted — not the line of
-  the hidden generated file.
-- Add/remove methods and imports through dedicated dialogs.
-- Adjustable editor font size (zoom).
+  the hidden generated file. Runtime stack traces are annotated with the matching
+  method and line too.
+- Add methods via the **+** tab; rename/delete via right-click. Manage imports in
+  a dedicated dialog.
+- Keyboard shortcuts (save, run, zoom), an unsaved-changes marker and prompt,
+  adjustable font size, and recently-opened files — all remembered between
+  sessions.
 
 ## Requirements
 

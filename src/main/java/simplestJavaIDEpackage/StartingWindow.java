@@ -7,8 +7,10 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -51,7 +53,7 @@ public class StartingWindow {
 
   private void initialize() {
     frame = new JFrame("SimplestJavaIDE Alpha v2.0");
-    frame.setSize(520, 360);
+    frame.setSize(520, 440);
     frame.setLocationRelativeTo(null);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     frame.setResizable(false);
@@ -68,16 +70,20 @@ public class StartingWindow {
     buttonRow.add(newButton);
     frame.getContentPane().add(buttonRow, BorderLayout.NORTH);
 
-    JPanel center = new JPanel(new BorderLayout());
+    JPanel header = new JPanel(new BorderLayout());
     JLabel icon = new JLabel(scaledIcon());
     icon.setBorder(new EmptyBorder(10, 40, 10, 10));
-    center.add(icon, BorderLayout.WEST);
+    header.add(icon, BorderLayout.WEST);
     JLabel text =
         new JLabel(
             "<html><body style='text-align:center; margin:15px;'>"
                 + "<h2>SimplestJavaIDE</h2><h4>Code in Java without classes!</h4></body></html>",
             SwingConstants.CENTER);
-    center.add(text, BorderLayout.CENTER);
+    header.add(text, BorderLayout.CENTER);
+
+    JPanel center = new JPanel(new BorderLayout());
+    center.add(header, BorderLayout.NORTH);
+    center.add(buildRecentPanel(), BorderLayout.CENTER);
     frame.getContentPane().add(center, BorderLayout.CENTER);
 
     JButton helpButton = new JButton("Help");
@@ -131,9 +137,33 @@ public class StartingWindow {
     String className = file.getName().replace(FILE_FORMAT, "");
     CodingFile codingFile = FileManager.load(className, file.getAbsolutePath(), isNew);
     if (codingFile != null) {
+      AppPreferences.addRecentFile(file.getAbsolutePath());
       MainUserInput.launch(codingFile);
       frame.dispose();
     }
+  }
+
+  /** A list of buttons for recently opened files (empty when there are none). */
+  private JPanel buildRecentPanel() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setBorder(new EmptyBorder(0, 40, 10, 40));
+    List<String> recent = AppPreferences.getRecentFiles();
+    if (recent.isEmpty()) {
+      return panel;
+    }
+    JLabel heading = new JLabel("Recently opened:");
+    heading.setAlignmentX(0f);
+    panel.add(heading);
+    for (String path : recent) {
+      File file = new File(path);
+      JButton link = new JButton(file.getName());
+      link.setToolTipText(path);
+      link.setAlignmentX(0f);
+      link.addActionListener(e -> open(file, false));
+      panel.add(link);
+    }
+    return panel;
   }
 
   private JFileChooser createChooser() {

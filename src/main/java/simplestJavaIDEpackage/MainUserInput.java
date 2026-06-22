@@ -3,7 +3,7 @@ package simplestJavaIDEpackage;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -19,6 +19,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JSplitPane;
@@ -57,7 +58,6 @@ public class MainUserInput {
           try {
             MainUserInput window = new MainUserInput(savefile);
             window.frmSimplestJavaIDE.setVisible(true);
-            window.frmSimplestJavaIDE.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
           } catch (Exception e) {
             ErrorPopupWindow.throwMessage(e.getMessage());
           }
@@ -67,14 +67,21 @@ public class MainUserInput {
   /** Initialize the contents of the frame. */
   private void initialize() {
     frmSimplestJavaIDE = new JFrame();
-    frmSimplestJavaIDE.setSize(1080, 720);
     frmSimplestJavaIDE.setMinimumSize(new Dimension(900, 600));
+    Rectangle savedBounds = AppPreferences.getWindowBounds();
+    if (savedBounds != null) {
+      frmSimplestJavaIDE.setBounds(savedBounds);
+    } else {
+      frmSimplestJavaIDE.setSize(1080, 720);
+      frmSimplestJavaIDE.setLocationRelativeTo(null);
+    }
     frmSimplestJavaIDE.getContentPane().setLayout(new BorderLayout(0, 0));
+    frmSimplestJavaIDE.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frmSimplestJavaIDE.addWindowListener(
         new WindowAdapter() {
           @Override
           public void windowClosing(WindowEvent e) {
-            deleteTempFiles();
+            handleClose();
           }
         });
 
@@ -103,6 +110,10 @@ public class MainUserInput {
     terminal.getSaveButton().setEnabled(false);
     terminal.getSaveButton().addPropertyChangeListener("enabled", e -> updateTitle());
     updateTitle();
+
+    applyFontSize(
+        AppPreferences.getFontSize(
+            methodTabsPanel.getMainCodingArea().getTextArea().getFont().getSize()));
   }
 
   private void wireActions() {
@@ -162,21 +173,49 @@ public class MainUserInput {
 
   /** Changes the editor and console font size by the given number of steps. */
   private void applyZoom(int steps) {
-    Font base = methodTabsPanel.getMainCodingArea().getTextArea().getFont();
-    int newSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, base.getSize() + steps * 2));
-    if (newSize == base.getSize()) {
+    int current = methodTabsPanel.getMainCodingArea().getTextArea().getFont().getSize();
+    int newSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, current + steps * 2));
+    if (newSize == current) {
       return;
     }
+    applyFontSize(newSize);
+    AppPreferences.setFontSize(newSize);
+  }
+
+  private void applyFontSize(int size) {
     for (CodingArea area : methodTabsPanel.getListOfCodingAreas()) {
-      area.getTextArea().setFont(area.getTextArea().getFont().deriveFont((float) newSize));
+      area.getTextArea().setFont(area.getTextArea().getFont().deriveFont((float) size));
     }
-    terminal.getTextArea().setFont(terminal.getTextArea().getFont().deriveFont((float) newSize));
+    terminal.getTextArea().setFont(terminal.getTextArea().getFont().deriveFont((float) size));
   }
 
   private void updateTitle() {
     boolean dirty = terminal.getSaveButton().isEnabled();
     frmSimplestJavaIDE.setTitle(
         (dirty ? "● " : "") + "Simplest Java IDE - " + codingFile.getFilepath());
+  }
+
+  /** Asks to save unsaved work, stops the running program, then exits. */
+  private void handleClose() {
+    if (terminal.getSaveButton().isEnabled()) { // there are unsaved changes
+      int choice =
+          JOptionPane.showConfirmDialog(
+              frmSimplestJavaIDE,
+              "Save changes before closing?",
+              "Unsaved changes",
+              JOptionPane.YES_NO_CANCEL_OPTION,
+              JOptionPane.WARNING_MESSAGE);
+      if (choice == JOptionPane.CANCEL_OPTION || choice == JOptionPane.CLOSED_OPTION) {
+        return; // keep the window open
+      }
+      if (choice == JOptionPane.YES_OPTION) {
+        saveProject();
+      }
+    }
+    AppPreferences.setWindowBounds(frmSimplestJavaIDE.getBounds());
+    terminal.stopRunningProgram();
+    deleteTempFiles();
+    System.exit(0);
   }
 
   private void deleteTempFiles() {
