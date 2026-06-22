@@ -47,6 +47,37 @@ public class ImprintWindow {
           <li><b>Ctrl/Cmd + Plus / Minus</b> &ndash; larger / smaller font</li>
         </ul>
 
+        <h3>Syntax-Spickzettel</h3>
+        <pre>
+        // Ausgabe
+        System.out.println("Hallo");
+
+        // Variablen
+        int zahl = 5;
+        double komma = 3.14;
+        String text = "Hi";
+        boolean ja = true;
+
+        // Bedingung
+        if (zahl &gt; 3) {
+            System.out.println("groß");
+        } else {
+            System.out.println("klein");
+        }
+
+        // Schleifen
+        for (int i = 0; i &lt; 5; i++) {
+            System.out.println(i);
+        }
+        while (zahl &gt; 0) {
+            zahl = zahl - 1;
+        }
+
+        // Eingabe (Scanner) — import java.util.* nicht vergessen!
+        Scanner scanner = new Scanner(System.in);
+        int eingabe = scanner.nextInt();
+        </pre>
+
         <h3>About</h3>
         <p>&copy; Daniel Trageser. Designed for teaching Java in German vocational
            schools.<br>

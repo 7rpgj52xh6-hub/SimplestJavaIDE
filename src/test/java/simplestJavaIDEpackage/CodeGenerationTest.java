@@ -16,6 +16,7 @@ import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource.MethodLocation;
 import simplestJavaIDEpackage.Library.CodeStructure.Methods;
+import simplestJavaIDEpackage.Library.Commands.CompilerHints;
 import simplestJavaIDEpackage.Library.Commands.JavaCompilerService;
 
 public class CodeGenerationTest {
@@ -68,6 +69,29 @@ public class CodeGenerationTest {
     assertNotNull(firstError);
     assertEquals("Main Method", firstError.methodName());
     assertEquals(2, firstError.localLine());
+  }
+
+  @Test
+  public void commonCompilerErrorHasFriendlyHint() throws Exception {
+    Path dir = Files.createTempDirectory("sji");
+    CodingFile file = new CodingFile("Demo", dir.resolve("Demo.sji").toString());
+    file.methods.set(
+        0,
+        new Methods(
+            "Main Method", "public static void main(String[] args){\n\tundefinedCall();\n}"));
+    file.tmpSaveAndRunJavaCode();
+
+    JavaCompilerService.Result result =
+        JavaCompilerService.compile(file.getJavaTmpFilePath(), dir.toString());
+
+    String hint = null;
+    for (Diagnostic<? extends JavaFileObject> diagnostic : result.diagnostics()) {
+      if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
+        hint = CompilerHints.friendlyHint(diagnostic);
+        break;
+      }
+    }
+    assertNotNull("expected a beginner hint for an unknown-symbol error", hint);
   }
 
   @Test

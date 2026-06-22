@@ -1,6 +1,7 @@
 package simplestJavaIDEpackage.Library;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -14,33 +15,51 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import simplestJavaIDEpackage.ErrorPopupWindow;
+import simplestJavaIDEpackage.Notifications;
 import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource.MethodLocation;
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
+import simplestJavaIDEpackage.Library.Commands.CompilerHints;
 import simplestJavaIDEpackage.Library.Commands.JavaCompilerService;
 import simplestJavaIDEpackage.Library.Commands.Runner;
 
 /**
- * The bottom console: a toolbar (run / save / zoom / imports / help), a program
- * input line, and the output area. Drives compilation and running, and routes
- * compiler errors back to the matching method tab.
+ * The bottom console: a toolbar (run / stop / save / zoom / imports / help), a
+ * program input line, and a colour-coded output area. Drives compilation and
+ * running, shows the program lifecycle, and turns compiler errors into
+ * beginner-friendly hints mapped back to the matching method tab.
  *
  * @author Daniel Trageser
  */
 public class TerminalPanel extends JPanel implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
 
+  private static final Color OUTPUT_COLOR = new Color(225, 225, 225);
+  private static final Color ERROR_COLOR = new Color(232, 104, 104);
+  private static final Color SYSTEM_COLOR = new Color(120, 170, 120);
+  private static final Color HINT_COLOR = new Color(225, 175, 90);
+  private static final Color INPUT_COLOR = new Color(120, 150, 200);
+
   private final CodingFile codingFile;
-  private JTextArea terminalOutput;
+  private JTextPane terminalOutput;
+  private Style outputStyle;
+  private Style errorStyle;
+  private Style systemStyle;
+  private Style hintStyle;
+  private Style inputStyle;
   private Runner runner;
   private JTextField userInputTextField;
   private JButton saveButton;
@@ -88,11 +107,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     // Program input line.
     userInputTextField = new JTextField();
     userInputTextField.setToolTipText("Type input for your running program and press Enter");
-    userInputTextField.addActionListener(
-        e -> {
-          run(CommandType.INPUT);
-          userInputTextField.setText(null);
-        });
+    userInputTextField.addActionListener(e -> sendInput());
     JButton clearButton = new JButton("Clear");
     clearButton.setToolTipText("Clear the console");
     clearButton.addActionListener(e -> terminalOutput.setText(null));
@@ -107,10 +122,16 @@ public class TerminalPanel extends JPanel implements CommandListener {
     topPanel.add(toolBar, BorderLayout.NORTH);
     topPanel.add(inputRow, BorderLayout.SOUTH);
 
-    // Output.
-    terminalOutput = new JTextArea();
+    // Colour-coded output.
+    terminalOutput = new JTextPane();
     terminalOutput.setEditable(false);
     terminalOutput.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+    terminalOutput.setBackground(new Color(30, 30, 30));
+    outputStyle = makeStyle("output", OUTPUT_COLOR);
+    errorStyle = makeStyle("error", ERROR_COLOR);
+    systemStyle = makeStyle("system", SYSTEM_COLOR);
+    hintStyle = makeStyle("hint", HINT_COLOR);
+    inputStyle = makeStyle("input", INPUT_COLOR);
     DefaultCaret caret = (DefaultCaret) terminalOutput.getCaret();
     caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     JScrollPane outputScrollPane = new JScrollPane(terminalOutput);
@@ -118,6 +139,12 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
     add(topPanel, BorderLayout.NORTH);
     add(outputScrollPane, BorderLayout.CENTER);
+  }
+
+  private Style makeStyle(String name, Color color) {
+    Style style = terminalOutput.addStyle(name, null);
+    StyleConstants.setForeground(style, color);
+    return style;
   }
 
   private JButton toolButton(String text, int mnemonic, String tooltip) {
@@ -152,7 +179,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     return zoomOutButton;
   }
 
-  public JTextArea getTextArea() {
+  public JTextPane getTextArea() {
     return terminalOutput;
   }
 
@@ -160,22 +187,52 @@ public class TerminalPanel extends JPanel implements CommandListener {
     this.methodTabsPanel = methodTabsPanel;
   }
 
+  /** Appends text in the given style (must be called on the EDT). */
+  private void append(String text, Style style) {
+    StyledDocument doc = terminalOutput.getStyledDocument();
+    try {
+      doc.insertString(doc.getLength(), text, style);
+      terminalOutput.setCaretPosition(doc.getLength());
+    } catch (BadLocationException ignored) {
+      // Position is always valid here.
+    }
+  }
+
   @Override
-  public void commandOutput(String text) {
+  public void commandOutput(String text, boolean error) {
     // Called from the reader threads, so hand the UI update to the EDT.
     String annotated = annotateStackTrace(text);
-    SwingUtilities.invokeLater(() -> terminalOutput.append(annotated));
+    SwingUtilities.invokeLater(() -> append(annotated, error ? errorStyle : outputStyle));
   }
 
   @Override
   public void commandFailed(Exception exp) {
     SwingUtilities.invokeLater(
-        () -> terminalOutput.append("Command failed - " + exp.getMessage() + "\n"));
+        () -> append("Command failed - " + exp.getMessage() + "\n", errorStyle));
   }
 
   @Override
   public void commandFinished() {
-    SwingUtilities.invokeLater(() -> stopButton.setEnabled(false));
+    SwingUtilities.invokeLater(
+        () -> {
+          stopButton.setEnabled(false);
+          append("✓ Programm beendet\n", systemStyle);
+        });
+  }
+
+  private void sendInput() {
+    if (runner == null || !runner.isRunning()) {
+      userInputTextField.setText(null);
+      return;
+    }
+    String command = userInputTextField.getText();
+    append("> " + command + "\n", inputStyle); // echo so beginners see what they typed
+    try {
+      runner.write(command + "\n");
+    } catch (IOException ex) {
+      ErrorPopupWindow.throwMessage("Failed to send input to the program: " + ex.getMessage());
+    }
+    userInputTextField.setText(null);
   }
 
   /** Adds a [method:line] hint to stack-trace lines that point at generated code. */
@@ -211,6 +268,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     if (methodTabsPanel != null) {
       methodTabsPanel.clearErrorHighlights();
     }
+    terminalOutput.setText(null); // fresh console for each run
     GeneratedSource source = codingFile.buildSource();
     lastSource = source; // used to annotate runtime stack traces
     codingFile.tmpSaveAndRunJavaCode();
@@ -226,74 +284,64 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   private void onCompileFinished(JavaCompilerService.Result result, GeneratedSource source) {
     if (!result.compilerAvailable()) {
-      terminalOutput.append(
-          "No Java compiler found. Please run SimplestJavaIDE with a JDK (not just a JRE).\n");
+      append(
+          "Kein Java-Compiler gefunden. Bitte SimplestJavaIDE mit einem JDK starten "
+              + "(nicht nur einer JRE).\n",
+          errorStyle);
       return;
     }
     if (result.success()) {
-      run(CommandType.RUN);
+      run();
       return;
     }
     reportDiagnostics(result, source);
   }
 
-  /** Prints compiler messages, mapped back to the method tab and local line. */
+  /** Prints compiler errors with a beginner hint, mapped back to the method tab. */
   private void reportDiagnostics(JavaCompilerService.Result result, GeneratedSource source) {
     MethodLocation firstError = null;
+    int errorCount = 0;
     for (Diagnostic<? extends JavaFileObject> diagnostic : result.diagnostics()) {
       if (diagnostic.getKind() != Diagnostic.Kind.ERROR
           && diagnostic.getKind() != Diagnostic.Kind.WARNING) {
         continue;
       }
+      if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
+        errorCount++;
+      }
       int generatedLine = (int) diagnostic.getLineNumber();
       MethodLocation location = generatedLine > 0 ? source.locate(generatedLine) : null;
-      String where;
-      if (location != null) {
-        where = "Method '" + location.methodName() + "', line " + location.localLine();
-        if (firstError == null && diagnostic.getKind() == Diagnostic.Kind.ERROR) {
-          firstError = location;
-        }
-      } else {
-        where = "Line " + generatedLine;
+      String where =
+          location != null
+              ? "Methode '" + location.methodName() + "', Zeile " + location.localLine()
+              : "Zeile " + generatedLine;
+      append(where + ": " + diagnostic.getMessage(null) + "\n", errorStyle);
+      String hint = CompilerHints.friendlyHint(diagnostic);
+      if (hint != null) {
+        append("   💡 " + hint + "\n", hintStyle);
       }
-      terminalOutput.append(where + ": " + diagnostic.getMessage(null) + "\n");
+      if (firstError == null && diagnostic.getKind() == Diagnostic.Kind.ERROR) {
+        firstError = location;
+      }
     }
     if (firstError != null && methodTabsPanel != null) {
       methodTabsPanel.showError(firstError.methodIndex(), firstError.localLine());
     }
+    Notifications.error(errorCount + " Fehler — siehe Konsole");
   }
 
-  public void run(CommandType ct) {
-    if (ct == CommandType.RUN) {
-      // Stop a previous run before starting a new one (no piling-up processes).
-      if (runner != null) {
-        runner.kill();
-      }
-      String javaExecutable =
-          System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-      List<String> commandValues =
-          Arrays.asList(
-              javaExecutable,
-              "-cp",
-              codingFile.generateClassPath(),
-              codingFile.javaClass.className());
-      runner = new Runner(this, commandValues);
-      stopButton.setEnabled(true);
-    } else if (ct == CommandType.INPUT) {
-      if (runner == null) {
-        return;
-      }
-      try {
-        String command = this.userInputTextField.getText();
-        runner.write(command + "\n");
-      } catch (IOException ex) {
-        ErrorPopupWindow.throwMessage("!! Failed to send command to process:" + ex.getMessage());
-      }
+  private void run() {
+    // Stop a previous run before starting a new one (no piling-up processes).
+    if (runner != null) {
+      runner.kill();
     }
-  }
-
-  public enum CommandType {
-    RUN,
-    INPUT
+    append("▶ Programm gestartet\n", systemStyle);
+    String javaExecutable =
+        System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+    List<String> commandValues =
+        Arrays.asList(
+            javaExecutable, "-cp", codingFile.generateClassPath(), codingFile.javaClass.className());
+    runner = new Runner(this, commandValues);
+    stopButton.setEnabled(true);
   }
 }

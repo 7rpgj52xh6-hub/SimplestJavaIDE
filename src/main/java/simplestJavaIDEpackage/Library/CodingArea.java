@@ -29,6 +29,8 @@ public class CodingArea extends JPanel {
   public CodingArea(Methods method, JButton runButtonTmp, JButton saveButtonTmp, Font font) {
     syntaxTextAreaMainMethod = new RSyntaxTextArea(20, 60);
     RTextScrollPane scrollPaneMainMethod = new RTextScrollPane(syntaxTextAreaMainMethod);
+    // Line numbers so the "Method X, line N" error references are easy to follow.
+    scrollPaneMainMethod.setLineNumbersEnabled(true);
     this.setLayout(new BorderLayout());
     this.add(scrollPaneMainMethod, BorderLayout.CENTER);
     this.runButton = runButtonTmp;

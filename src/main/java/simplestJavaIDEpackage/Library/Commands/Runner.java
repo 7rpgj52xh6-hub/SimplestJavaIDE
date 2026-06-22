@@ -28,8 +28,8 @@ public class Runner extends Thread {
     try {
       ProcessBuilder pb = new ProcessBuilder(commands);
       process = pb.start();
-      StreamReader outputReader = new StreamReader(listener, process.getInputStream());
-      StreamReader errorReader = new StreamReader(listener, process.getErrorStream());
+      StreamReader outputReader = new StreamReader(listener, process.getInputStream(), false);
+      StreamReader errorReader = new StreamReader(listener, process.getErrorStream(), true);
       process.waitFor();
       outputReader.join();
       errorReader.join();

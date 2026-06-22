@@ -8,10 +8,12 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
 public class StreamReader extends Thread {
   private final InputStream is;
   private final CommandListener listener;
+  private final boolean error;
 
-  public StreamReader(CommandListener listener, InputStream is) {
+  public StreamReader(CommandListener listener, InputStream is, boolean error) {
     this.is = is;
     this.listener = listener;
+    this.error = error;
     start();
   }
 
@@ -21,7 +23,7 @@ public class StreamReader extends Thread {
       byte[] buffer = new byte[1024];
       int count;
       while ((count = is.read(buffer)) != -1) {
-        listener.commandOutput(new String(buffer, 0, count, StandardCharsets.UTF_8));
+        listener.commandOutput(new String(buffer, 0, count, StandardCharsets.UTF_8), error);
       }
     } catch (IOException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
