@@ -46,8 +46,8 @@ public class CodingArea extends JPanel {
     } catch (IOException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
     }
-    syntaxTextAreaMainMethod.setCurrentLineHighlightColor(new Color(55, 55, 55));
-    syntaxTextAreaMainMethod.setBackground(new Color(47, 47, 47));
+    syntaxTextAreaMainMethod.setCurrentLineHighlightColor(new Color(0x2A2C31));
+    syntaxTextAreaMainMethod.setBackground(simplestJavaIDEpackage.Theme.EDITOR_BG);
     // Do nothing
     DocumentListener syntaxTextAreaInputListener =
         new DocumentListener() {

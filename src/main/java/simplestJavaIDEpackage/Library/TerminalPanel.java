@@ -2,6 +2,7 @@ package simplestJavaIDEpackage.Library;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -13,7 +14,9 @@ import java.util.Deque;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.Box;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,7 +34,9 @@ import javax.swing.text.StyledDocument;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import simplestJavaIDEpackage.ErrorPopupWindow;
+import simplestJavaIDEpackage.Icons;
 import simplestJavaIDEpackage.Notifications;
+import simplestJavaIDEpackage.Theme;
 import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource.MethodLocation;
@@ -69,6 +74,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private final Deque<Segment> pending = new ArrayDeque<>();
   private int pendingChars;
 
+  private JToolBar toolBar;
   private JTextPane terminalOutput;
   private Style outputStyle;
   private Style errorStyle;
@@ -98,53 +104,66 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private void initializeUI() {
     setLayout(new BorderLayout());
 
-    JToolBar toolBar = new JToolBar();
+    // Main toolbar (placed at the top of the window by MainUserInput).
+    toolBar = new JToolBar();
     toolBar.setFloatable(false);
-    toolBar.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+    toolBar.setBorder(
+        BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.PANEL_BORDER),
+            BorderFactory.createEmptyBorder(6, 8, 6, 8)));
 
-    runButton = toolButton("Run", KeyEvent.VK_R, "Compile and run (F5)");
-    stopButton = toolButton("Stop", KeyEvent.VK_T, "Stop the running program");
+    runButton = toolButton("Run", Icons.play(), KeyEvent.VK_R, "Compile and run (F5)");
+    stopButton = toolButton("Stop", Icons.stop(), KeyEvent.VK_T, "Stop the running program");
     stopButton.setEnabled(false);
     stopButton.addActionListener(e -> stopRunningProgram());
-    saveButton = toolButton("Save", KeyEvent.VK_S, "Save the project (Ctrl/Cmd+S)");
-    zoomOutButton = toolButton("A-", KeyEvent.VK_MINUS, "Smaller font (Ctrl/Cmd+-)");
-    zoomInButton = toolButton("A+", KeyEvent.VK_PLUS, "Larger font (Ctrl/Cmd++)");
-    btnAddImports = toolButton("Add imports", KeyEvent.VK_I, "Manage imports");
-    helpButton = toolButton("Help", KeyEvent.VK_H, "Help & about");
+    saveButton = toolButton("Save", Icons.save(), KeyEvent.VK_S, "Save the project (Ctrl/Cmd+S)");
+    zoomOutButton = iconButton(Icons.zoomOut(), "Smaller font (Ctrl/Cmd+-)");
+    zoomInButton = iconButton(Icons.zoomIn(), "Larger font (Ctrl/Cmd++)");
+    btnAddImports = toolButton("Imports", Icons.imports(), KeyEvent.VK_I, "Manage imports");
+    helpButton = toolButton("Help", Icons.help(), KeyEvent.VK_H, "Help & about");
 
     toolBar.add(runButton);
     toolBar.add(stopButton);
+    toolBar.addSeparator();
     toolBar.add(saveButton);
+    toolBar.add(btnAddImports);
     toolBar.addSeparator();
     toolBar.add(zoomOutButton);
     toolBar.add(zoomInButton);
-    toolBar.addSeparator();
-    toolBar.add(btnAddImports);
+    toolBar.add(Box.createHorizontalGlue());
     toolBar.add(helpButton);
 
     // Program input line.
     userInputTextField = new JTextField();
     userInputTextField.setToolTipText("Type input for your running program and press Enter");
     userInputTextField.addActionListener(e -> sendInput());
+    JButton sendButton = new JButton("Senden", Icons.enter());
+    sendButton.setToolTipText("Eingabe an das Programm senden (Enter)");
+    sendButton.setFocusable(false);
+    sendButton.setIconTextGap(6);
+    sendButton.addActionListener(e -> sendInput());
+
     JButton clearButton = new JButton("Clear");
     clearButton.setToolTipText("Clear the console");
+    clearButton.setFocusable(false);
     clearButton.addActionListener(e -> clearConsole());
 
-    JPanel inputRow = new JPanel(new BorderLayout(6, 0));
-    inputRow.setBorder(BorderFactory.createEmptyBorder(0, 6, 6, 6));
-    inputRow.add(new JLabel("Input:"), BorderLayout.WEST);
-    inputRow.add(userInputTextField, BorderLayout.CENTER);
-    inputRow.add(clearButton, BorderLayout.EAST);
+    JPanel inputButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+    inputButtons.add(sendButton);
+    inputButtons.add(clearButton);
 
-    JPanel topPanel = new JPanel(new BorderLayout());
-    topPanel.add(toolBar, BorderLayout.NORTH);
-    topPanel.add(inputRow, BorderLayout.SOUTH);
+    JPanel inputRow = new JPanel(new BorderLayout(8, 0));
+    inputRow.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+    inputRow.add(new JLabel("Input"), BorderLayout.WEST);
+    inputRow.add(userInputTextField, BorderLayout.CENTER);
+    inputRow.add(inputButtons, BorderLayout.EAST);
 
     // Colour-coded output.
     terminalOutput = new JTextPane();
     terminalOutput.setEditable(false);
     terminalOutput.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
-    terminalOutput.setBackground(new Color(30, 30, 30));
+    terminalOutput.setBackground(Theme.CONSOLE_BG);
+    terminalOutput.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
     outputStyle = makeStyle("output", OUTPUT_COLOR);
     errorStyle = makeStyle("error", ERROR_COLOR);
     systemStyle = makeStyle("system", SYSTEM_COLOR);
@@ -153,13 +172,18 @@ public class TerminalPanel extends JPanel implements CommandListener {
     DefaultCaret caret = (DefaultCaret) terminalOutput.getCaret();
     caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     JScrollPane outputScrollPane = new JScrollPane(terminalOutput);
+    outputScrollPane.setBorder(BorderFactory.createEmptyBorder());
     outputScrollPane.setFocusable(false);
 
-    add(topPanel, BorderLayout.NORTH);
+    add(inputRow, BorderLayout.NORTH);
     add(outputScrollPane, BorderLayout.CENTER);
 
     flushTimer = new Timer(FLUSH_INTERVAL_MS, e -> flush());
     flushTimer.start();
+  }
+
+  public JToolBar getToolBar() {
+    return toolBar;
   }
 
   private Style makeStyle(String name, Color color) {
@@ -168,9 +192,17 @@ public class TerminalPanel extends JPanel implements CommandListener {
     return style;
   }
 
-  private JButton toolButton(String text, int mnemonic, String tooltip) {
-    JButton button = new JButton(text);
+  private JButton toolButton(String text, Icon icon, int mnemonic, String tooltip) {
+    JButton button = new JButton(text, icon);
     button.setMnemonic(mnemonic);
+    button.setToolTipText(tooltip);
+    button.setFocusable(false);
+    button.setIconTextGap(7);
+    return button;
+  }
+
+  private JButton iconButton(Icon icon, String tooltip) {
+    JButton button = new JButton(icon);
     button.setToolTipText(tooltip);
     button.setFocusable(false);
     return button;

@@ -87,16 +87,19 @@ public class MainUserInput {
 
     setWindowIcon();
 
-    // Structure of main window: methods on top, console below.
-    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    frmSimplestJavaIDE.getContentPane().add(mainSplitPane, BorderLayout.CENTER);
-    mainSplitPane.setResizeWeight(0.8);
-    mainSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 300);
-
     terminal = new TerminalPanel(codingFile);
     methodTabsPanel = new MethodTabsPanel(codingFile, terminal);
+
+    // Toolbar at the top of the window, methods and console split below.
+    frmSimplestJavaIDE.getContentPane().add(terminal.getToolBar(), BorderLayout.NORTH);
+
+    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+    mainSplitPane.setBorder(null);
+    mainSplitPane.setResizeWeight(0.8);
     mainSplitPane.setTopComponent(methodTabsPanel);
     mainSplitPane.setBottomComponent(terminal);
+    frmSimplestJavaIDE.getContentPane().add(mainSplitPane, BorderLayout.CENTER);
+    mainSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 300);
 
     StatusBar statusBar = new StatusBar();
     frmSimplestJavaIDE.getContentPane().add(statusBar, BorderLayout.SOUTH);

@@ -1,15 +1,19 @@
 package simplestJavaIDEpackage;
 
-import com.formdev.flatlaf.FlatDarkLaf;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import javax.imageio.ImageIO;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -17,7 +21,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -25,13 +28,14 @@ import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
 import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
 
 /**
- * Start screen: create a new project or open an existing one.
+ * Start screen: create a new project or open an existing / recent one.
  *
  * @author Daniel Trageser
  */
 public class StartingWindow {
 
   private static final String FILE_FORMAT = ".sji";
+  private static final Color MUTED = new Color(0x9AA0A6);
   private JFrame frame;
 
   public StartingWindow() {
@@ -42,7 +46,7 @@ public class StartingWindow {
   public static void main(String[] args) {
     EventQueue.invokeLater(
         () -> {
-          FlatDarkLaf.setup();
+          Theme.setup();
           try {
             new StartingWindow().frame.setVisible(true);
           } catch (Exception e) {
@@ -52,47 +56,96 @@ public class StartingWindow {
   }
 
   private void initialize() {
-    frame = new JFrame("SimplestJavaIDE Alpha v2.0");
-    frame.setSize(520, 440);
+    frame = new JFrame("SimplestJavaIDE");
+    frame.setSize(560, 500);
     frame.setLocationRelativeTo(null);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     frame.setResizable(false);
     setWindowIcon();
 
-    JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-    JButton openButton = new JButton("Open existing code");
-    openButton.setPreferredSize(new Dimension(200, 34));
-    openButton.addActionListener(e -> openExisting());
-    JButton newButton = new JButton("Code new application");
-    newButton.setPreferredSize(new Dimension(200, 34));
-    newButton.addActionListener(e -> createNew());
-    buttonRow.add(openButton);
-    buttonRow.add(newButton);
-    frame.getContentPane().add(buttonRow, BorderLayout.NORTH);
+    JPanel content = new JPanel();
+    content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+    content.setBorder(new EmptyBorder(30, 36, 16, 36));
 
-    JPanel header = new JPanel(new BorderLayout());
-    JLabel icon = new JLabel(scaledIcon());
-    icon.setBorder(new EmptyBorder(10, 40, 10, 10));
-    header.add(icon, BorderLayout.WEST);
-    JLabel text =
-        new JLabel(
-            "<html><body style='text-align:center; margin:15px;'>"
-                + "<h2>SimplestJavaIDE</h2><h4>Code in Java without classes!</h4></body></html>",
-            SwingConstants.CENTER);
-    header.add(text, BorderLayout.CENTER);
+    JLabel logo = new JLabel(scaledIcon(96));
+    logo.setAlignmentX(Component.CENTER_ALIGNMENT);
+    content.add(logo);
 
-    JPanel center = new JPanel(new BorderLayout());
-    center.add(header, BorderLayout.NORTH);
-    center.add(buildRecentPanel(), BorderLayout.CENTER);
-    frame.getContentPane().add(center, BorderLayout.CENTER);
+    JLabel title = new JLabel("SimplestJavaIDE");
+    title.setFont(title.getFont().deriveFont(Font.BOLD, 26f));
+    title.setAlignmentX(Component.CENTER_ALIGNMENT);
+    title.setBorder(new EmptyBorder(14, 0, 0, 0));
+    content.add(title);
+
+    JLabel tagline = new JLabel("Code in Java without classes");
+    tagline.setForeground(MUTED);
+    tagline.setAlignmentX(Component.CENTER_ALIGNMENT);
+    tagline.setBorder(new EmptyBorder(4, 0, 22, 0));
+    content.add(tagline);
+
+    content.add(buildButtonRow());
+
+    JPanel recent = buildRecentPanel();
+    recent.setAlignmentX(Component.CENTER_ALIGNMENT);
+    content.add(recent);
+
+    frame.getContentPane().add(content, BorderLayout.CENTER);
 
     JButton helpButton = new JButton("Help");
+    helpButton.setFocusable(false);
     helpButton.addActionListener(e -> ImprintWindow.main(null));
-    JPanel southRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 6));
+    JPanel southRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 8));
     southRow.add(helpButton);
     frame.getContentPane().add(southRow, BorderLayout.SOUTH);
+  }
 
+  private JPanel buildButtonRow() {
+    JButton openButton = new JButton("Open…");
+    openButton.setFocusable(false);
+    openButton.setPreferredSize(new Dimension(150, 40));
+    openButton.addActionListener(e -> openExisting());
+
+    JButton newButton = new JButton("New project");
+    newButton.setFocusable(false);
+    newButton.setPreferredSize(new Dimension(150, 40));
+    newButton.putClientProperty("JButton.buttonType", "default"); // accent primary
+    newButton.addActionListener(e -> createNew());
+
+    JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
+    row.setAlignmentX(Component.CENTER_ALIGNMENT);
+    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+    row.add(openButton);
+    row.add(newButton);
     frame.getRootPane().setDefaultButton(newButton);
+    return row;
+  }
+
+  /** A list of buttons for recently opened files (empty when there are none). */
+  private JPanel buildRecentPanel() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setBorder(new EmptyBorder(24, 0, 0, 0));
+    List<String> recent = AppPreferences.getRecentFiles();
+    if (recent.isEmpty()) {
+      return panel;
+    }
+    JLabel heading = new JLabel("Recently opened");
+    heading.setForeground(MUTED);
+    heading.setAlignmentX(Component.CENTER_ALIGNMENT);
+    heading.setBorder(new EmptyBorder(0, 0, 8, 0));
+    panel.add(heading);
+    for (String path : recent) {
+      File file = new File(path);
+      JButton link = new JButton(file.getName());
+      link.setToolTipText(path);
+      link.setFocusable(false);
+      link.setAlignmentX(Component.CENTER_ALIGNMENT);
+      link.setMaximumSize(new Dimension(280, 30));
+      link.addActionListener(e -> open(file, false));
+      panel.add(link);
+      panel.add(Box.createVerticalStrut(5));
+    }
+    return panel;
   }
 
   private void openExisting() {
@@ -125,9 +178,7 @@ public class StartingWindow {
       return;
     }
     File file =
-        selected.toString().endsWith(FILE_FORMAT)
-            ? selected
-            : new File(selected + FILE_FORMAT);
+        selected.toString().endsWith(FILE_FORMAT) ? selected : new File(selected + FILE_FORMAT);
     // FileManager creates the file when it does not exist yet.
     open(file, !file.exists());
   }
@@ -141,29 +192,6 @@ public class StartingWindow {
       MainUserInput.launch(codingFile);
       frame.dispose();
     }
-  }
-
-  /** A list of buttons for recently opened files (empty when there are none). */
-  private JPanel buildRecentPanel() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(0, 40, 10, 40));
-    List<String> recent = AppPreferences.getRecentFiles();
-    if (recent.isEmpty()) {
-      return panel;
-    }
-    JLabel heading = new JLabel("Recently opened:");
-    heading.setAlignmentX(0f);
-    panel.add(heading);
-    for (String path : recent) {
-      File file = new File(path);
-      JButton link = new JButton(file.getName());
-      link.setToolTipText(path);
-      link.setAlignmentX(0f);
-      link.addActionListener(e -> open(file, false));
-      panel.add(link);
-    }
-    return panel;
   }
 
   private JFileChooser createChooser() {
@@ -189,11 +217,11 @@ public class StartingWindow {
     return null;
   }
 
-  private ImageIcon scaledIcon() {
+  private ImageIcon scaledIcon(int size) {
     try {
       return new ImageIcon(
           ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResource("favicon.png")))
-              .getScaledInstance(128, 128, java.awt.Image.SCALE_SMOOTH));
+              .getScaledInstance(size, size, Image.SCALE_SMOOTH));
     } catch (IOException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
       return new ImageIcon();
