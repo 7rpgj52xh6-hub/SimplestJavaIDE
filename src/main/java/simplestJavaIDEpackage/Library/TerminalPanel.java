@@ -6,7 +6,10 @@ import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,6 +22,7 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.Style;
@@ -42,6 +46,10 @@ import simplestJavaIDEpackage.Library.Commands.Runner;
  * running, shows the program lifecycle, and turns compiler errors into
  * beginner-friendly hints mapped back to the matching method tab.
  *
+ * <p>Output is buffered and flushed on a timer so that a runaway loop (e.g.
+ * {@code while(true) System.out.println(...)}) cannot flood the event thread and
+ * make the UI — and the Stop button — unresponsive.
+ *
  * @author Daniel Trageser
  */
 public class TerminalPanel extends JPanel implements CommandListener {
@@ -53,13 +61,21 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private static final Color HINT_COLOR = new Color(225, 175, 90);
   private static final Color INPUT_COLOR = new Color(120, 150, 200);
 
+  private static final int FLUSH_INTERVAL_MS = 50;
+  private static final int MAX_PENDING_CHARS = 64_000;
+  private static final int MAX_DOCUMENT_CHARS = 120_000;
+
   private final CodingFile codingFile;
+  private final Deque<Segment> pending = new ArrayDeque<>();
+  private int pendingChars;
+
   private JTextPane terminalOutput;
   private Style outputStyle;
   private Style errorStyle;
   private Style systemStyle;
   private Style hintStyle;
   private Style inputStyle;
+  private Timer flushTimer;
   private Runner runner;
   private JTextField userInputTextField;
   private JButton saveButton;
@@ -71,6 +87,8 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private JButton btnAddImports;
   private MethodTabsPanel methodTabsPanel;
   private volatile GeneratedSource lastSource;
+
+  private record Segment(String text, Style style) {}
 
   public TerminalPanel(CodingFile codingFile) {
     this.codingFile = codingFile;
@@ -110,7 +128,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     userInputTextField.addActionListener(e -> sendInput());
     JButton clearButton = new JButton("Clear");
     clearButton.setToolTipText("Clear the console");
-    clearButton.addActionListener(e -> terminalOutput.setText(null));
+    clearButton.addActionListener(e -> clearConsole());
 
     JPanel inputRow = new JPanel(new BorderLayout(6, 0));
     inputRow.setBorder(BorderFactory.createEmptyBorder(0, 6, 6, 6));
@@ -139,6 +157,9 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
     add(topPanel, BorderLayout.NORTH);
     add(outputScrollPane, BorderLayout.CENTER);
+
+    flushTimer = new Timer(FLUSH_INTERVAL_MS, e -> flush());
+    flushTimer.start();
   }
 
   private Style makeStyle(String name, Color color) {
@@ -187,37 +208,75 @@ public class TerminalPanel extends JPanel implements CommandListener {
     this.methodTabsPanel = methodTabsPanel;
   }
 
-  /** Appends text in the given style (must be called on the EDT). */
-  private void append(String text, Style style) {
+  /**
+   * Queues a styled chunk for output. Safe to call from any thread; the actual
+   * document update happens on the EDT via the flush timer. The buffer is capped
+   * so a runaway program drops the oldest output instead of overwhelming the UI.
+   */
+  private void enqueue(String text, Style style) {
+    synchronized (pending) {
+      pending.addLast(new Segment(text, style));
+      pendingChars += text.length();
+      while (pendingChars > MAX_PENDING_CHARS && !pending.isEmpty()) {
+        pendingChars -= pending.pollFirst().text().length();
+      }
+    }
+  }
+
+  /** Drains the queued output into the document in batches (runs on the EDT). */
+  private void flush() {
+    List<Segment> batch;
+    synchronized (pending) {
+      if (pending.isEmpty()) {
+        return;
+      }
+      batch = new ArrayList<>(pending);
+      pending.clear();
+      pendingChars = 0;
+    }
     StyledDocument doc = terminalOutput.getStyledDocument();
     try {
-      doc.insertString(doc.getLength(), text, style);
+      int i = 0;
+      while (i < batch.size()) {
+        Style style = batch.get(i).style();
+        StringBuilder run = new StringBuilder();
+        while (i < batch.size() && batch.get(i).style() == style) {
+          run.append(batch.get(i).text());
+          i++;
+        }
+        doc.insertString(doc.getLength(), run.toString(), style);
+      }
+      if (doc.getLength() > MAX_DOCUMENT_CHARS) {
+        doc.remove(0, doc.getLength() - MAX_DOCUMENT_CHARS);
+      }
       terminalOutput.setCaretPosition(doc.getLength());
     } catch (BadLocationException ignored) {
-      // Position is always valid here.
+      // Positions are always valid here.
     }
+  }
+
+  private void clearConsole() {
+    synchronized (pending) {
+      pending.clear();
+      pendingChars = 0;
+    }
+    terminalOutput.setText(null);
   }
 
   @Override
   public void commandOutput(String text, boolean error) {
-    // Called from the reader threads, so hand the UI update to the EDT.
-    String annotated = annotateStackTrace(text);
-    SwingUtilities.invokeLater(() -> append(annotated, error ? errorStyle : outputStyle));
+    enqueue(annotateStackTrace(text), error ? errorStyle : outputStyle);
   }
 
   @Override
   public void commandFailed(Exception exp) {
-    SwingUtilities.invokeLater(
-        () -> append("Command failed - " + exp.getMessage() + "\n", errorStyle));
+    enqueue("Command failed - " + exp.getMessage() + "\n", errorStyle);
   }
 
   @Override
   public void commandFinished() {
-    SwingUtilities.invokeLater(
-        () -> {
-          stopButton.setEnabled(false);
-          append("✓ Programm beendet\n", systemStyle);
-        });
+    enqueue("✓ Programm beendet\n", systemStyle);
+    SwingUtilities.invokeLater(() -> stopButton.setEnabled(false));
   }
 
   private void sendInput() {
@@ -226,7 +285,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
       return;
     }
     String command = userInputTextField.getText();
-    append("> " + command + "\n", inputStyle); // echo so beginners see what they typed
+    enqueue("> " + command + "\n", inputStyle); // echo so beginners see what they typed
     try {
       runner.write(command + "\n");
     } catch (IOException ex) {
@@ -268,7 +327,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     if (methodTabsPanel != null) {
       methodTabsPanel.clearErrorHighlights();
     }
-    terminalOutput.setText(null); // fresh console for each run
+    clearConsole(); // fresh console for each run
     GeneratedSource source = codingFile.buildSource();
     lastSource = source; // used to annotate runtime stack traces
     codingFile.tmpSaveAndRunJavaCode();
@@ -284,7 +343,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   private void onCompileFinished(JavaCompilerService.Result result, GeneratedSource source) {
     if (!result.compilerAvailable()) {
-      append(
+      enqueue(
           "Kein Java-Compiler gefunden. Bitte SimplestJavaIDE mit einem JDK starten "
               + "(nicht nur einer JRE).\n",
           errorStyle);
@@ -315,10 +374,10 @@ public class TerminalPanel extends JPanel implements CommandListener {
           location != null
               ? "Methode '" + location.methodName() + "', Zeile " + location.localLine()
               : "Zeile " + generatedLine;
-      append(where + ": " + diagnostic.getMessage(null) + "\n", errorStyle);
+      enqueue(where + ": " + diagnostic.getMessage(null) + "\n", errorStyle);
       String hint = CompilerHints.friendlyHint(diagnostic);
       if (hint != null) {
-        append("   💡 " + hint + "\n", hintStyle);
+        enqueue("   💡 " + hint + "\n", hintStyle);
       }
       if (firstError == null && diagnostic.getKind() == Diagnostic.Kind.ERROR) {
         firstError = location;
@@ -335,7 +394,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     if (runner != null) {
       runner.kill();
     }
-    append("▶ Programm gestartet\n", systemStyle);
+    enqueue("▶ Programm gestartet\n", systemStyle);
     String javaExecutable =
         System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
     List<String> commandValues =
