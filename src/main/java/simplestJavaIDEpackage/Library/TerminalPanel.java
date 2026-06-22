@@ -1,201 +1,241 @@
 package simplestJavaIDEpackage.Library;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultCaret;
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
+import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource;
+import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource.MethodLocation;
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
+import simplestJavaIDEpackage.Library.Commands.JavaCompilerService;
 import simplestJavaIDEpackage.Library.Commands.Runner;
 
 /**
- * This class implements the terminal with all possible functions
+ * The bottom console: a toolbar (run / save / zoom / imports / help), a program
+ * input line, and the output area. Drives compilation and running, and routes
+ * compiler errors back to the matching method tab.
  *
  * @author Daniel Trageser
  */
 public class TerminalPanel extends JPanel implements CommandListener {
   private static final long serialVersionUID = 4716862595957472820L;
+
   private final CodingFile codingFile;
-  private final TerminalPanel terminal = this;
   private JTextArea terminalOutput;
   private Runner runner;
   private JTextField userInputTextField;
-  private SaveButton saveButton;
-  private RunButton runButton;
-  private HelpButton helpButton;
-  private ZoomInButton zoomInButton;
-  private ZoomOutButton zoomOutButton;
+  private JButton saveButton;
+  private JButton runButton;
+  private JButton helpButton;
+  private JButton zoomInButton;
+  private JButton zoomOutButton;
   private JButton btnAddImports;
+  private MethodTabsPanel methodTabsPanel;
 
   public TerminalPanel(CodingFile codingFile) {
-    initializeUI();
     this.codingFile = codingFile;
+    initializeUI();
   }
 
-  public void initializeUI() {
-    // Input
+  private void initializeUI() {
+    setLayout(new BorderLayout());
+
+    JToolBar toolBar = new JToolBar();
+    toolBar.setFloatable(false);
+    toolBar.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+
+    runButton = toolButton("Run", KeyEvent.VK_R, "Compile and run (F5)");
+    saveButton = toolButton("Save", KeyEvent.VK_S, "Save the project (Ctrl/Cmd+S)");
+    zoomOutButton = toolButton("A-", KeyEvent.VK_MINUS, "Smaller font (Ctrl/Cmd+-)");
+    zoomInButton = toolButton("A+", KeyEvent.VK_PLUS, "Larger font (Ctrl/Cmd++)");
+    btnAddImports = toolButton("Add imports", KeyEvent.VK_I, "Manage imports");
+    helpButton = toolButton("Help", KeyEvent.VK_H, "Help & about");
+
+    toolBar.add(runButton);
+    toolBar.add(saveButton);
+    toolBar.addSeparator();
+    toolBar.add(zoomOutButton);
+    toolBar.add(zoomInButton);
+    toolBar.addSeparator();
+    toolBar.add(btnAddImports);
+    toolBar.add(helpButton);
+
+    // Program input line.
     userInputTextField = new JTextField();
-    userInputTextField.setBorder(BorderFactory.createLineBorder(new Color(47, 47, 47), 6));
-    userInputTextField.setColumns(1);
+    userInputTextField.setToolTipText("Type input for your running program and press Enter");
     userInputTextField.addActionListener(
         e -> {
-          terminal.run(CommandType.INPUT);
+          run(CommandType.INPUT);
           userInputTextField.setText(null);
         });
+    JButton clearButton = new JButton("Clear");
+    clearButton.setToolTipText("Clear the console");
+    clearButton.addActionListener(e -> terminalOutput.setText(null));
 
-    // Top Panel
-    JPanel panelClearBtnAndLabel = getPanelClearBtnAndLabel();
-    JPanel topPanel = new JPanel();
-    topPanel.setPreferredSize(new Dimension(200, 48));
-    topPanel.setLayout(new BorderLayout());
+    JPanel inputRow = new JPanel(new BorderLayout(6, 0));
+    inputRow.setBorder(BorderFactory.createEmptyBorder(0, 6, 6, 6));
+    inputRow.add(new JLabel("Input:"), BorderLayout.WEST);
+    inputRow.add(userInputTextField, BorderLayout.CENTER);
+    inputRow.add(clearButton, BorderLayout.EAST);
 
-    // Action Panel
-    JPanel actionPanel = new JPanel();
-    actionPanel.setBounds(6, 48, 264, 36);
-    actionPanel.setLayout(new BoxLayout(actionPanel, BoxLayout.X_AXIS));
-    actionPanel.setOpaque(false);
+    JPanel topPanel = new JPanel(new BorderLayout());
+    topPanel.add(toolBar, BorderLayout.NORTH);
+    topPanel.add(inputRow, BorderLayout.SOUTH);
 
-    // Button to add imports
-    this.btnAddImports = new JButton("Add imports");
-    btnAddImports.setPreferredSize(new Dimension(100, 36));
-    btnAddImports.setBorder(BorderFactory.createLineBorder(new Color(47, 47, 47), 6));
-
-    // Add elements to top panel
-    JPanel panelActionAndClear = new JPanel();
-    panelActionAndClear.setLayout(new BorderLayout());
-    panelActionAndClear.setBackground(new Color(47, 47, 47));
-    panelActionAndClear.add(actionPanel, BorderLayout.WEST);
-    panelActionAndClear.add(btnAddImports, BorderLayout.CENTER);
-    panelActionAndClear.add(panelClearBtnAndLabel, BorderLayout.EAST);
-    topPanel.add(userInputTextField, BorderLayout.CENTER);
-    topPanel.add(panelActionAndClear, BorderLayout.WEST);
-
-    // Action buttons
-    this.saveButton = new SaveButton();
-    this.runButton = new RunButton();
-    this.helpButton = new HelpButton();
-    this.zoomInButton = new ZoomInButton();
-    this.zoomOutButton = new ZoomOutButton();
-
-    // Add buttons to action panel
-    actionPanel.add(helpButton);
-    actionPanel.add(zoomInButton);
-    actionPanel.add(zoomOutButton);
-    actionPanel.add(saveButton);
-    actionPanel.add(runButton);
-
-    // Output
+    // Output.
     terminalOutput = new JTextArea();
-    JScrollPane terminalTextAreaScrollPane = new JScrollPane();
-    terminalTextAreaScrollPane.setViewportView(terminalOutput);
-    DefaultCaret terminalTextAreaCaret = (DefaultCaret) terminalOutput.getCaret();
-    terminalTextAreaCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-    terminalTextAreaScrollPane.setFocusable(false);
     terminalOutput.setEditable(false);
-    terminalOutput.setBackground(new Color(35, 35, 35));
+    terminalOutput.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+    DefaultCaret caret = (DefaultCaret) terminalOutput.getCaret();
+    caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+    JScrollPane outputScrollPane = new JScrollPane(terminalOutput);
+    outputScrollPane.setFocusable(false);
 
-    // Main Panel
-    this.setLayout(new BorderLayout());
-    this.add(terminalTextAreaScrollPane, BorderLayout.CENTER);
-    this.add(topPanel, BorderLayout.NORTH);
+    add(topPanel, BorderLayout.NORTH);
+    add(outputScrollPane, BorderLayout.CENTER);
   }
 
-  private JPanel getPanelClearBtnAndLabel() {
-    JPanel panelClearBtnAndLabel = new JPanel();
-    panelClearBtnAndLabel.setLayout(null);
-    panelClearBtnAndLabel.setPreferredSize(new Dimension(184, 48));
-    panelClearBtnAndLabel.setBackground(new Color(47, 47, 47));
-    JButton btnClearConsole = new JButton("Clear Console");
-    btnClearConsole.setBounds(6, 6, 86, 36);
-    btnClearConsole.addActionListener(e -> terminal.getTextArea().setText(null));
-    panelClearBtnAndLabel.add(btnClearConsole);
-
-    JLabel lblUserInput =
-        new JLabel(
-            "<html>\r\n\t<body>\r\n\t\t<h3 style=\"text-align: center\">User Input:</h3>\r\n\t</body>\r\n</html>");
-    lblUserInput.setBounds(104, 6, 86, 36);
-    panelClearBtnAndLabel.add(lblUserInput);
-    return panelClearBtnAndLabel;
+  private JButton toolButton(String text, int mnemonic, String tooltip) {
+    JButton button = new JButton(text);
+    button.setMnemonic(mnemonic);
+    button.setToolTipText(tooltip);
+    button.setFocusable(false);
+    return button;
   }
 
   public JButton getAddImportsButton() {
-    return this.btnAddImports;
+    return btnAddImports;
   }
 
   public JButton getSaveButton() {
-    return this.saveButton.getButton();
+    return saveButton;
   }
 
   public JButton getRunButton() {
-    return this.runButton.getButton();
+    return runButton;
   }
 
   public JButton getHelpButton() {
-    return this.helpButton.getButton();
+    return helpButton;
   }
 
   public JButton getZoomInButton() {
-    return this.zoomInButton.getButton();
+    return zoomInButton;
   }
 
   public JButton getZoomOutButton() {
-    return this.zoomOutButton.getButton();
+    return zoomOutButton;
   }
 
   public JTextArea getTextArea() {
-    return this.terminalOutput;
+    return terminalOutput;
+  }
+
+  public void setMethodTabsPanel(MethodTabsPanel methodTabsPanel) {
+    this.methodTabsPanel = methodTabsPanel;
   }
 
   @Override
   public void commandOutput(String text) {
-    this.getTextArea().append(text);
-  }
-
-  @Override
-  public void compileSuccessful() {
-    // run java program if compile was successful
-    run(CommandType.RUN);
-  }
-
-  @Override
-  public void compileFailed() {
-    this.getTextArea().append("Compile failed");
+    // Called from the reader threads, so hand the UI update to the EDT.
+    SwingUtilities.invokeLater(() -> terminalOutput.append(text));
   }
 
   @Override
   public void commandFailed(Exception exp) {
-    this.getTextArea().append("Command failed - " + exp.getMessage());
+    SwingUtilities.invokeLater(
+        () -> terminalOutput.append("Command failed - " + exp.getMessage() + "\n"));
   }
 
+  /** Compiles the generated source in the background and reports the result. */
   public void compile() {
-    File javaTmpFile = new File(codingFile.getJavaTmpFilePath());
+    if (methodTabsPanel != null) {
+      methodTabsPanel.clearErrorHighlights();
+    }
+    GeneratedSource source = codingFile.buildSource();
     codingFile.tmpSaveAndRunJavaCode();
-    List<String> commandValues = Arrays.asList("javac", javaTmpFile.getAbsolutePath());
-    runner = new Runner(this, commandValues, CommandType.COMPILE);
+    new Thread(
+            () -> {
+              JavaCompilerService.Result result =
+                  JavaCompilerService.compile(
+                      codingFile.getJavaTmpFilePath(), codingFile.generateClassPath());
+              SwingUtilities.invokeLater(() -> onCompileFinished(result, source));
+            })
+        .start();
+  }
+
+  private void onCompileFinished(JavaCompilerService.Result result, GeneratedSource source) {
+    if (!result.compilerAvailable()) {
+      terminalOutput.append(
+          "No Java compiler found. Please run SimplestJavaIDE with a JDK (not just a JRE).\n");
+      return;
+    }
+    if (result.success()) {
+      run(CommandType.RUN);
+      return;
+    }
+    reportDiagnostics(result, source);
+  }
+
+  /** Prints compiler messages, mapped back to the method tab and local line. */
+  private void reportDiagnostics(JavaCompilerService.Result result, GeneratedSource source) {
+    MethodLocation firstError = null;
+    for (Diagnostic<? extends JavaFileObject> diagnostic : result.diagnostics()) {
+      if (diagnostic.getKind() != Diagnostic.Kind.ERROR
+          && diagnostic.getKind() != Diagnostic.Kind.WARNING) {
+        continue;
+      }
+      int generatedLine = (int) diagnostic.getLineNumber();
+      MethodLocation location = generatedLine > 0 ? source.locate(generatedLine) : null;
+      String where;
+      if (location != null) {
+        where = "Method '" + location.methodName() + "', line " + location.localLine();
+        if (firstError == null && diagnostic.getKind() == Diagnostic.Kind.ERROR) {
+          firstError = location;
+        }
+      } else {
+        where = "Line " + generatedLine;
+      }
+      terminalOutput.append(where + ": " + diagnostic.getMessage(null) + "\n");
+    }
+    if (firstError != null && methodTabsPanel != null) {
+      methodTabsPanel.showError(firstError.methodIndex(), firstError.localLine());
+    }
   }
 
   public void run(CommandType ct) {
     if (ct == CommandType.RUN) {
+      String javaExecutable =
+          System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
       List<String> commandValues =
           Arrays.asList(
-              "java", "-cp", codingFile.generateClassPath(), codingFile._class.getClassName());
-      runner = new Runner(this, commandValues, CommandType.RUN);
+              javaExecutable,
+              "-cp",
+              codingFile.generateClassPath(),
+              codingFile.javaClass.className());
+      runner = new Runner(this, commandValues);
     } else if (ct == CommandType.INPUT) {
+      if (runner == null) {
+        return;
+      }
       try {
-        // TODO Make possible to just press enter on input (empty input)
         String command = this.userInputTextField.getText();
         runner.write(command + "\n");
       } catch (IOException ex) {
@@ -205,7 +245,6 @@ public class TerminalPanel extends JPanel implements CommandListener {
   }
 
   public enum CommandType {
-    COMPILE,
     RUN,
     INPUT
   }

@@ -1,22 +1,28 @@
 package simplestJavaIDEpackage.Library.CodeStructure;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
+/**
+ * Reads and writes {@link CodingFile}s as human-readable JSON. (Earlier versions
+ * used Java object serialization, which broke on every model change and could
+ * not be inspected; the format is intentionally not backwards compatible.)
+ */
 public class FileManager {
+  private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
   public static Boolean save(CodingFile codingFile) {
-    FileOutputStream fos;
-    ObjectOutputStream oos;
-    try {
-      fos = new FileOutputStream(codingFile.getFilepath());
-      oos = new ObjectOutputStream(fos);
-      oos.writeObject(codingFile);
-      oos.close();
-      fos.close();
+    Path path = Path.of(codingFile.getFilepath());
+    try (Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+      GSON.toJson(codingFile, writer);
       return true;
     } catch (IOException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
@@ -27,25 +33,16 @@ public class FileManager {
   public static CodingFile load(String className, String filepath, Boolean isNewFile) {
     if (isNewFile) {
       return load(className, createNewAndSave(className, filepath).getFilepath(), false);
-    } else {
-      FileInputStream fis;
-      ObjectInputStream ois;
-      try {
-        fis = new FileInputStream(filepath);
-        ois = new ObjectInputStream(fis);
-        try {
-          CodingFile result = (CodingFile) ois.readObject();
-          fis.close();
-          ois.close();
-          return result;
-        } catch (ClassNotFoundException e) {
-          ErrorPopupWindow.throwMessage(e.getMessage());
-        }
-        fis.close();
-        ois.close();
-      } catch (IOException e) {
-        ErrorPopupWindow.throwMessage(e.getMessage());
+    }
+    try (Reader reader = Files.newBufferedReader(Path.of(filepath), StandardCharsets.UTF_8)) {
+      CodingFile result = GSON.fromJson(reader, CodingFile.class);
+      if (result != null) {
+        // The path is not stored in the file; bind it to where it was loaded from.
+        result.setFilepath(filepath);
       }
+      return result;
+    } catch (IOException | JsonParseException e) {
+      ErrorPopupWindow.throwMessage("Could not open file: " + e.getMessage());
     }
     return null;
   }

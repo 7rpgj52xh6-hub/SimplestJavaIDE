@@ -2,6 +2,7 @@ package simplestJavaIDEpackage.Library.Commands;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
 public class StreamReader extends Thread {
@@ -17,21 +18,13 @@ public class StreamReader extends Thread {
   @Override
   public void run() {
     try {
-      int value = -1;
-      while ((value = is.read()) != -1) {
-        listener.commandOutput(Character.toString((char) value));
+      byte[] buffer = new byte[1024];
+      int count;
+      while ((count = is.read(buffer)) != -1) {
+        listener.commandOutput(new String(buffer, 0, count, StandardCharsets.UTF_8));
       }
     } catch (IOException e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
     }
-  }
-
-  public int checkIfStreamIsEmpty() {
-    try {
-      return is.read();
-    } catch (IOException e) {
-      ErrorPopupWindow.throwMessage(e.getMessage());
-    }
-    return 69;
   }
 }

@@ -1,19 +1,22 @@
 package simplestJavaIDEpackage.Library.Commands;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import simplestJavaIDEpackage.ErrorPopupWindow;
-import simplestJavaIDEpackage.Library.TerminalPanel.CommandType;
 
+/**
+ * Runs the user's compiled program in a separate process and streams its output
+ * (stdout and stderr) back to the terminal. Kept separate from compilation so
+ * the program gets its own stdin/stdout and an endless loop can't freeze the IDE.
+ *
+ * @author Daniel Trageser
+ */
 public class Runner extends Thread {
   private final List<String> commands;
   private final CommandListener listener;
-  private final CommandType commandType;
   private Process process;
 
-  public Runner(CommandListener listener, List<String> commands, CommandType commandType) {
-    this.commandType = commandType;
+  public Runner(CommandListener listener, List<String> commands) {
     this.commands = commands;
     this.listener = listener;
     start();
@@ -24,22 +27,11 @@ public class Runner extends Thread {
     try {
       ProcessBuilder pb = new ProcessBuilder(commands);
       process = pb.start();
-      InputStream inputStream = process.getInputStream();
-      InputStream errorStream = process.getErrorStream();
-      StreamReader inputReader = new StreamReader(listener, inputStream);
-      if (errorStream.read() != -1) {
-        StreamReader errorReader = new StreamReader(listener, errorStream);
-        errorReader.join();
-        if (commandType == CommandType.COMPILE) {
-          listener.compileFailed();
-        }
-      } else {
-        if (commandType == CommandType.COMPILE) {
-          listener.compileSuccessful();
-        }
-      }
+      StreamReader outputReader = new StreamReader(listener, process.getInputStream());
+      StreamReader errorReader = new StreamReader(listener, process.getErrorStream());
       process.waitFor();
-      inputReader.join();
+      outputReader.join();
+      errorReader.join();
     } catch (Exception e) {
       ErrorPopupWindow.throwMessage(e.getMessage());
       listener.commandFailed(e);
