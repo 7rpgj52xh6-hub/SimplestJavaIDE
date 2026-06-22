@@ -220,4 +220,13 @@ public class MethodTabsPanel extends JPanel {
       area.clearErrorHighlights();
     }
   }
+
+  /** Selects the tab of the given method and marks the currently executing line. */
+  public void showExecutionLine(int methodIndex, int localLine) {
+    if (methodIndex < 0 || methodIndex >= listOfCodingAreas.size()) {
+      return;
+    }
+    tabbedPaneMethods.setSelectedIndex(methodIndex);
+    listOfCodingAreas.get(methodIndex).highlightExecutionLine(localLine);
+  }
 }

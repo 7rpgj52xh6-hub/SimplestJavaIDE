@@ -85,6 +85,23 @@ public final class Icons {
         });
   }
 
+  public static Icon bug() {
+    return icon(
+        NEUTRAL,
+        g -> {
+          g.draw(new Ellipse2D.Float(6, 5, 6, 10)); // body
+          g.drawLine(9, 5, 9, 15); // centre line
+          g.drawLine(6, 7, 3, 5); // legs left
+          g.drawLine(6, 10, 3, 10);
+          g.drawLine(6, 13, 3, 15);
+          g.drawLine(12, 7, 15, 5); // legs right
+          g.drawLine(12, 10, 15, 10);
+          g.drawLine(12, 13, 15, 15);
+          g.drawLine(7, 5, 5, 2); // antennae
+          g.drawLine(11, 5, 13, 2);
+        });
+  }
+
   public static Icon enter() {
     return icon(
         NEUTRAL,

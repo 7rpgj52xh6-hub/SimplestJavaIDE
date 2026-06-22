@@ -8,6 +8,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
@@ -16,8 +21,11 @@ import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource.MethodLocation;
 import simplestJavaIDEpackage.Library.CodeStructure.Methods;
+import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.CompilerHints;
 import simplestJavaIDEpackage.Library.Commands.JavaCompilerService;
+import simplestJavaIDEpackage.Library.Debug.DebugSession;
+import simplestJavaIDEpackage.Library.Debug.TraceStep;
 
 public class CodeGenerationTest {
 
@@ -114,6 +122,100 @@ public class CodeGenerationTest {
     String output = new String(process.getInputStream().readAllBytes());
     process.waitFor();
     assertTrue("expected greeting, got: " + output, output.contains("Hello World"));
+  }
+
+  @Test
+  public void steppingCapturesVariables() throws Exception {
+    Path dir = Files.createTempDirectory("sji");
+    CodingFile file = new CodingFile("Demo", dir.resolve("Demo.sji").toString());
+    file.methods.set(
+        0,
+        new Methods(
+            "Main Method",
+            "public static void main(String[] args){\n"
+                + "\tint summe = 0;\n"
+                + "\tfor (int i = 1; i <= 3; i++) {\n"
+                + "\t\tsumme = summe + i;\n"
+                + "\t}\n"
+                + "\tSystem.out.println(summe);\n"
+                + "}"));
+    file.tmpSaveAndRunJavaCode();
+    assertTrue(JavaCompilerService.compile(file.getJavaTmpFilePath(), dir.toString()).success());
+
+    List<TraceStep> steps = debugToEnd("Demo", dir.toString(), null);
+    assertTrue(
+        "expected summe to reach 6 while stepping",
+        steps.stream().anyMatch(s -> "6".equals(s.variables().get("summe"))));
+  }
+
+  @Test
+  public void steppingWithInputAppliesTheValue() throws Exception {
+    Path dir = Files.createTempDirectory("sji");
+    CodingFile file = new CodingFile("Demo", dir.resolve("Demo.sji").toString());
+    file.imports.add("java.util.Scanner");
+    file.methods.set(
+        0,
+        new Methods(
+            "Main Method",
+            "public static void main(String[] args){\n"
+                + "\tScanner sc = new Scanner(System.in);\n"
+                + "\tint x = sc.nextInt();\n"
+                + "\tSystem.out.println(x);\n"
+                + "}"));
+    file.tmpSaveAndRunJavaCode();
+    assertTrue(JavaCompilerService.compile(file.getJavaTmpFilePath(), dir.toString()).success());
+
+    List<TraceStep> steps = debugToEnd("Demo", dir.toString(), "42\n");
+    assertTrue(
+        "expected the provided input 42 to appear while stepping",
+        steps.stream().anyMatch(s -> "42".equals(s.variables().get("x"))));
+  }
+
+  /** Drives a live debug session to the end, auto-stepping and collecting each step. */
+  private List<TraceStep> debugToEnd(String className, String classpath, String firstInput)
+      throws InterruptedException {
+    List<TraceStep> collected = Collections.synchronizedList(new ArrayList<>());
+    CountDownLatch done = new CountDownLatch(1);
+    DebugSession[] ref = new DebugSession[1];
+    boolean[] wrote = {false};
+    CommandListener silent =
+        new CommandListener() {
+          @Override
+          public void commandOutput(String text, boolean error) {}
+
+          @Override
+          public void commandFailed(Exception exp) {}
+
+          @Override
+          public void commandFinished() {}
+        };
+    DebugSession.Listener driver =
+        new DebugSession.Listener() {
+          @Override
+          public void onPaused(TraceStep step) {
+            collected.add(step);
+            if (firstInput != null && !wrote[0]) {
+              wrote[0] = true;
+              ref[0].write(firstInput);
+            }
+            ref[0].step();
+          }
+
+          @Override
+          public void onFinished(boolean truncated) {
+            done.countDown();
+          }
+
+          @Override
+          public void onError(String message) {
+            done.countDown();
+          }
+        };
+    DebugSession session = new DebugSession(className, classpath, 2000, silent, driver);
+    ref[0] = session;
+    session.start();
+    assertTrue("debug session did not finish in time", done.await(25, TimeUnit.SECONDS));
+    return collected;
   }
 
   @Test

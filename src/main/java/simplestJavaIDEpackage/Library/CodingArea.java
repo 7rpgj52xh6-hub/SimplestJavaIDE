@@ -21,6 +21,7 @@ import simplestJavaIDEpackage.Library.CodeStructure.Methods;
 public class CodingArea extends JPanel {
   private static final long serialVersionUID = -3178874378975696478L;
   private static final Color ERROR_LINE_COLOR = new Color(120, 45, 45);
+  private static final Color EXEC_LINE_COLOR = new Color(0x2E4D38);
   private final RSyntaxTextArea syntaxTextAreaMainMethod;
   private final JButton runButton;
   private final JButton saveButton;
@@ -123,13 +124,22 @@ public class CodingArea extends JPanel {
 
   /** Highlights a 1-based line as an error and moves the caret to it. */
   public void highlightErrorLine(int localLine) {
+    highlightLine(localLine, ERROR_LINE_COLOR);
+  }
+
+  /** Highlights the line currently being executed in the step debugger. */
+  public void highlightExecutionLine(int localLine) {
+    highlightLine(localLine, EXEC_LINE_COLOR);
+  }
+
+  private void highlightLine(int localLine, Color color) {
     int lineIndex = localLine - 1;
     if (lineIndex < 0 || lineIndex >= syntaxTextAreaMainMethod.getLineCount()) {
       return;
     }
     try {
       syntaxTextAreaMainMethod.removeAllLineHighlights();
-      syntaxTextAreaMainMethod.addLineHighlight(lineIndex, ERROR_LINE_COLOR);
+      syntaxTextAreaMainMethod.addLineHighlight(lineIndex, color);
       syntaxTextAreaMainMethod.setCaretPosition(
           syntaxTextAreaMainMethod.getLineStartOffset(lineIndex));
     } catch (BadLocationException e) {

@@ -28,7 +28,11 @@ import javax.swing.WindowConstants;
 import simplestJavaIDEpackage.Library.AddImportsWindow;
 import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
 import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
+import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource;
 import simplestJavaIDEpackage.Library.CodingArea;
+import simplestJavaIDEpackage.Library.Debug.DebugPanel;
+import simplestJavaIDEpackage.Library.Debug.DebugSession;
+import simplestJavaIDEpackage.Library.Debug.TraceStep;
 import simplestJavaIDEpackage.Library.MethodTabsPanel;
 import simplestJavaIDEpackage.Library.TerminalPanel;
 
@@ -44,6 +48,7 @@ public class MainUserInput {
   private JFrame frmSimplestJavaIDE;
   private TerminalPanel terminal;
   private MethodTabsPanel methodTabsPanel;
+  private DebugPanel debugPanel;
 
   /** Create the application. */
   public MainUserInput(CodingFile savefile) {
@@ -105,6 +110,27 @@ public class MainUserInput {
     frmSimplestJavaIDE.getContentPane().add(statusBar, BorderLayout.SOUTH);
     Notifications.setStatusBar(statusBar);
 
+    debugPanel = new DebugPanel();
+    debugPanel.setOnClose(this::closeDebug);
+    terminal.setOnDebugStarted(this::openDebugPanel);
+    terminal.setDebugUiListener(
+        new DebugSession.Listener() {
+          @Override
+          public void onPaused(TraceStep step) {
+            debugPanel.addStep(step);
+          }
+
+          @Override
+          public void onFinished(boolean truncated) {
+            debugPanel.finished(truncated);
+          }
+
+          @Override
+          public void onError(String message) {
+            // The message is already shown in the console.
+          }
+        });
+
     wireActions();
     installShortcuts();
 
@@ -125,6 +151,7 @@ public class MainUserInput {
     terminal.getRunButton().addActionListener(e -> runProject());
     terminal.getZoomInButton().addActionListener(e -> applyZoom(1));
     terminal.getZoomOutButton().addActionListener(e -> applyZoom(-1));
+    terminal.getDebugButton().addActionListener(e -> debugProject());
     terminal
         .getAddImportsButton()
         .addActionListener(
@@ -172,6 +199,38 @@ public class MainUserInput {
   private void runProject() {
     saveProject();
     terminal.compile();
+  }
+
+  private void debugProject() {
+    saveProject();
+    terminal.debug();
+  }
+
+  /** Opens the debugger panel for a fresh live session and steps the editor along. */
+  private void openDebugPanel(DebugSession session, GeneratedSource source) {
+    debugPanel.begin(
+        source,
+        session,
+        location -> {
+          if (location != null) {
+            methodTabsPanel.showExecutionLine(location.methodIndex(), location.localLine());
+          }
+        });
+    if (debugPanel.getParent() == null) {
+      frmSimplestJavaIDE.getContentPane().add(debugPanel, BorderLayout.EAST);
+      frmSimplestJavaIDE.getContentPane().revalidate();
+      frmSimplestJavaIDE.getContentPane().repaint();
+    }
+  }
+
+  private void closeDebug() {
+    terminal.stopRunningProgram(); // stops the debug session if still running
+    methodTabsPanel.clearErrorHighlights(); // also clears the execution highlight
+    if (debugPanel.getParent() != null) {
+      frmSimplestJavaIDE.getContentPane().remove(debugPanel);
+      frmSimplestJavaIDE.getContentPane().revalidate();
+      frmSimplestJavaIDE.getContentPane().repaint();
+    }
   }
 
   /** Changes the editor and console font size by the given number of steps. */

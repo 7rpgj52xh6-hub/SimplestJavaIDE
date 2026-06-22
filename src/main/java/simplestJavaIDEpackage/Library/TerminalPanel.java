@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.Box;
@@ -44,6 +45,8 @@ import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.CompilerHints;
 import simplestJavaIDEpackage.Library.Commands.JavaCompilerService;
 import simplestJavaIDEpackage.Library.Commands.Runner;
+import simplestJavaIDEpackage.Library.Debug.DebugSession;
+import simplestJavaIDEpackage.Library.Debug.TraceStep;
 
 /**
  * The bottom console: a toolbar (run / stop / save / zoom / imports / help), a
@@ -69,6 +72,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private static final int FLUSH_INTERVAL_MS = 50;
   private static final int MAX_PENDING_CHARS = 64_000;
   private static final int MAX_DOCUMENT_CHARS = 120_000;
+  private static final int DEBUG_MAX_STEPS = 5_000;
 
   private final CodingFile codingFile;
   private final Deque<Segment> pending = new ArrayDeque<>();
@@ -90,9 +94,24 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private JButton helpButton;
   private JButton zoomInButton;
   private JButton zoomOutButton;
+  private JButton debugButton;
   private JButton btnAddImports;
   private MethodTabsPanel methodTabsPanel;
   private volatile GeneratedSource lastSource;
+  private DebugSession debugSession;
+  private boolean debugging;
+  private DebugSession.Listener debugUiListener =
+      new DebugSession.Listener() {
+        @Override
+        public void onPaused(TraceStep step) {}
+
+        @Override
+        public void onFinished(boolean truncated) {}
+
+        @Override
+        public void onError(String message) {}
+      };
+  private BiConsumer<DebugSession, GeneratedSource> onDebugStarted = (session, source) -> {};
 
   private record Segment(String text, Style style) {}
 
@@ -119,6 +138,9 @@ public class TerminalPanel extends JPanel implements CommandListener {
     saveButton = toolButton("Save", Icons.save(), KeyEvent.VK_S, "Save the project (Ctrl/Cmd+S)");
     zoomOutButton = iconButton(Icons.zoomOut(), "Smaller font (Ctrl/Cmd+-)");
     zoomInButton = iconButton(Icons.zoomIn(), "Larger font (Ctrl/Cmd++)");
+    debugButton =
+        toolButton(
+            "Debug", Icons.bug(), KeyEvent.VK_D, "Schritt für Schritt durchgehen und Variablen ansehen");
     btnAddImports = toolButton("Imports", Icons.imports(), KeyEvent.VK_I, "Manage imports");
     helpButton = toolButton("Help", Icons.help(), KeyEvent.VK_H, "Help & about");
 
@@ -130,6 +152,8 @@ public class TerminalPanel extends JPanel implements CommandListener {
     toolBar.addSeparator();
     toolBar.add(zoomOutButton);
     toolBar.add(zoomInButton);
+    toolBar.addSeparator();
+    toolBar.add(debugButton);
     toolBar.add(Box.createHorizontalGlue());
     toolBar.add(helpButton);
 
@@ -232,6 +256,18 @@ public class TerminalPanel extends JPanel implements CommandListener {
     return zoomOutButton;
   }
 
+  public JButton getDebugButton() {
+    return debugButton;
+  }
+
+  public void setDebugUiListener(DebugSession.Listener debugUiListener) {
+    this.debugUiListener = debugUiListener;
+  }
+
+  public void setOnDebugStarted(BiConsumer<DebugSession, GeneratedSource> onDebugStarted) {
+    this.onDebugStarted = onDebugStarted;
+  }
+
   public JTextPane getTextArea() {
     return terminalOutput;
   }
@@ -312,11 +348,17 @@ public class TerminalPanel extends JPanel implements CommandListener {
   }
 
   private void sendInput() {
+    String command = userInputTextField.getText();
+    if (debugging && debugSession != null) {
+      enqueue("> " + command + "\n", inputStyle);
+      debugSession.write(command + "\n");
+      userInputTextField.setText(null);
+      return;
+    }
     if (runner == null || !runner.isRunning()) {
       userInputTextField.setText(null);
       return;
     }
-    String command = userInputTextField.getText();
     enqueue("> " + command + "\n", inputStyle); // echo so beginners see what they typed
     try {
       runner.write(command + "\n");
@@ -349,9 +391,81 @@ public class TerminalPanel extends JPanel implements CommandListener {
   }
 
   public void stopRunningProgram() {
+    if (debugging && debugSession != null) {
+      debugSession.stop();
+      return;
+    }
     if (runner != null) {
       runner.kill();
     }
+  }
+
+  /** Compiles, then starts a live step-debugging session. */
+  public void debug() {
+    if (methodTabsPanel != null) {
+      methodTabsPanel.clearErrorHighlights();
+    }
+    clearConsole();
+    GeneratedSource source = codingFile.buildSource();
+    lastSource = source;
+    codingFile.tmpSaveAndRunJavaCode();
+    enqueue("● Debugger: kompiliere …\n", systemStyle);
+    new Thread(
+            () -> {
+              JavaCompilerService.Result result =
+                  JavaCompilerService.compile(
+                      codingFile.getJavaTmpFilePath(), codingFile.generateClassPath());
+              if (!result.compilerAvailable() || !result.success()) {
+                SwingUtilities.invokeLater(() -> onCompileFinished(result, source));
+                return;
+              }
+              SwingUtilities.invokeLater(() -> startDebugSession(source));
+            })
+        .start();
+  }
+
+  private void startDebugSession(GeneratedSource source) {
+    enqueue("▶ Debugger gestartet — mit 'Weiter ▶' Zeile für Zeile durchgehen.\n", systemStyle);
+    debugging = true;
+    stopButton.setEnabled(true);
+    DebugSession.Listener edtListener =
+        new DebugSession.Listener() {
+          @Override
+          public void onPaused(TraceStep step) {
+            SwingUtilities.invokeLater(() -> debugUiListener.onPaused(step));
+          }
+
+          @Override
+          public void onFinished(boolean truncated) {
+            SwingUtilities.invokeLater(
+                () -> {
+                  debugging = false;
+                  stopButton.setEnabled(false);
+                  enqueue("✓ Debugger beendet\n", systemStyle);
+                  debugUiListener.onFinished(truncated);
+                });
+          }
+
+          @Override
+          public void onError(String message) {
+            SwingUtilities.invokeLater(
+                () -> {
+                  debugging = false;
+                  stopButton.setEnabled(false);
+                  enqueue(message + "\n", errorStyle);
+                  debugUiListener.onFinished(false);
+                });
+          }
+        };
+    debugSession =
+        new DebugSession(
+            codingFile.javaClass.className(),
+            codingFile.generateClassPath(),
+            DEBUG_MAX_STEPS,
+            this,
+            edtListener);
+    onDebugStarted.accept(debugSession, source);
+    debugSession.start();
   }
 
   /** Compiles the generated source in the background and reports the result. */

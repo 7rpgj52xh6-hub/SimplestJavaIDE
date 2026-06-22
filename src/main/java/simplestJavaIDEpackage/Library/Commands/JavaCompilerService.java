@@ -41,7 +41,8 @@ public class JavaCompilerService {
         compiler.getStandardFileManager(diagnostics, null, StandardCharsets.UTF_8)) {
       Iterable<? extends JavaFileObject> units =
           fileManager.getJavaFileObjectsFromFiles(List.of(new File(javaFilePath)));
-      List<String> options = List.of("-d", outputDir);
+      // -g keeps local variable tables so the step debugger can read variables.
+      List<String> options = List.of("-d", outputDir, "-g");
       boolean success =
           compiler.getTask(null, fileManager, diagnostics, options, null, units).call();
       return new Result(true, success, diagnostics.getDiagnostics());
