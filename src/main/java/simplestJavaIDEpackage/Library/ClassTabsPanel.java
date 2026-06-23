@@ -17,6 +17,7 @@ import javax.swing.SwingConstants;
 import simplestJavaIDEpackage.Notifications;
 import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
 import simplestJavaIDEpackage.Library.CodeStructure.JavaClass;
+import simplestJavaIDEpackage.Library.CodeStructure.JavaNames;
 
 /**
  * The top editing area. Default mode shows a single class's methods. Expert mode
@@ -33,6 +34,7 @@ public class ClassTabsPanel extends JPanel {
   private final TerminalPanel terminal;
   private final List<ClassEditor> classEditors = new ArrayList<>();
   private Runnable onModelChanged = () -> {};
+  private Runnable onEdit = () -> {};
   private JTabbedPane classTabs;
 
   public ClassTabsPanel(CodingFile codingFile, TerminalPanel terminal) {
@@ -45,6 +47,10 @@ public class ClassTabsPanel extends JPanel {
 
   public void setOnModelChanged(Runnable onModelChanged) {
     this.onModelChanged = onModelChanged;
+  }
+
+  public void setOnEdit(Runnable onEdit) {
+    this.onEdit = onEdit;
   }
 
   private void build() {
@@ -69,6 +75,11 @@ public class ClassTabsPanel extends JPanel {
       addPlusTab();
       installClassContextMenu();
       add(classTabs, BorderLayout.CENTER);
+    }
+    for (ClassEditor editor : classEditors) {
+      for (CodingArea area : editor.getAllAreas()) {
+        area.setOnEdit(() -> onEdit.run());
+      }
     }
     revalidate();
     repaint();
@@ -153,15 +164,10 @@ public class ClassTabsPanel extends JPanel {
   }
 
   private boolean isValidClassName(String name) {
-    if (name.isEmpty() || !Character.isLetter(name.charAt(0))) {
-      Notifications.error("Ein Klassenname muss mit einem Buchstaben beginnen.");
+    String reason = JavaNames.invalidReason(name);
+    if (reason != null) {
+      Notifications.error("Klassenname: " + reason);
       return false;
-    }
-    for (int i = 0; i < name.length(); i++) {
-      if (!Character.isLetterOrDigit(name.charAt(i))) {
-        Notifications.error("Ein Klassenname darf nur Buchstaben und Ziffern enthalten.");
-        return false;
-      }
     }
     for (JavaClass javaClass : codingFile.classes) {
       if (javaClass.name.equals(name)) {
@@ -230,6 +236,26 @@ public class ClassTabsPanel extends JPanel {
       all.addAll(editor.getAllAreas());
     }
     return all;
+  }
+
+  /** The editor for a (class, method) location ({@code methodIndex == -1} = class header). */
+  public CodingArea getArea(int classIndex, int methodIndex) {
+    if (classIndex < 0 || classIndex >= classEditors.size()) {
+      return null;
+    }
+    return classEditors.get(classIndex).getArea(methodIndex);
+  }
+
+  public void clearAllErrors() {
+    for (CodingArea area : getAllAreas()) {
+      area.clearErrors();
+    }
+  }
+
+  public void applyAllErrors() {
+    for (CodingArea area : getAllAreas()) {
+      area.applyErrors();
+    }
   }
 
   public Font getReferenceFont() {

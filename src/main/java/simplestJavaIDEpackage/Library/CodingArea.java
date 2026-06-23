@@ -6,14 +6,22 @@ import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
+import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
+import org.fife.ui.rsyntaxtextarea.parser.AbstractParser;
+import org.fife.ui.rsyntaxtextarea.parser.DefaultParseResult;
+import org.fife.ui.rsyntaxtextarea.parser.DefaultParserNotice;
+import org.fife.ui.rsyntaxtextarea.parser.ParseResult;
+import org.fife.ui.rsyntaxtextarea.parser.ParserNotice;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 import simplestJavaIDEpackage.Library.CodeStructure.Methods;
@@ -25,7 +33,9 @@ public class CodingArea extends JPanel {
   private final RSyntaxTextArea syntaxTextAreaMainMethod;
   private final JButton runButton;
   private final JButton saveButton;
+  private final DiagnosticParser diagnosticParser = new DiagnosticParser();
   private Methods method;
+  private Runnable onEdit = () -> {};
 
   public CodingArea(Methods method, JButton runButtonTmp, JButton saveButtonTmp, Font font) {
     syntaxTextAreaMainMethod = new RSyntaxTextArea(20, 60);
@@ -49,6 +59,7 @@ public class CodingArea extends JPanel {
     }
     syntaxTextAreaMainMethod.setCurrentLineHighlightColor(new Color(0x2A2C31));
     syntaxTextAreaMainMethod.setBackground(simplestJavaIDEpackage.Theme.EDITOR_BG);
+    syntaxTextAreaMainMethod.addParser(diagnosticParser); // red squiggles for compile errors
     // Do nothing
     DocumentListener syntaxTextAreaInputListener =
         new DocumentListener() {
@@ -57,6 +68,7 @@ public class CodingArea extends JPanel {
             saveButton.setEnabled(true);
             runButton.setEnabled(true);
             syntaxTextAreaMainMethod.removeAllLineHighlights();
+            onEdit.run();
           }
 
           @Override
@@ -64,6 +76,7 @@ public class CodingArea extends JPanel {
             saveButton.setEnabled(true);
             runButton.setEnabled(true);
             syntaxTextAreaMainMethod.removeAllLineHighlights();
+            onEdit.run();
           }
 
           @Override
@@ -149,5 +162,52 @@ public class CodingArea extends JPanel {
 
   public void clearErrorHighlights() {
     syntaxTextAreaMainMethod.removeAllLineHighlights();
+  }
+
+  public void setOnEdit(Runnable onEdit) {
+    this.onEdit = onEdit;
+  }
+
+  /** Clears the pending red error markers (call {@link #applyErrors()} to refresh). */
+  public void clearErrors() {
+    diagnosticParser.notices.clear();
+  }
+
+  /** Queues a red error squiggle on a 1-based line with a hover message. */
+  public void addError(int localLine, String message) {
+    int lineIndex = localLine - 1;
+    if (lineIndex < 0 || lineIndex >= syntaxTextAreaMainMethod.getLineCount()) {
+      return;
+    }
+    try {
+      int start = syntaxTextAreaMainMethod.getLineStartOffset(lineIndex);
+      int end = syntaxTextAreaMainMethod.getLineEndOffset(lineIndex);
+      int length = Math.max(1, end - start - 1);
+      DefaultParserNotice notice =
+          new DefaultParserNotice(diagnosticParser, message, lineIndex, start, length);
+      notice.setLevel(ParserNotice.Level.ERROR);
+      diagnosticParser.notices.add(notice);
+    } catch (BadLocationException ignored) {
+      // line vanished; skip
+    }
+  }
+
+  /** Refreshes the displayed error markers. */
+  public void applyErrors() {
+    syntaxTextAreaMainMethod.forceReparsing(diagnosticParser);
+  }
+
+  /** A parser whose notices are pushed in from the project compiler. */
+  private static final class DiagnosticParser extends AbstractParser {
+    private final List<ParserNotice> notices = new ArrayList<>();
+
+    @Override
+    public ParseResult parse(RSyntaxDocument doc, String style) {
+      DefaultParseResult result = new DefaultParseResult(this);
+      for (ParserNotice notice : notices) {
+        result.addNotice(notice);
+      }
+      return result;
+    }
   }
 }

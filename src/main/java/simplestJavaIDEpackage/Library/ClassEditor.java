@@ -20,6 +20,7 @@ import simplestJavaIDEpackage.Icons;
 import simplestJavaIDEpackage.Notifications;
 import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
 import simplestJavaIDEpackage.Library.CodeStructure.JavaClass;
+import simplestJavaIDEpackage.Library.CodeStructure.JavaNames;
 import simplestJavaIDEpackage.Library.CodeStructure.Methods;
 
 /**
@@ -180,12 +181,9 @@ public class ClassEditor extends JPanel {
   }
 
   private boolean isValidNewName(String name) {
-    if (name.isEmpty()) {
-      Notifications.error("Der Methodenname darf nicht leer sein.");
-      return false;
-    }
-    if (name.contains(" ")) {
-      Notifications.error("Der Methodenname darf keine Leerzeichen enthalten.");
+    String reason = JavaNames.invalidReason(name);
+    if (reason != null) {
+      Notifications.error("Methodenname: " + reason);
       return false;
     }
     for (CodingArea area : methodAreas) {
@@ -225,6 +223,14 @@ public class ClassEditor extends JPanel {
       return methodAreas.get(0);
     }
     return headerArea;
+  }
+
+  /** The editor for a method ({@code methodIndex >= 0}) or the class header ({@code -1}). */
+  public CodingArea getArea(int methodIndex) {
+    if (methodIndex < 0) {
+      return headerArea;
+    }
+    return methodIndex < methodAreas.size() ? methodAreas.get(methodIndex) : null;
   }
 
   /** {@code methodIndex == -1} targets the class header tab. */

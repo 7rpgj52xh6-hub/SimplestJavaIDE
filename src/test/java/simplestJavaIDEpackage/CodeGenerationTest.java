@@ -20,6 +20,7 @@ import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram.MethodLocation;
 import simplestJavaIDEpackage.Library.CodeStructure.JavaClass;
+import simplestJavaIDEpackage.Library.CodeStructure.JavaNames;
 import simplestJavaIDEpackage.Library.CodeStructure.Methods;
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.CompilerHints;
@@ -267,6 +268,18 @@ public class CodeGenerationTest {
     session.start();
     assertTrue("debug session did not finish in time", done.await(25, TimeUnit.SECONDS));
     return collected;
+  }
+
+  @Test
+  public void validatesJavaNames() {
+    assertTrue(JavaNames.isValidIdentifier("hupe"));
+    assertTrue(JavaNames.isValidIdentifier("Auto2"));
+    assertTrue(JavaNames.isValidIdentifier("_wert"));
+    assertFalse(JavaNames.isValidIdentifier("2auto"));
+    assertFalse(JavaNames.isValidIdentifier("class")); // reserved keyword
+    assertFalse(JavaNames.isValidIdentifier("my name")); // space
+    assertFalse(JavaNames.isValidIdentifier("a-b")); // illegal char
+    assertFalse(JavaNames.isValidIdentifier(""));
   }
 
   @Test

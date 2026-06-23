@@ -24,13 +24,18 @@ import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.Timer;
 import javax.swing.WindowConstants;
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 import simplestJavaIDEpackage.Library.AddImportsWindow;
 import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
 import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
 import simplestJavaIDEpackage.Library.ClassTabsPanel;
 import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram;
 import simplestJavaIDEpackage.Library.CodingArea;
+import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram.MethodLocation;
+import simplestJavaIDEpackage.Library.Commands.JavaCompilerService;
 import simplestJavaIDEpackage.Library.Debug.DebugPanel;
 import simplestJavaIDEpackage.Library.Debug.DebugSession;
 import simplestJavaIDEpackage.Library.Debug.TraceStep;
@@ -49,6 +54,7 @@ public class MainUserInput {
   private TerminalPanel terminal;
   private ClassTabsPanel codeTabs;
   private DebugPanel debugPanel;
+  private Timer errorCheckTimer;
 
   /** Create the application. */
   public MainUserInput(CodingFile savefile) {
@@ -110,6 +116,9 @@ public class MainUserInput {
     frmSimplestJavaIDE.getContentPane().add(statusBar, BorderLayout.SOUTH);
     Notifications.setStatusBar(statusBar);
 
+    errorCheckTimer = new Timer(600, e -> checkErrors());
+    errorCheckTimer.setRepeats(false);
+
     debugPanel = new DebugPanel();
     debugPanel.setOnClose(this::closeDebug);
     terminal.setOnDebugStarted(this::openDebugPanel);
@@ -168,6 +177,62 @@ public class MainUserInput {
         });
     // Persist whenever a method, field or class is added, renamed or deleted.
     codeTabs.setOnModelChanged(this::saveProject);
+    // Live syntax checking as the student types.
+    codeTabs.setOnEdit(this::scheduleErrorCheck);
+  }
+
+  private void scheduleErrorCheck() {
+    errorCheckTimer.restart();
+  }
+
+  /** Compiles in the background and marks syntax errors red in the editors. */
+  private void checkErrors() {
+    codeTabs.syncToModel();
+    GeneratedProgram program = codingFile.buildProgram();
+    codingFile.writeSources();
+    java.util.List<String> paths = codingFile.javaFilePaths();
+    String classpath = codingFile.generateClassPath();
+    new Thread(
+            () -> {
+              JavaCompilerService.Result result = JavaCompilerService.compile(paths, classpath);
+              EventQueue.invokeLater(() -> applyLiveErrors(program, result));
+            })
+        .start();
+  }
+
+  private void applyLiveErrors(GeneratedProgram program, JavaCompilerService.Result result) {
+    codeTabs.clearAllErrors();
+    if (result.compilerAvailable()) {
+      for (Diagnostic<? extends JavaFileObject> diagnostic : result.diagnostics()) {
+        if (diagnostic.getKind() != Diagnostic.Kind.ERROR
+            && diagnostic.getKind() != Diagnostic.Kind.WARNING) {
+          continue;
+        }
+        String className = classNameOf(diagnostic);
+        int line = (int) diagnostic.getLineNumber();
+        if (className == null || line <= 0) {
+          continue;
+        }
+        MethodLocation location = program.locate(className, line);
+        if (location == null) {
+          continue;
+        }
+        CodingArea area = codeTabs.getArea(location.classIndex(), location.methodIndex());
+        if (area != null) {
+          area.addError(location.localLine(), diagnostic.getMessage(null));
+        }
+      }
+    }
+    codeTabs.applyAllErrors();
+  }
+
+  private static String classNameOf(Diagnostic<? extends JavaFileObject> diagnostic) {
+    JavaFileObject source = diagnostic.getSource();
+    if (source == null) {
+      return null;
+    }
+    String name = new File(source.getName()).getName();
+    return name.endsWith(".java") ? name.substring(0, name.length() - ".java".length()) : name;
   }
 
   private void installShortcuts() {
