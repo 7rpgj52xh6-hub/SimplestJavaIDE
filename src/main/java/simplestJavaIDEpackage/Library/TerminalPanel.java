@@ -24,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -39,8 +40,8 @@ import simplestJavaIDEpackage.Icons;
 import simplestJavaIDEpackage.Notifications;
 import simplestJavaIDEpackage.Theme;
 import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
-import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource;
-import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource.MethodLocation;
+import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram;
+import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram.MethodLocation;
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.CompilerHints;
 import simplestJavaIDEpackage.Library.Commands.JavaCompilerService;
@@ -73,6 +74,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private static final int MAX_PENDING_CHARS = 64_000;
   private static final int MAX_DOCUMENT_CHARS = 120_000;
   private static final int DEBUG_MAX_STEPS = 5_000;
+  private static final Pattern STACK_TRACE_LINE = Pattern.compile("(\\w+)\\.java:(\\d+)");
 
   private final CodingFile codingFile;
   private final Deque<Segment> pending = new ArrayDeque<>();
@@ -95,9 +97,10 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private JButton zoomInButton;
   private JButton zoomOutButton;
   private JButton debugButton;
+  private JToggleButton expertToggle;
   private JButton btnAddImports;
-  private MethodTabsPanel methodTabsPanel;
-  private volatile GeneratedSource lastSource;
+  private ClassTabsPanel codeTabs;
+  private volatile GeneratedProgram lastProgram;
   private DebugSession debugSession;
   private boolean debugging;
   private DebugSession.Listener debugUiListener =
@@ -111,7 +114,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
         @Override
         public void onError(String message) {}
       };
-  private BiConsumer<DebugSession, GeneratedSource> onDebugStarted = (session, source) -> {};
+  private BiConsumer<DebugSession, GeneratedProgram> onDebugStarted = (session, program) -> {};
 
   private record Segment(String text, Style style) {}
 
@@ -156,6 +159,9 @@ public class TerminalPanel extends JPanel implements CommandListener {
             "Fügt Imports hinzu (z. B. für Scanner), um fertige Java-Bausteine zu nutzen");
     helpButton =
         toolButton("Help", Icons.help(), KeyEvent.VK_H, "Kurzanleitung, Spickzettel und Tastenkürzel");
+    expertToggle = new JToggleButton("Klassen");
+    expertToggle.setFocusable(false);
+    expertToggle.setToolTipText("Expert-Modus: mit mehreren Klassen arbeiten (Standard: ohne Klassen)");
 
     toolBar.add(runButton);
     toolBar.add(stopButton);
@@ -167,6 +173,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
     toolBar.add(zoomInButton);
     toolBar.addSeparator();
     toolBar.add(debugButton);
+    toolBar.add(expertToggle);
     toolBar.add(Box.createHorizontalGlue());
     toolBar.add(helpButton);
 
@@ -273,11 +280,15 @@ public class TerminalPanel extends JPanel implements CommandListener {
     return debugButton;
   }
 
+  public JToggleButton getExpertToggle() {
+    return expertToggle;
+  }
+
   public void setDebugUiListener(DebugSession.Listener debugUiListener) {
     this.debugUiListener = debugUiListener;
   }
 
-  public void setOnDebugStarted(BiConsumer<DebugSession, GeneratedSource> onDebugStarted) {
+  public void setOnDebugStarted(BiConsumer<DebugSession, GeneratedProgram> onDebugStarted) {
     this.onDebugStarted = onDebugStarted;
   }
 
@@ -285,8 +296,8 @@ public class TerminalPanel extends JPanel implements CommandListener {
     return terminalOutput;
   }
 
-  public void setMethodTabsPanel(MethodTabsPanel methodTabsPanel) {
-    this.methodTabsPanel = methodTabsPanel;
+  public void setCodeTabs(ClassTabsPanel codeTabs) {
+    this.codeTabs = codeTabs;
   }
 
   /**
@@ -383,16 +394,15 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   /** Adds a [method:line] hint to stack-trace lines that point at generated code. */
   private String annotateStackTrace(String text) {
-    GeneratedSource source = lastSource;
-    if (source == null || !text.contains(".java:")) {
+    GeneratedProgram program = lastProgram;
+    if (program == null || !text.contains(".java:")) {
       return text;
     }
-    Pattern pattern =
-        Pattern.compile(Pattern.quote(codingFile.javaClass.className() + ".java") + ":(\\d+)");
-    Matcher matcher = pattern.matcher(text);
+    Matcher matcher = STACK_TRACE_LINE.matcher(text);
     StringBuilder result = new StringBuilder();
     while (matcher.find()) {
-      MethodLocation location = source.locate(Integer.parseInt(matcher.group(1)));
+      MethodLocation location =
+          program.locate(matcher.group(1), Integer.parseInt(matcher.group(2)));
       String replacement =
           location == null
               ? matcher.group()
@@ -415,29 +425,32 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
   /** Compiles, then starts a live step-debugging session. */
   public void debug() {
-    if (methodTabsPanel != null) {
-      methodTabsPanel.clearErrorHighlights();
+    if (codeTabs != null) {
+      codeTabs.clearHighlights();
     }
     clearConsole();
-    GeneratedSource source = codingFile.buildSource();
-    lastSource = source;
-    codingFile.tmpSaveAndRunJavaCode();
+    GeneratedProgram program = codingFile.buildProgram();
+    lastProgram = program;
+    codingFile.writeSources();
     enqueue("● Debugger: kompiliere …\n", systemStyle);
     new Thread(
             () -> {
               JavaCompilerService.Result result =
                   JavaCompilerService.compile(
-                      codingFile.getJavaTmpFilePath(), codingFile.generateClassPath());
+                      codingFile.javaFilePaths(), codingFile.generateClassPath());
               if (!result.compilerAvailable() || !result.success()) {
-                SwingUtilities.invokeLater(() -> onCompileFinished(result, source));
+                SwingUtilities.invokeLater(() -> onCompileFinished(result, program));
                 return;
               }
-              SwingUtilities.invokeLater(() -> startDebugSession(source));
+              SwingUtilities.invokeLater(() -> startDebugSession(program));
             })
         .start();
   }
 
-  private void startDebugSession(GeneratedSource source) {
+  private void startDebugSession(GeneratedProgram program) {
+    if (!ensureRunnable()) {
+      return;
+    }
     enqueue("▶ Debugger gestartet — mit 'Weiter ▶' Zeile für Zeile durchgehen.\n", systemStyle);
     debugging = true;
     stopButton.setEnabled(true);
@@ -472,35 +485,35 @@ public class TerminalPanel extends JPanel implements CommandListener {
         };
     debugSession =
         new DebugSession(
-            codingFile.javaClass.className(),
+            codingFile.entryClassName(),
             codingFile.generateClassPath(),
             DEBUG_MAX_STEPS,
             this,
             edtListener);
-    onDebugStarted.accept(debugSession, source);
+    onDebugStarted.accept(debugSession, program);
     debugSession.start();
   }
 
-  /** Compiles the generated source in the background and reports the result. */
+  /** Compiles the generated sources in the background and reports the result. */
   public void compile() {
-    if (methodTabsPanel != null) {
-      methodTabsPanel.clearErrorHighlights();
+    if (codeTabs != null) {
+      codeTabs.clearHighlights();
     }
     clearConsole(); // fresh console for each run
-    GeneratedSource source = codingFile.buildSource();
-    lastSource = source; // used to annotate runtime stack traces
-    codingFile.tmpSaveAndRunJavaCode();
+    GeneratedProgram program = codingFile.buildProgram();
+    lastProgram = program; // used to annotate runtime stack traces
+    codingFile.writeSources();
     new Thread(
             () -> {
               JavaCompilerService.Result result =
                   JavaCompilerService.compile(
-                      codingFile.getJavaTmpFilePath(), codingFile.generateClassPath());
-              SwingUtilities.invokeLater(() -> onCompileFinished(result, source));
+                      codingFile.javaFilePaths(), codingFile.generateClassPath());
+              SwingUtilities.invokeLater(() -> onCompileFinished(result, program));
             })
         .start();
   }
 
-  private void onCompileFinished(JavaCompilerService.Result result, GeneratedSource source) {
+  private void onCompileFinished(JavaCompilerService.Result result, GeneratedProgram program) {
     if (!result.compilerAvailable()) {
       enqueue(
           "Kein Java-Compiler gefunden. Bitte SimplestJavaIDE mit einem JDK starten "
@@ -509,14 +522,47 @@ public class TerminalPanel extends JPanel implements CommandListener {
       return;
     }
     if (result.success()) {
-      run();
+      if (ensureRunnable()) {
+        run();
+      }
       return;
     }
-    reportDiagnostics(result, source);
+    reportDiagnostics(result, program);
   }
 
-  /** Prints compiler errors with a beginner hint, mapped back to the method tab. */
-  private void reportDiagnostics(JavaCompilerService.Result result, GeneratedSource source) {
+  /** Checks there is exactly one entry point; reports a friendly message otherwise. */
+  private boolean ensureRunnable() {
+    int mains = codingFile.mainCount();
+    if (mains == 0) {
+      enqueue(
+          "Es gibt keine main-Methode. Dein Programm braucht eine\n"
+              + "    public static void main(String[] args)\n"
+              + "um starten zu können.\n",
+          errorStyle);
+      Notifications.error("Keine main-Methode gefunden.");
+      return false;
+    }
+    if (mains > 1) {
+      enqueue(
+          "Hinweis: Es gibt mehrere main-Methoden. Gestartet wird Klasse '"
+              + codingFile.entryClassName()
+              + "'.\n",
+          systemStyle);
+    }
+    return true;
+  }
+
+  private static String classNameOf(Diagnostic<? extends JavaFileObject> diagnostic) {
+    JavaFileObject source = diagnostic.getSource();
+    if (source == null) {
+      return null;
+    }
+    String name = new File(source.getName()).getName();
+    return name.endsWith(".java") ? name.substring(0, name.length() - ".java".length()) : name;
+  }
+
+  /** Prints compiler errors with a beginner hint, mapped back to the class/method tab. */
+  private void reportDiagnostics(JavaCompilerService.Result result, GeneratedProgram program) {
     MethodLocation firstError = null;
     int errorCount = 0;
     for (Diagnostic<? extends JavaFileObject> diagnostic : result.diagnostics()) {
@@ -527,12 +573,26 @@ public class TerminalPanel extends JPanel implements CommandListener {
       if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
         errorCount++;
       }
+      String className = classNameOf(diagnostic);
       int generatedLine = (int) diagnostic.getLineNumber();
-      MethodLocation location = generatedLine > 0 ? source.locate(generatedLine) : null;
-      String where =
-          location != null
-              ? "Methode '" + location.methodName() + "', Zeile " + location.localLine()
-              : "Zeile " + generatedLine;
+      MethodLocation location =
+          (className != null && generatedLine > 0) ? program.locate(className, generatedLine) : null;
+      String where;
+      if (location != null && location.methodIndex() >= 0) {
+        where =
+            "Klasse '"
+                + location.className()
+                + "', Methode '"
+                + location.methodName()
+                + "', Zeile "
+                + location.localLine();
+      } else if (location != null) {
+        where = "Klasse '" + location.className() + "', Zeile " + location.localLine();
+      } else if (className != null) {
+        where = "Klasse '" + className + "', Zeile " + generatedLine;
+      } else {
+        where = "Zeile " + generatedLine;
+      }
       enqueue(where + ": " + diagnostic.getMessage(null) + "\n", errorStyle);
       String hint = CompilerHints.friendlyHint(diagnostic);
       if (hint != null) {
@@ -542,8 +602,8 @@ public class TerminalPanel extends JPanel implements CommandListener {
         firstError = location;
       }
     }
-    if (firstError != null && methodTabsPanel != null) {
-      methodTabsPanel.showError(firstError.methodIndex(), firstError.localLine());
+    if (firstError != null && codeTabs != null) {
+      codeTabs.showError(firstError.classIndex(), firstError.methodIndex(), firstError.localLine());
     }
     Notifications.error(errorCount + " Fehler — siehe Konsole");
   }
@@ -558,7 +618,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
         System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
     List<String> commandValues =
         Arrays.asList(
-            javaExecutable, "-cp", codingFile.generateClassPath(), codingFile.javaClass.className());
+            javaExecutable, "-cp", codingFile.generateClassPath(), codingFile.entryClassName());
     runner = new Runner(this, commandValues);
     stopButton.setEnabled(true);
   }

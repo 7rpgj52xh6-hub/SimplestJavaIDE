@@ -132,6 +132,7 @@ public class DebugSession {
 
       EventQueue queue = vm.eventQueue();
       EventRequestManager requests = vm.eventRequestManager();
+      String lastPausedClass = null;
       int lastPausedLine = -1;
       int stepCount = 0;
       long continueDeadline = Long.MAX_VALUE;
@@ -161,11 +162,18 @@ public class DebugSession {
             StepRequest step =
                 requests.createStepRequest(
                     start.thread(), StepRequest.STEP_LINE, StepRequest.STEP_INTO);
-            step.addClassFilter(className);
+            // Step through the student's classes (default package) but not the JDK.
+            step.addClassExclusionFilter("java.*");
+            step.addClassExclusionFilter("javax.*");
+            step.addClassExclusionFilter("sun.*");
+            step.addClassExclusionFilter("jdk.*");
+            step.addClassExclusionFilter("com.sun.*");
             step.enable();
           } else if (event instanceof StepEvent stepEvent) {
+            String stepClass = stepEvent.location().declaringType().name();
             int line = stepEvent.location().lineNumber();
-            if (line != lastPausedLine) {
+            if (!(stepClass.equals(lastPausedClass) && line == lastPausedLine)) {
+              lastPausedClass = stepClass;
               lastPausedLine = line;
               stepCount++;
               listener.onPaused(capture(stepEvent));
@@ -233,10 +241,12 @@ public class DebugSession {
   }
 
   private TraceStep capture(StepEvent event) {
+    String className = event.location().declaringType().name();
+    int line = event.location().lineNumber();
     try {
       ThreadReference thread = event.thread();
       if (thread.frameCount() == 0) {
-        return new TraceStep(event.location().lineNumber(), Map.of());
+        return new TraceStep(className, line, Map.of());
       }
       StackFrame frame = thread.frame(0);
       Map<String, String> variables = new LinkedHashMap<>();
@@ -247,9 +257,9 @@ public class DebugSession {
       } catch (com.sun.jdi.AbsentInformationException ignored) {
         // compiled without -g
       }
-      return new TraceStep(event.location().lineNumber(), variables);
+      return new TraceStep(className, line, variables);
     } catch (IncompatibleThreadStateException e) {
-      return new TraceStep(event.location().lineNumber(), Map.of());
+      return new TraceStep(className, line, Map.of());
     }
   }
 

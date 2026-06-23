@@ -19,8 +19,8 @@ import javax.swing.JSlider;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import simplestJavaIDEpackage.Theme;
-import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource;
-import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource.MethodLocation;
+import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram;
+import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram.MethodLocation;
 
 /**
  * Right-hand live debugger panel: step the program forward one line at a time
@@ -49,7 +49,7 @@ public class DebugPanel extends JPanel {
   private final JLabel statusLabel = new JLabel(" ");
 
   private final List<TraceStep> history = new ArrayList<>();
-  private GeneratedSource source;
+  private GeneratedProgram program;
   private DebugSession session;
   private Consumer<MethodLocation> onStep = location -> {};
   private Runnable onClose = () -> {};
@@ -135,8 +135,9 @@ public class DebugPanel extends JPanel {
   }
 
   /** Begins a fresh debugging session (no steps recorded yet). */
-  public void begin(GeneratedSource source, DebugSession session, Consumer<MethodLocation> onStep) {
-    this.source = source;
+  public void begin(
+      GeneratedProgram program, DebugSession session, Consumer<MethodLocation> onStep) {
+    this.program = program;
     this.session = session;
     this.onStep = onStep;
     history.clear();
@@ -216,11 +217,21 @@ public class DebugPanel extends JPanel {
     for (Map.Entry<String, String> entry : step.variables().entrySet()) {
       tableModel.addRow(new Object[] {entry.getKey(), entry.getValue()});
     }
-    MethodLocation location = source.locate(step.generatedLine());
-    String where =
-        location != null
-            ? "Methode '" + location.methodName() + "', Zeile " + location.localLine()
-            : "Zeile " + step.generatedLine();
+    MethodLocation location = program.locate(step.className(), step.generatedLine());
+    String where;
+    if (location != null && location.methodIndex() >= 0) {
+      where =
+          "Klasse '"
+              + location.className()
+              + "', Methode '"
+              + location.methodName()
+              + "', Zeile "
+              + location.localLine();
+    } else if (location != null) {
+      where = "Klasse '" + location.className() + "', Zeile " + location.localLine();
+    } else {
+      where = "Zeile " + step.generatedLine();
+    }
     stepLabel.setText("Schritt " + (index + 1) + " / " + history.size() + " · " + where);
     onStep.accept(location);
   }

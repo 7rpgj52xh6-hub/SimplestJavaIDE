@@ -28,12 +28,12 @@ import javax.swing.WindowConstants;
 import simplestJavaIDEpackage.Library.AddImportsWindow;
 import simplestJavaIDEpackage.Library.CodeStructure.CodingFile;
 import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
-import simplestJavaIDEpackage.Library.CodeStructure.GeneratedSource;
+import simplestJavaIDEpackage.Library.ClassTabsPanel;
+import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram;
 import simplestJavaIDEpackage.Library.CodingArea;
 import simplestJavaIDEpackage.Library.Debug.DebugPanel;
 import simplestJavaIDEpackage.Library.Debug.DebugSession;
 import simplestJavaIDEpackage.Library.Debug.TraceStep;
-import simplestJavaIDEpackage.Library.MethodTabsPanel;
 import simplestJavaIDEpackage.Library.TerminalPanel;
 
 /**
@@ -47,7 +47,7 @@ public class MainUserInput {
   private final CodingFile codingFile;
   private JFrame frmSimplestJavaIDE;
   private TerminalPanel terminal;
-  private MethodTabsPanel methodTabsPanel;
+  private ClassTabsPanel codeTabs;
   private DebugPanel debugPanel;
 
   /** Create the application. */
@@ -93,7 +93,7 @@ public class MainUserInput {
     setWindowIcon();
 
     terminal = new TerminalPanel(codingFile);
-    methodTabsPanel = new MethodTabsPanel(codingFile, terminal);
+    codeTabs = new ClassTabsPanel(codingFile, terminal);
 
     // Toolbar at the top of the window, methods and console split below.
     frmSimplestJavaIDE.getContentPane().add(terminal.getToolBar(), BorderLayout.NORTH);
@@ -101,7 +101,7 @@ public class MainUserInput {
     JSplitPane mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     mainSplitPane.setBorder(null);
     mainSplitPane.setResizeWeight(0.8);
-    mainSplitPane.setTopComponent(methodTabsPanel);
+    mainSplitPane.setTopComponent(codeTabs);
     mainSplitPane.setBottomComponent(terminal);
     frmSimplestJavaIDE.getContentPane().add(mainSplitPane, BorderLayout.CENTER);
     mainSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 300);
@@ -140,9 +140,7 @@ public class MainUserInput {
     terminal.getSaveButton().addPropertyChangeListener("enabled", e -> updateTitle());
     updateTitle();
 
-    applyFontSize(
-        AppPreferences.getFontSize(
-            methodTabsPanel.getMainCodingArea().getTextArea().getFont().getSize()));
+    applyFontSize(AppPreferences.getFontSize(codeTabs.getReferenceFont().getSize()));
   }
 
   private void wireActions() {
@@ -159,8 +157,17 @@ public class MainUserInput {
               saveProject(); // keep current method edits before editing imports
               AddImportsWindow.launch(codingFile);
             });
-    // Persist whenever a method is added, renamed or deleted.
-    methodTabsPanel.setOnModelChanged(this::saveProject);
+    javax.swing.JToggleButton expert = terminal.getExpertToggle();
+    expert.setSelected(codingFile.expertMode);
+    expert.setText(codingFile.expertMode ? "Klassen: an" : "Klassen: aus");
+    expert.addActionListener(
+        e -> {
+          boolean on = expert.isSelected();
+          codeTabs.setExpertMode(on);
+          expert.setText(on ? "Klassen: an" : "Klassen: aus");
+        });
+    // Persist whenever a method, field or class is added, renamed or deleted.
+    codeTabs.setOnModelChanged(this::saveProject);
   }
 
   private void installShortcuts() {
@@ -188,9 +195,9 @@ public class MainUserInput {
 
   /** Saves the project: rebuild the model from the tabs, write it, refresh state. */
   private void saveProject() {
-    methodTabsPanel.syncMethodsToModel();
+    codeTabs.syncToModel();
     if (FileManager.save(codingFile)) {
-      codingFile.tmpSaveAndRunJavaCode();
+      codingFile.writeSources();
       terminal.getSaveButton().setEnabled(false);
       Notifications.info("Saved.");
     }
@@ -207,13 +214,14 @@ public class MainUserInput {
   }
 
   /** Opens the debugger panel for a fresh live session and steps the editor along. */
-  private void openDebugPanel(DebugSession session, GeneratedSource source) {
+  private void openDebugPanel(DebugSession session, GeneratedProgram program) {
     debugPanel.begin(
-        source,
+        program,
         session,
         location -> {
           if (location != null) {
-            methodTabsPanel.showExecutionLine(location.methodIndex(), location.localLine());
+            codeTabs.showExecutionLine(
+                location.classIndex(), location.methodIndex(), location.localLine());
           }
         });
     if (debugPanel.getParent() == null) {
@@ -225,7 +233,7 @@ public class MainUserInput {
 
   private void closeDebug() {
     terminal.stopRunningProgram(); // stops the debug session if still running
-    methodTabsPanel.clearErrorHighlights(); // also clears the execution highlight
+    codeTabs.clearHighlights(); // also clears the execution highlight
     if (debugPanel.getParent() != null) {
       frmSimplestJavaIDE.getContentPane().remove(debugPanel);
       frmSimplestJavaIDE.getContentPane().revalidate();
@@ -235,7 +243,7 @@ public class MainUserInput {
 
   /** Changes the editor and console font size by the given number of steps. */
   private void applyZoom(int steps) {
-    int current = methodTabsPanel.getMainCodingArea().getTextArea().getFont().getSize();
+    int current = codeTabs.getReferenceFont().getSize();
     int newSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, current + steps * 2));
     if (newSize == current) {
       return;
@@ -245,7 +253,7 @@ public class MainUserInput {
   }
 
   private void applyFontSize(int size) {
-    for (CodingArea area : methodTabsPanel.getListOfCodingAreas()) {
+    for (CodingArea area : codeTabs.getAllAreas()) {
       area.getTextArea().setFont(area.getTextArea().getFont().deriveFont((float) size));
     }
     terminal.getTextArea().setFont(terminal.getTextArea().getFont().deriveFont((float) size));
@@ -281,8 +289,9 @@ public class MainUserInput {
   }
 
   private void deleteTempFiles() {
-    deleteIfExists(codingFile.getJavaTmpFilePath());
-    deleteIfExists(codingFile.getJavaTmpClassPath());
+    for (String path : codingFile.generatedFilePaths()) {
+      deleteIfExists(path);
+    }
   }
 
   private void deleteIfExists(String path) {

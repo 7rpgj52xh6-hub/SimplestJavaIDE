@@ -31,16 +31,20 @@ public class JavaCompilerService {
       boolean success,
       List<Diagnostic<? extends JavaFileObject>> diagnostics) {}
 
-  public static Result compile(String javaFilePath, String outputDir) {
+  public static Result compile(List<String> javaFilePaths, String outputDir) {
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) {
       return new Result(false, false, List.of());
+    }
+    List<File> sourceFiles = new java.util.ArrayList<>();
+    for (String path : javaFilePaths) {
+      sourceFiles.add(new File(path));
     }
     DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
     try (StandardJavaFileManager fileManager =
         compiler.getStandardFileManager(diagnostics, null, StandardCharsets.UTF_8)) {
       Iterable<? extends JavaFileObject> units =
-          fileManager.getJavaFileObjectsFromFiles(List.of(new File(javaFilePath)));
+          fileManager.getJavaFileObjectsFromFiles(sourceFiles);
       // -g keeps local variable tables so the step debugger can read variables.
       List<String> options = List.of("-d", outputDir, "-g");
       boolean success =

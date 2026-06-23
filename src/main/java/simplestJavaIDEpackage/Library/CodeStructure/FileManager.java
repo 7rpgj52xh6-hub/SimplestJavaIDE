@@ -2,7 +2,11 @@ package simplestJavaIDEpackage.Library.CodeStructure;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -12,9 +16,9 @@ import java.nio.file.Path;
 import simplestJavaIDEpackage.ErrorPopupWindow;
 
 /**
- * Reads and writes {@link CodingFile}s as human-readable JSON. (Earlier versions
- * used Java object serialization, which broke on every model change and could
- * not be inspected; the format is intentionally not backwards compatible.)
+ * Reads and writes {@link CodingFile}s as human-readable JSON. Files from the
+ * earlier single-class schema (imports + methods + javaClass) are migrated to the
+ * current multi-class schema on load.
  */
 public class FileManager {
   private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -35,16 +39,45 @@ public class FileManager {
       return load(className, createNewAndSave(className, filepath).getFilepath(), false);
     }
     try (Reader reader = Files.newBufferedReader(Path.of(filepath), StandardCharsets.UTF_8)) {
-      CodingFile result = GSON.fromJson(reader, CodingFile.class);
-      if (result != null) {
-        // The path is not stored in the file; bind it to where it was loaded from.
-        result.setFilepath(filepath);
+      JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+      CodingFile result = json.has("classes") ? GSON.fromJson(json, CodingFile.class) : migrate(json, className, filepath);
+      if (result == null || result.classes == null || result.classes.isEmpty()) {
+        ErrorPopupWindow.throwMessage("Diese Datei ist beschädigt oder leer.");
+        return null;
       }
+      // The path is not stored in the file; bind it to where it was loaded from.
+      result.setFilepath(filepath);
       return result;
-    } catch (IOException | JsonParseException e) {
+    } catch (IOException | JsonParseException | IllegalStateException e) {
       ErrorPopupWindow.throwMessage("Could not open file: " + e.getMessage());
     }
     return null;
+  }
+
+  /** Migrates an old single-class file (imports + methods + javaClass) to the new schema. */
+  private static CodingFile migrate(JsonObject json, String className, String filepath) {
+    String name = className;
+    if (json.has("javaClass") && json.getAsJsonObject("javaClass").has("className")) {
+      name = json.getAsJsonObject("javaClass").get("className").getAsString();
+    }
+    CodingFile result = new CodingFile(name, filepath);
+    result.imports.clear();
+    if (json.has("imports")) {
+      for (JsonElement element : json.getAsJsonArray("imports")) {
+        result.imports.add(element.getAsString());
+      }
+    }
+    JavaClass main = result.classes.get(0);
+    if (json.has("methods")) {
+      main.methods.clear();
+      JsonArray methods = json.getAsJsonArray("methods");
+      for (JsonElement element : methods) {
+        JsonObject method = element.getAsJsonObject();
+        main.methods.add(
+            new Methods(method.get("name").getAsString(), method.get("content").getAsString()));
+      }
+    }
+    return result;
   }
 
   private static CodingFile createNewAndSave(String className, String filepath) {

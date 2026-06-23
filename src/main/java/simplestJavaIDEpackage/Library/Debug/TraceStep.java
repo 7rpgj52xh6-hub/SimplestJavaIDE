@@ -3,10 +3,9 @@ package simplestJavaIDEpackage.Library.Debug;
 import java.util.Map;
 
 /**
- * One recorded execution step: the line in the generated source that is about to
- * run and a snapshot of all visible local variables and their values at that
- * moment.
+ * One execution step: the class and the line in its generated source that is
+ * about to run, plus a snapshot of all visible local variables.
  *
  * @author Daniel Trageser
  */
-public record TraceStep(int generatedLine, Map<String, String> variables) {}
+public record TraceStep(String className, int generatedLine, Map<String, String> variables) {}

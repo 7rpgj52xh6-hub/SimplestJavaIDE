@@ -85,6 +85,16 @@ public final class Icons {
         });
   }
 
+  public static Icon classMarker() {
+    return icon(
+        Theme.ACCENT,
+        g -> {
+          g.setColor(Theme.ACCENT);
+          g.setFont(g.getFont().deriveFont(java.awt.Font.BOLD, 14f));
+          g.drawString("{}", 2, 14);
+        });
+  }
+
   public static Icon bug() {
     return icon(
         NEUTRAL,
