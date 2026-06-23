@@ -81,6 +81,7 @@ public class AddImportsWindow {
     importField.addActionListener(e -> addImport(importField.getText()));
     JButton addButton = new JButton("Hinzufügen");
     addButton.setFocusable(false);
+    addButton.setToolTipText("Fügt den Import zu deinem Programm hinzu");
     addButton.addActionListener(e -> addImport(importField.getText()));
 
     JPanel inputRow = new JPanel(new BorderLayout(8, 0));
@@ -127,6 +128,8 @@ public class AddImportsWindow {
     frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
 
     JButton deleteButton = new JButton("Delete");
+    deleteButton.setFocusable(false);
+    deleteButton.setToolTipText("Entfernt den in der Liste ausgewählten Import");
     deleteButton.setPreferredSize(new Dimension(100, 32));
     deleteButton.addActionListener(e -> deleteSelected());
     JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));

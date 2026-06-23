@@ -70,7 +70,7 @@ public class MethodTabsPanel extends JPanel {
     tabbedPaneMethods.addTab("", new JPanel());
     int plusIndex = tabbedPaneMethods.getTabCount() - 1;
     JButton plusButton = new JButton("+");
-    plusButton.setToolTipText("Add a new method");
+    plusButton.setToolTipText("Neue Methode anlegen");
     plusButton.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
     plusButton.setFocusable(false);
     plusButton.addActionListener(e -> promptAddMethod());

@@ -93,6 +93,7 @@ public class StartingWindow {
 
     JButton helpButton = new JButton("Help");
     helpButton.setFocusable(false);
+    helpButton.setToolTipText("Kurzanleitung, Spickzettel und Tastenkürzel");
     helpButton.addActionListener(e -> ImprintWindow.main(null));
     JPanel southRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 8));
     southRow.add(helpButton);
@@ -102,11 +103,13 @@ public class StartingWindow {
   private JPanel buildButtonRow() {
     JButton openButton = new JButton("Open…");
     openButton.setFocusable(false);
+    openButton.setToolTipText("Öffnet ein bestehendes Programm (.sji-Datei)");
     openButton.setPreferredSize(new Dimension(150, 40));
     openButton.addActionListener(e -> openExisting());
 
     JButton newButton = new JButton("New project");
     newButton.setFocusable(false);
+    newButton.setToolTipText("Legt ein neues, leeres Programm an");
     newButton.setPreferredSize(new Dimension(150, 40));
     newButton.putClientProperty("JButton.buttonType", "default"); // accent primary
     newButton.addActionListener(e -> createNew());
@@ -137,7 +140,7 @@ public class StartingWindow {
     for (String path : recent) {
       File file = new File(path);
       JButton link = new JButton(file.getName());
-      link.setToolTipText(path);
+      link.setToolTipText("Öffnet: " + path);
       link.setFocusable(false);
       link.setAlignmentX(Component.CENTER_ALIGNMENT);
       link.setMaximumSize(new Dimension(280, 30));

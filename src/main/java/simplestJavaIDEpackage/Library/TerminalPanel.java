@@ -131,18 +131,31 @@ public class TerminalPanel extends JPanel implements CommandListener {
             BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.PANEL_BORDER),
             BorderFactory.createEmptyBorder(6, 8, 6, 8)));
 
-    runButton = toolButton("Run", Icons.play(), KeyEvent.VK_R, "Compile and run (F5)");
-    stopButton = toolButton("Stop", Icons.stop(), KeyEvent.VK_T, "Stop the running program");
+    runButton =
+        toolButton(
+            "Run", Icons.play(), KeyEvent.VK_R, "Speichert, kompiliert und startet dein Programm (F5)");
+    stopButton =
+        toolButton("Stop", Icons.stop(), KeyEvent.VK_T, "Beendet das gerade laufende Programm");
     stopButton.setEnabled(false);
     stopButton.addActionListener(e -> stopRunningProgram());
-    saveButton = toolButton("Save", Icons.save(), KeyEvent.VK_S, "Save the project (Ctrl/Cmd+S)");
-    zoomOutButton = iconButton(Icons.zoomOut(), "Smaller font (Ctrl/Cmd+-)");
-    zoomInButton = iconButton(Icons.zoomIn(), "Larger font (Ctrl/Cmd++)");
+    saveButton =
+        toolButton("Save", Icons.save(), KeyEvent.VK_S, "Speichert dein Programm (Strg/Cmd+S)");
+    zoomOutButton = iconButton(Icons.zoomOut(), "Schrift kleiner (Strg/Cmd + −)");
+    zoomInButton = iconButton(Icons.zoomIn(), "Schrift größer (Strg/Cmd + +)");
     debugButton =
         toolButton(
-            "Debug", Icons.bug(), KeyEvent.VK_D, "Schritt für Schritt durchgehen und Variablen ansehen");
-    btnAddImports = toolButton("Imports", Icons.imports(), KeyEvent.VK_I, "Manage imports");
-    helpButton = toolButton("Help", Icons.help(), KeyEvent.VK_H, "Help & about");
+            "Debug",
+            Icons.bug(),
+            KeyEvent.VK_D,
+            "Geht dein Programm Zeile für Zeile durch und zeigt alle Variablen-Werte");
+    btnAddImports =
+        toolButton(
+            "Imports",
+            Icons.imports(),
+            KeyEvent.VK_I,
+            "Fügt Imports hinzu (z. B. für Scanner), um fertige Java-Bausteine zu nutzen");
+    helpButton =
+        toolButton("Help", Icons.help(), KeyEvent.VK_H, "Kurzanleitung, Spickzettel und Tastenkürzel");
 
     toolBar.add(runButton);
     toolBar.add(stopButton);
@@ -159,16 +172,16 @@ public class TerminalPanel extends JPanel implements CommandListener {
 
     // Program input line.
     userInputTextField = new JTextField();
-    userInputTextField.setToolTipText("Type input for your running program and press Enter");
+    userInputTextField.setToolTipText("Hier tippst du Eingaben für dein laufendes Programm");
     userInputTextField.addActionListener(e -> sendInput());
     JButton sendButton = new JButton("Senden", Icons.enter());
-    sendButton.setToolTipText("Eingabe an das Programm senden (Enter)");
+    sendButton.setToolTipText("Schickt deine Eingabe an das laufende Programm (oder Enter)");
     sendButton.setFocusable(false);
     sendButton.setIconTextGap(6);
     sendButton.addActionListener(e -> sendInput());
 
     JButton clearButton = new JButton("Clear");
-    clearButton.setToolTipText("Clear the console");
+    clearButton.setToolTipText("Leert die Konsole");
     clearButton.setFocusable(false);
     clearButton.addActionListener(e -> clearConsole());
 

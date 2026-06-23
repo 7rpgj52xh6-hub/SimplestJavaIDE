@@ -27,24 +27,42 @@ public class ImprintWindow {
       <html>
       <body style="font-family: sans-serif; margin: 16px;">
         <h2>SimplestJavaIDE</h2>
-        <p>Write and run Java without dealing with classes or boilerplate &ndash;
-           you only edit method bodies, each in its own tab.</p>
+        <p>Java schreiben und ausführen, ohne dich um Klassen oder Drumherum zu
+           kümmern &ndash; du bearbeitest nur Methoden, jede in ihrem eigenen Tab.</p>
 
-        <h3>Getting started</h3>
+        <h3>Erste Schritte</h3>
         <ul>
-          <li>Write your code in the method tabs. The <b>Main Method</b> is the entry point.</li>
-          <li>Click <b>+</b> to add a method; <b>right-click a tab</b> to rename or delete it.</li>
-          <li>Press <b>Run</b> to compile and run. Program input goes in the <i>Input</i> line.</li>
-          <li>If there is a compile error, the IDE jumps to the method and line and
-              highlights it.</li>
-          <li>Use <b>Add imports</b> to manage your imports.</li>
+          <li>Schreib deinen Code in die Methoden-Tabs. Die <b>Main Method</b> ist
+              der Startpunkt &ndash; hier beginnt dein Programm.</li>
+          <li>Mit <b>+</b> legst du eine neue Methode an; per <b>Rechtsklick auf einen
+              Tab</b> kannst du sie umbenennen oder löschen.</li>
+          <li><b>Run</b> speichert, kompiliert und führt dein Programm aus. Die
+              Ausgabe erscheint unten in der Konsole.</li>
+          <li>Erwartet dein Programm eine Eingabe, tippst du sie ins <i>Input</i>-Feld
+              und klickst <b>Senden</b> (oder drückst Enter).</li>
+          <li>Bei einem Fehler springt die IDE zur Methode und Zeile und markiert sie
+              rot &ndash; mit einem Tipp in einfacher Sprache.</li>
+          <li><b>Stop</b> beendet ein laufendes Programm (z. B. eine Endlosschleife).</li>
+          <li>Über <b>Imports</b> fügst du fertige Bausteine hinzu (z. B. Scanner).</li>
         </ul>
 
-        <h3>Keyboard shortcuts</h3>
+        <h3>Debugger &ndash; Schritt für Schritt</h3>
         <ul>
-          <li><b>Ctrl/Cmd + S</b> &ndash; save</li>
-          <li><b>F5</b> or <b>Ctrl/Cmd + R</b> &ndash; run</li>
-          <li><b>Ctrl/Cmd + Plus / Minus</b> &ndash; larger / smaller font</li>
+          <li>Mit <b>Debug</b> startest du dein Programm angehalten.</li>
+          <li><b>Weiter ▶</b> führt genau eine Zeile aus. Rechts siehst du dabei alle
+              Variablen und ihre <b>aktuellen Werte</b>, die laufende Zeile wird grün
+              markiert.</li>
+          <li>Eingaben gibst du ganz normal ins <i>Input</i>-Feld ein, während du
+              steppst.</li>
+          <li><b>Bis Ende ▶▶</b> lässt den Rest durchlaufen, <b>◀ Zurück</b> zeigt
+              schon ausgeführte Schritte noch einmal an.</li>
+        </ul>
+
+        <h3>Tastenkürzel</h3>
+        <ul>
+          <li><b>Strg/Cmd + S</b> &ndash; speichern</li>
+          <li><b>F5</b> oder <b>Strg/Cmd + R</b> &ndash; ausführen</li>
+          <li><b>Strg/Cmd + Plus / Minus</b> &ndash; Schrift größer / kleiner</li>
         </ul>
 
         <h3>Syntax-Spickzettel</h3>
@@ -73,17 +91,16 @@ public class ImprintWindow {
             zahl = zahl - 1;
         }
 
-        // Eingabe (Scanner) — import java.util.* nicht vergessen!
+        // Eingabe (Scanner) — import java.util.Scanner; nicht vergessen!
         Scanner scanner = new Scanner(System.in);
         int eingabe = scanner.nextInt();
         </pre>
 
-        <h3>About</h3>
-        <p>&copy; Daniel Trageser. Designed for teaching Java in German vocational
-           schools.<br>
-           Contact: daniel.trageser@outlook.com</p>
-        <p style="color: gray;">Built with RSyntaxTextArea (BSD), FlatLaf (Apache 2.0)
-           and Gson (Apache 2.0).</p>
+        <h3>Über</h3>
+        <p>&copy; Daniel Trageser. Für den Java-Unterricht an deutschen Berufsschulen.<br>
+           Kontakt: daniel.trageser@outlook.com</p>
+        <p style="color: gray;">Gebaut mit RSyntaxTextArea (BSD), FlatLaf (Apache 2.0)
+           und Gson (Apache 2.0).</p>
       </body>
       </html>
       """;

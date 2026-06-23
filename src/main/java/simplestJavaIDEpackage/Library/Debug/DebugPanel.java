@@ -91,6 +91,10 @@ public class DebugPanel extends JPanel {
     for (JButton button : new JButton[] {prevButton, nextButton, continueButton, closeButton}) {
       button.setFocusable(false);
     }
+    prevButton.setToolTipText("Einen Schritt zurück ansehen (macht nichts rückgängig)");
+    nextButton.setToolTipText("Führt die nächste Zeile aus");
+    continueButton.setToolTipText("Lässt den Rest des Programms ohne Stepping durchlaufen");
+    closeButton.setToolTipText("Beendet den Debugger");
     prevButton.addActionListener(e -> showStep(index - 1));
     nextButton.addActionListener(e -> onNext());
     continueButton.addActionListener(e -> onContinue());
