@@ -21,6 +21,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
@@ -54,7 +55,10 @@ public class MainUserInput {
   private TerminalPanel terminal;
   private ClassTabsPanel codeTabs;
   private DebugPanel debugPanel;
+  private ErrorListPanel errorListPanel;
+  private StatusBar statusBar;
   private Timer errorCheckTimer;
+  private Timer autosaveTimer;
 
   /** Create the application. */
   public MainUserInput(CodingFile savefile) {
@@ -112,12 +116,19 @@ public class MainUserInput {
     frmSimplestJavaIDE.getContentPane().add(mainSplitPane, BorderLayout.CENTER);
     mainSplitPane.setDividerLocation(frmSimplestJavaIDE.getHeight() - 300);
 
-    StatusBar statusBar = new StatusBar();
-    frmSimplestJavaIDE.getContentPane().add(statusBar, BorderLayout.SOUTH);
+    statusBar = new StatusBar();
     Notifications.setStatusBar(statusBar);
+    errorListPanel = new ErrorListPanel();
+    errorListPanel.setOnSelect(this::jumpToError);
+    JPanel southPanel = new JPanel(new BorderLayout());
+    southPanel.add(errorListPanel, BorderLayout.NORTH);
+    southPanel.add(statusBar, BorderLayout.SOUTH);
+    frmSimplestJavaIDE.getContentPane().add(southPanel, BorderLayout.SOUTH);
 
     errorCheckTimer = new Timer(600, e -> checkErrors());
     errorCheckTimer.setRepeats(false);
+    autosaveTimer = new Timer(20_000, e -> autosave());
+    autosaveTimer.start();
 
     debugPanel = new DebugPanel();
     debugPanel.setOnClose(this::closeDebug);
@@ -163,7 +174,7 @@ public class MainUserInput {
         .getAddImportsButton()
         .addActionListener(
             e -> {
-              saveProject(); // keep current method edits before editing imports
+              saveSilently(); // keep current method edits before editing imports
               AddImportsWindow.launch(codingFile);
             });
     javax.swing.JToggleButton expert = terminal.getExpertToggle();
@@ -176,7 +187,7 @@ public class MainUserInput {
           expert.setText(on ? "Klassen: an" : "Klassen: aus");
         });
     // Persist whenever a method, field or class is added, renamed or deleted.
-    codeTabs.setOnModelChanged(this::saveProject);
+    codeTabs.setOnModelChanged(this::saveSilently);
     // Live syntax checking as the student types.
     codeTabs.setOnEdit(this::scheduleErrorCheck);
   }
@@ -202,6 +213,7 @@ public class MainUserInput {
 
   private void applyLiveErrors(GeneratedProgram program, JavaCompilerService.Result result) {
     codeTabs.clearAllErrors();
+    java.util.List<ErrorListPanel.ErrorEntry> entries = new java.util.ArrayList<>();
     if (result.compilerAvailable()) {
       for (Diagnostic<? extends JavaFileObject> diagnostic : result.diagnostics()) {
         if (diagnostic.getKind() != Diagnostic.Kind.ERROR
@@ -221,9 +233,42 @@ public class MainUserInput {
         if (area != null) {
           area.addError(location.localLine(), diagnostic.getMessage(null));
         }
+        String where =
+            location.methodIndex() >= 0
+                ? "Klasse '"
+                    + location.className()
+                    + "' · Methode '"
+                    + location.methodName()
+                    + "', Zeile "
+                    + location.localLine()
+                : "Klasse '" + location.className() + "', Zeile " + location.localLine();
+        entries.add(
+            new ErrorListPanel.ErrorEntry(
+                location.classIndex(),
+                location.methodIndex(),
+                location.localLine(),
+                where + " — " + firstLine(diagnostic.getMessage(null))));
       }
     }
     codeTabs.applyAllErrors();
+    errorListPanel.setErrors(entries);
+  }
+
+  private static String firstLine(String message) {
+    if (message == null) {
+      return "";
+    }
+    int newline = message.indexOf('\n');
+    String line = newline >= 0 ? message.substring(0, newline) : message;
+    return line.length() > 90 ? line.substring(0, 90) + "…" : line;
+  }
+
+  private void jumpToError(ErrorListPanel.ErrorEntry entry) {
+    codeTabs.showError(entry.classIndex(), entry.methodIndex(), entry.localLine());
+    CodingArea area = codeTabs.getArea(entry.classIndex(), entry.methodIndex());
+    if (area != null) {
+      area.getTextArea().requestFocusInWindow();
+    }
   }
 
   private static String classNameOf(Diagnostic<? extends JavaFileObject> diagnostic) {
@@ -258,23 +303,39 @@ public class MainUserInput {
     actionMap.put("zoomOut", action(() -> applyZoom(-1)));
   }
 
-  /** Saves the project: rebuild the model from the tabs, write it, refresh state. */
+  /** Saves the project explicitly (with a confirmation message). */
   private void saveProject() {
+    save(true);
+  }
+
+  private void saveSilently() {
+    save(false);
+  }
+
+  private void save(boolean announce) {
     codeTabs.syncToModel();
     if (FileManager.save(codingFile)) {
       codingFile.writeSources();
       terminal.getSaveButton().setEnabled(false);
-      Notifications.info("Saved.");
+      if (announce) {
+        Notifications.info("Gespeichert.");
+      }
+    }
+  }
+
+  private void autosave() {
+    if (terminal.getSaveButton().isEnabled()) {
+      saveSilently();
     }
   }
 
   private void runProject() {
-    saveProject();
+    saveSilently();
     terminal.compile();
   }
 
   private void debugProject() {
-    saveProject();
+    saveSilently();
     terminal.debug();
   }
 
@@ -328,6 +389,9 @@ public class MainUserInput {
     boolean dirty = terminal.getSaveButton().isEnabled();
     frmSimplestJavaIDE.setTitle(
         (dirty ? "● " : "") + "Simplest Java IDE - " + codingFile.getFilepath());
+    if (statusBar != null) {
+      statusBar.setSaveState(dirty);
+    }
   }
 
   /** Asks to save unsaved work, stops the running program, then exits. */

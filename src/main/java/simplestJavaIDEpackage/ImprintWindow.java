@@ -97,7 +97,8 @@ public class ImprintWindow {
         </pre>
 
         <h3>Über</h3>
-        <p>&copy; Daniel Trageser. Für den Java-Unterricht an deutschen Berufsschulen.<br>
+        <p><b>SimplestJavaIDE — Version Alpha 2.0</b><br>
+           &copy; Daniel Trageser. Für den Java-Unterricht an deutschen Berufsschulen.<br>
            Kontakt: daniel.trageser@outlook.com</p>
         <p style="color: gray;">Gebaut mit RSyntaxTextArea (BSD), FlatLaf (Apache 2.0)
            und Gson (Apache 2.0).</p>

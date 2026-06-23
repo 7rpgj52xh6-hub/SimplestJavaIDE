@@ -18,7 +18,9 @@ import javax.swing.UIManager;
 public class StatusBar extends JPanel {
 
   private static final Color ERROR_COLOR = new Color(232, 104, 104);
+  private static final Color SAVED_COLOR = new Color(0x7FB37F);
   private final JLabel label = new JLabel(" ");
+  private final JLabel saveLabel = new JLabel();
   private final Color defaultForeground;
   private final Timer clearTimer;
 
@@ -34,8 +36,16 @@ public class StatusBar extends JPanel {
     }
     defaultForeground = label.getForeground();
     add(label, BorderLayout.WEST);
+    add(saveLabel, BorderLayout.EAST);
+    setSaveState(false);
     clearTimer = new Timer(6000, e -> clear());
     clearTimer.setRepeats(false);
+  }
+
+  /** Shows a permanent save-state indicator on the right. */
+  public void setSaveState(boolean dirty) {
+    saveLabel.setText(dirty ? "● Ungespeichert" : "✓ Gespeichert");
+    saveLabel.setForeground(dirty ? Theme.HINT_AMBER : SAVED_COLOR);
   }
 
   public void show(String message, boolean error) {

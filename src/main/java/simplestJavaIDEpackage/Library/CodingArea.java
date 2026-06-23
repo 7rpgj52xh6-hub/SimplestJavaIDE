@@ -49,6 +49,13 @@ public class CodingArea extends JPanel {
     this.method = method;
     syntaxTextAreaMainMethod.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
     syntaxTextAreaMainMethod.setCodeFoldingEnabled(true);
+    // Editor comfort: keep indentation, auto-close braces/brackets/quotes, match brackets.
+    syntaxTextAreaMainMethod.setAutoIndentEnabled(true);
+    syntaxTextAreaMainMethod.setCloseCurlyBraces(true);
+    syntaxTextAreaMainMethod.setInsertPairedCharacters(true);
+    syntaxTextAreaMainMethod.setBracketMatchingEnabled(true);
+    syntaxTextAreaMainMethod.setAnimateBracketMatching(false);
+    CodeCompletion.install(syntaxTextAreaMainMethod);
     try {
       Theme theme =
           Theme.load(
