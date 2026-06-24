@@ -175,7 +175,8 @@ public class MainUserInput {
         .addActionListener(
             e -> {
               saveSilently(); // keep current method edits before editing imports
-              AddImportsWindow.launch(codingFile);
+              // Re-check on import changes so stale "cannot find symbol" errors clear.
+              AddImportsWindow.launch(codingFile, this::scheduleErrorCheck);
             });
     javax.swing.JToggleButton expert = terminal.getExpertToggle();
     expert.setSelected(codingFile.expertMode);
@@ -185,6 +186,7 @@ public class MainUserInput {
           boolean on = expert.isSelected();
           codeTabs.setExpertMode(on);
           expert.setText(on ? "Klassen: an" : "Klassen: aus");
+          scheduleErrorCheck(); // generation changed -> refresh error markers
         });
     // Persist whenever a method, field or class is added, renamed or deleted.
     codeTabs.setOnModelChanged(this::saveSilently);

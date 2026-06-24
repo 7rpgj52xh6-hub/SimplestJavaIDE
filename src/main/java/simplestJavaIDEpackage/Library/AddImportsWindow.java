@@ -38,22 +38,28 @@ import simplestJavaIDEpackage.Library.CodeStructure.FileManager;
 public class AddImportsWindow {
 
   private final CodingFile codingFile;
+  private final Runnable onChange;
   private final DefaultListModel<String> listModel = new DefaultListModel<>();
   private JFrame frame;
   private JTextField importField;
   private JList<String> importList;
 
-  public AddImportsWindow(CodingFile codingFile) {
+  public AddImportsWindow(CodingFile codingFile, Runnable onChange) {
     this.codingFile = codingFile;
+    this.onChange = onChange != null ? onChange : () -> {};
     initialize();
   }
 
-  /** Launch the window. */
-  public static void launch(CodingFile codingFile) {
+  /**
+   * Launch the window. {@code onChange} is invoked whenever an import is added or
+   * removed, so the caller can re-run its live error check (otherwise stale
+   * "cannot find symbol" errors would linger until the next editor keystroke).
+   */
+  public static void launch(CodingFile codingFile, Runnable onChange) {
     EventQueue.invokeLater(
         () -> {
           try {
-            new AddImportsWindow(codingFile).frame.setVisible(true);
+            new AddImportsWindow(codingFile, onChange).frame.setVisible(true);
           } catch (Exception e) {
             ErrorPopupWindow.throwMessage(e.getMessage());
           }
@@ -162,6 +168,7 @@ public class AddImportsWindow {
     loadImports();
     FileManager.save(codingFile);
     importField.setText("");
+    onChange.run();
   }
 
   /**
@@ -184,6 +191,7 @@ public class AddImportsWindow {
     codingFile.imports.remove(index);
     loadImports();
     FileManager.save(codingFile);
+    onChange.run();
   }
 
   private void loadImports() {
