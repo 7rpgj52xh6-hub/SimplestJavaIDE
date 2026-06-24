@@ -44,6 +44,12 @@ fi
 STAGE="$(mktemp -d)"
 cp "target/$MAIN_JAR" "$STAGE/"
 
+# Resolve the runtime to its REAL physical path. jpackage fails with
+# "NoSuchFileException: .../lib/runtime" when --runtime-image is reached through a
+# symlink (e.g. actions/setup-java's JAVA_HOME on Linux x64). pwd -P dereferences.
+RUNTIME_SRC="${JAVA_HOME:-$(dirname "$(dirname "$(command -v java)")")}"
+RUNTIME_IMAGE="$(cd "$RUNTIME_SRC" && pwd -P)"
+
 rm -rf dist && mkdir -p dist
 
 echo "Building '$TYPE' for $APP_NAME $APP_VERSION ..."
@@ -56,7 +62,7 @@ echo "Building '$TYPE' for $APP_NAME $APP_VERSION ..."
   --input "$STAGE" \
   --main-jar "$MAIN_JAR" \
   --main-class "$MAIN_CLASS" \
-  --runtime-image "${JAVA_HOME:-$(dirname "$(dirname "$(command -v java)")")}" \
+  --runtime-image "$RUNTIME_IMAGE" \
   --icon "$ICON" \
   --dest dist
 
