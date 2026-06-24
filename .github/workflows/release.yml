@@ -65,16 +65,21 @@ jobs:
           bash packaging/jpackage.sh dmg
           mv dist/*.dmg "SimplestJavaIDE-${{ matrix.label }}.dmg"
 
-      # ---- Linux: a .deb plus a portable .tar.gz (for non-Debian distros) ----
-      - name: Package (Linux .deb + portable)
+      # ---- Linux: a portable .tar.gz (always) plus a best-effort .deb ----
+      - name: Package (Linux portable + .deb)
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          sudo apt-get update && sudo apt-get install -y fakeroot binutils
+          sudo apt-get update && sudo apt-get install -y fakeroot binutils dpkg
+          # The portable app-image is the guaranteed deliverable.
           bash packaging/jpackage.sh app-image
           tar -C dist -czf "SimplestJavaIDE-${{ matrix.label }}.tar.gz" SimplestJavaIDE
-          bash packaging/jpackage.sh deb
-          mv dist/*.deb "SimplestJavaIDE-${{ matrix.label }}.deb"
+          # The .deb is a nice-to-have (needs dpkg/fakeroot); never fail the job over it.
+          if bash packaging/jpackage.sh deb; then
+            mv dist/*.deb "SimplestJavaIDE-${{ matrix.label }}.deb" || true
+          else
+            echo "::warning::.deb build failed -- shipping the portable .tar.gz only"
+          fi
 
       # ---- Windows: a portable .zip (contains SimplestJavaIDE.exe) ----
       - name: Package (Windows portable)
