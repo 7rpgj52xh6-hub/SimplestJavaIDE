@@ -70,11 +70,15 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          sudo apt-get update && sudo apt-get install -y fakeroot binutils dpkg
-          # The portable app-image is the guaranteed deliverable.
+          # The portable app-image + tar.gz is the guaranteed deliverable and needs
+          # no extra packages (binutils is preinstalled on the runners). Build it
+          # FIRST so a flaky apt mirror can never cost us the Linux artifact.
           bash packaging/jpackage.sh app-image
           tar -C dist -czf "SimplestJavaIDE-${{ matrix.label }}.tar.gz" SimplestJavaIDE
-          # The .deb is a nice-to-have (needs dpkg/fakeroot); never fail the job over it.
+          # The .deb is a nice-to-have; both `apt-get` and fakeroot can be flaky on
+          # the hosted runners, so keep the whole thing best-effort.
+          sudo apt-get update -qq || true
+          sudo apt-get install -y -qq fakeroot binutils || true
           if bash packaging/jpackage.sh deb; then
             mv dist/*.deb "SimplestJavaIDE-${{ matrix.label }}.deb" || true
           else
