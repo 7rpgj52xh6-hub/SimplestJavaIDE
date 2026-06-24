@@ -1,0 +1,107 @@
+name: release
+
+# Builds native, self-contained packages (with a bundled JDK) for macOS, Linux
+# and Windows -- on both Intel/x64 and ARM. jpackage cannot cross-compile, so
+# each platform is built on its own runner.
+#
+# Trigger it by pushing a tag like `v2.0`, or run it by hand from the Actions
+# tab (workflow_dispatch). On a tag push the artifacts are also attached to a
+# GitHub Release.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to create the Release on a tag
+
+jobs:
+  package:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macos-arm64
+            runner: macos-14
+            java-dist: temurin
+          - label: macos-x64
+            runner: macos-13
+            java-dist: temurin
+          - label: linux-x64
+            runner: ubuntu-22.04
+            java-dist: temurin
+          - label: linux-arm64
+            runner: ubuntu-22.04-arm
+            java-dist: temurin
+          - label: windows-x64
+            runner: windows-latest
+            java-dist: temurin
+          - label: windows-arm64
+            runner: windows-11-arm
+            java-dist: microsoft   # Temurin has no Windows/AArch64 build yet
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ matrix.java-dist }}
+          java-version: '21'
+          cache: maven
+
+      - name: Build runnable jar
+        shell: bash
+        run: mvn -B clean package
+
+      # ---- macOS: a .dmg installer (drag the app into Applications) ----
+      - name: Package (macOS .dmg)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          bash packaging/jpackage.sh dmg
+          mv dist/*.dmg "SimplestJavaIDE-${{ matrix.label }}.dmg"
+
+      # ---- Linux: a .deb plus a portable .tar.gz (for non-Debian distros) ----
+      - name: Package (Linux .deb + portable)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update && sudo apt-get install -y fakeroot binutils
+          bash packaging/jpackage.sh app-image
+          tar -C dist -czf "SimplestJavaIDE-${{ matrix.label }}.tar.gz" SimplestJavaIDE
+          bash packaging/jpackage.sh deb
+          mv dist/*.deb "SimplestJavaIDE-${{ matrix.label }}.deb"
+
+      # ---- Windows: a portable .zip (contains SimplestJavaIDE.exe) ----
+      - name: Package (Windows portable)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          bash packaging/jpackage.sh app-image
+          powershell -Command "Compress-Archive -Path dist/SimplestJavaIDE -DestinationPath SimplestJavaIDE-${{ matrix.label }}.zip"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimplestJavaIDE-${{ matrix.label }}
+          path: |
+            SimplestJavaIDE-${{ matrix.label }}.dmg
+            SimplestJavaIDE-${{ matrix.label }}.deb
+            SimplestJavaIDE-${{ matrix.label }}.tar.gz
+            SimplestJavaIDE-${{ matrix.label }}.zip
+          if-no-files-found: ignore
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            SimplestJavaIDE-${{ matrix.label }}.dmg
+            SimplestJavaIDE-${{ matrix.label }}.deb
+            SimplestJavaIDE-${{ matrix.label }}.tar.gz
+            SimplestJavaIDE-${{ matrix.label }}.zip
+          fail_on_unmatched_files: false
