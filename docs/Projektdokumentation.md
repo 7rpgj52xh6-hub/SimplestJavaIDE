@@ -219,9 +219,12 @@ Deshalb bündelt [`packaging/jpackage.sh`](../packaging/jpackage.sh) per
   werden.
 
 Der Workflow [`.github/workflows/release.yml`](../.github/workflows/release.yml)
-baut beim Pushen eines Tags `v*` automatisch **sechs** Varianten:
-macOS/Linux/Windows je in **x64 und ARM64** (inkl. *Windows on ARM* über den
-`windows-11-arm`-Runner) und hängt sie an ein GitHub-Release.
+baut beim Pushen eines Tags `v*` automatisch **fünf** Varianten und hängt sie an
+ein GitHub-Release: **macOS ARM64** (Apple Silicon – jeder Mac ab 2020), **Linux
+x64 + ARM64** und **Windows x64 + ARM64** (inkl. *Windows on ARM* über den
+`windows-11-arm`-Runner). Intel-Macs (`macos-x64`) sind bewusst nicht dabei, weil
+GitHubs Intel-Mac-Runner stark verknappt sind; der Eintrag lässt sich bei Bedarf
+in der Matrix wieder ergänzen.
 
 ## 11. Dateiübersicht
 

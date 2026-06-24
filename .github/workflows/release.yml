@@ -27,9 +27,9 @@ jobs:
           - label: macos-arm64
             runner: macos-14
             java-dist: temurin
-          - label: macos-x64
-            runner: macos-13
-            java-dist: temurin
+          # Apple Silicon only: every Mac since 2020 is arm64, and GitHub's Intel
+          # mac runners are heavily constrained. Add a macos-13 / macos-x64 entry
+          # back here if old Intel Macs ever need support.
           - label: linux-x64
             runner: ubuntu-22.04
             java-dist: temurin

@@ -32,7 +32,7 @@ herunter:
 
 | Plattform | Datei | Installation |
 |-----------|-------|--------------|
-| **macOS** (Apple Silicon / Intel) | `…-macos-arm64.dmg` / `…-macos-x64.dmg` | Öffnen, App in den Programme-Ordner ziehen |
+| **macOS** (Apple Silicon, ab 2020) | `…-macos-arm64.dmg` | Öffnen, App in den Programme-Ordner ziehen |
 | **Windows** (x64 / ARM64) | `…-windows-x64.zip` / `…-windows-arm64.zip` | Entpacken, `SimplestJavaIDE.exe` starten |
 | **Linux** (x64 / ARM64) | `…-linux-x64.deb` / `…-linux-arm64.deb` | `sudo apt install ./…​.deb` |
 | **Linux** (andere Distributionen) | `…-linux-x64.tar.gz` | Entpacken, `SimplestJavaIDE/bin/SimplestJavaIDE` starten |
