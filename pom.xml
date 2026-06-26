@@ -5,7 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.daniel</groupId>
     <artifactId>com.daniel</artifactId>
-    <version>a2.0</version>
+    <!-- Single source of truth for the app version. jpackage needs a plain
+         numeric version, so keep this numeric ("2.0"); the "Alpha" label is
+         display-only and added by the About dialog. -->
+    <version>2.0</version>
     <name>com.daniel</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -73,6 +76,12 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>${mainClass}</mainClass>
+                                    <!-- Bake the version into the jar manifest so the
+                                         About dialog and packaging can read it. -->
+                                    <manifestEntries>
+                                        <Implementation-Title>SimplestJavaIDE</Implementation-Title>
+                                        <Implementation-Version>${project.version}</Implementation-Version>
+                                    </manifestEntries>
                                 </transformer>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>

@@ -97,7 +97,7 @@ public class ImprintWindow {
         </pre>
 
         <h3>Über</h3>
-        <p><b>SimplestJavaIDE — Version Alpha 2.0</b><br>
+        <p><b>SimplestJavaIDE — Version Alpha {{VERSION}}</b><br>
            &copy; Daniel Trageser. Für den Java-Unterricht an deutschen Berufsschulen.<br>
            Kontakt: daniel.trageser@outlook.com</p>
         <p style="color: gray;">Gebaut mit RSyntaxTextArea (BSD), FlatLaf (Apache 2.0)
@@ -110,6 +110,15 @@ public class ImprintWindow {
 
   public ImprintWindow() {
     initialize();
+  }
+
+  /**
+   * The app version, read from the jar manifest (Implementation-Version, set from
+   * the pom). Falls back to "2.0" when running from an IDE without a built jar.
+   */
+  private static String version() {
+    String v = ImprintWindow.class.getPackage().getImplementationVersion();
+    return v != null ? v : "2.0";
   }
 
   /** Launch the window. */
@@ -141,7 +150,7 @@ public class ImprintWindow {
     JTextPane content = new JTextPane();
     content.setContentType("text/html");
     content.setEditable(false);
-    content.setText(HELP_HTML);
+    content.setText(HELP_HTML.replace("{{VERSION}}", version()));
     content.setCaretPosition(0);
     frame.getContentPane().add(new JScrollPane(content), BorderLayout.CENTER);
 

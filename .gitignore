@@ -1,2 +1,9 @@
 /target/
 /dist/
+
+# IDE / editor project files (per-user, should not be in version control)
+/.idea/
+*.iml
+.classpath
+.project
+/.settings/

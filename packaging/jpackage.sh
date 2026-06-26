@@ -16,13 +16,18 @@ set -euo pipefail
 
 TYPE="${1:-app-image}"
 APP_NAME="SimplestJavaIDE"
-APP_VERSION="2.0"
 VENDOR="Daniel Trageser"
 MAIN_CLASS="simplestJavaIDEpackage.StartingWindow"
 MAIN_JAR="SimplestJavaIDE.jar"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+
+# Single source of truth for the version: the <version> in pom.xml (the first
+# <version> in the file is the project version). Keeps the package version in
+# lock-step with the jar manifest and the About dialog.
+APP_VERSION="$(grep -m1 '<version>' pom.xml | sed -E 's:.*<version>(.*)</version>.*:\1:')"
+APP_VERSION="${APP_VERSION:-2.0}"
 
 JPACKAGE="${JAVA_HOME:+$JAVA_HOME/bin/}jpackage"
 
