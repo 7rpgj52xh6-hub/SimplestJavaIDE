@@ -6,7 +6,7 @@ um Klassen, Objekte oder Boilerplate kümmern zu müssen**. Entstanden für den
 Informatik-/IT-Unterricht an deutschen Berufsschulen (z. B. Fachoberschule
 Informationstechnik, 11. Klasse).
 
-> Version **Alpha 2.0**
+> Version **Alpha 2.1**
 
 ---
 

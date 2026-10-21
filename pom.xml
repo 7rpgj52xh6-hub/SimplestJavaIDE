@@ -8,7 +8,7 @@
     <!-- Single source of truth for the app version. jpackage needs a plain
          numeric version, so keep this numeric ("2.0"); the "Alpha" label is
          display-only and added by the About dialog. -->
-    <version>2.0</version>
+    <version>2.1</version>
     <name>com.daniel</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
