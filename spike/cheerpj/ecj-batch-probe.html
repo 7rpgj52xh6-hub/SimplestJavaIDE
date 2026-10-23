@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>CheerpJ Spike — ECJ batch-compiler probe</title>
+    <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
+    <style>body { font: 13px monospace; background: #111; color: #9f9; padding: 10px; white-space: pre-wrap; }</style>
+  </head>
+  <body>
+    <h3 style="color:#ddd">ECJ Batch-Compiler + gebündeltes rt17.jar als Bootclasspath</h3>
+    <div id="log"></div>
+    <script>
+      const logEl = document.getElementById("log");
+      const t0 = performance.now();
+      const ms = () => (performance.now() - t0).toFixed(0) + " ms";
+      const log = (s) => { const l = "[" + ms() + "] " + s; logEl.textContent += l + "\n"; console.log(l); };
+      (async function () {
+        try {
+          await cheerpjInit({ version: 17 });
+          cheerpjCreateDisplay(200, 60);
+          log("running probe.EcjBatchProbe");
+          const code = await cheerpjRunMain("probe.EcjBatchProbe", "/app/probe.jar:/app/ecj.jar");
+          log("exit code = " + code + " (output in browser CONSOLE)");
+        } catch (e) { log("ERROR: " + (e && e.message ? e.message : e)); }
+      })();
+    </script>
+  </body>
+</html>

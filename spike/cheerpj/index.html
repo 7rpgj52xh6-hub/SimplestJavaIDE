@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CheerpJ Spike — SimplestJavaIDE (Java 17)</title>
+    <!-- Pinned CheerpJ runtime version from the official CDN. -->
+    <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
+    <style>
+      body { font: 14px system-ui, sans-serif; margin: 0; background: #1e1e1e; color: #ddd; }
+      #bar { padding: 6px 10px; background: #2d2d2d; border-bottom: 1px solid #444; }
+      #log { position: fixed; right: 0; top: 0; width: 320px; height: 100%;
+             overflow: auto; background: #111; color: #9f9; font: 11px monospace;
+             padding: 8px; border-left: 1px solid #444; white-space: pre-wrap; }
+      #display { position: absolute; left: 0; top: 34px; }
+    </style>
+  </head>
+  <body>
+    <div id="bar">SimplestJavaIDE auf CheerpJ 4.3 — Java 17 build (<span id="status">lade…</span>)</div>
+    <div id="display"></div>
+    <div id="log"></div>
+    <script>
+      const logEl = document.getElementById("log");
+      const statusEl = document.getElementById("status");
+      const t0 = performance.now();
+      function ms() { return (performance.now() - t0).toFixed(0) + " ms"; }
+      function log(s) { const line = "[" + ms() + "] " + s; logEl.textContent += line + "\n"; console.log(line); }
+
+      (async function () {
+        try {
+          log("cheerpjInit() start");
+          await cheerpjInit({ version: 17 });
+          log("cheerpjInit() resolved");
+          statusEl.textContent = "Runtime bereit — starte App";
+          // Fill most of the window, leaving room for the log column.
+          cheerpjCreateDisplay(window.innerWidth - 340, window.innerHeight - 40,
+              document.getElementById("display"));
+          log("cheerpjCreateDisplay() done — running jar");
+          const code = await cheerpjRunJar("/app/SimplestJavaIDE-java17.jar");
+          log("cheerpjRunJar resolved, exit code = " + code);
+          statusEl.textContent = "App-Main zurückgekehrt (exit " + code + ")";
+        } catch (e) {
+          log("ERROR: " + (e && e.message ? e.message : e));
+          statusEl.textContent = "FEHLER — siehe Log";
+        }
+      })();
+    </script>
+  </body>
+</html>

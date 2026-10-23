@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>CheerpJ Spike — SimplestJavaIDE (Java 21, erwartet FEHLER)</title>
+    <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
+    <style>
+      body { font: 13px monospace; background: #111; color: #9f9; padding: 10px; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h3 style="color:#ddd">Test: lädt der echte Java-21-Bytecode (major 65) auf CheerpJ 4.3?</h3>
+    <div id="log"></div>
+    <script>
+      const logEl = document.getElementById("log");
+      const t0 = performance.now();
+      const ms = () => (performance.now() - t0).toFixed(0) + " ms";
+      const log = (s) => { const l = "[" + ms() + "] " + s; logEl.textContent += l + "\n"; console.log(l); };
+      (async function () {
+        try {
+          log("cheerpjInit({version:17}) …");
+          await cheerpjInit({ version: 17 });
+          cheerpjCreateDisplay(600, 400);
+          log("running /app/SimplestJavaIDE-java21.jar (Java 21 bytecode)");
+          const code = await cheerpjRunJar("/app/SimplestJavaIDE-java21.jar");
+          log("exit code = " + code + "  (if non-GUI error, look in console for UnsupportedClassVersionError)");
+        } catch (e) {
+          log("ERROR: " + (e && e.message ? e.message : e));
+        }
+      })();
+    </script>
+  </body>
+</html>

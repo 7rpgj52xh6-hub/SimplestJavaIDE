@@ -1,0 +1,3 @@
+# Build artifacts for the spike — regenerate with ./build.sh (see README.md).
+*.jar
+probe/classes/

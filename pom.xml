@@ -92,4 +92,29 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Web build: runs in the browser via CheerpJ. Targets Java 17 (CheerpJ's
+             runtime level) instead of 21 — a pure build flag, the sources are
+             17-compatible — produces a distinctly named jar, and bundles the Eclipse
+             compiler (ECJ) so student code can be compiled in-browser (CheerpJ ships
+             no javax.tools system compiler). The default build stays Desktop/Java 21
+             and is completely unaffected. Activate with: mvn -Pweb package -->
+        <profile>
+            <id>web</id>
+            <properties>
+                <maven.compiler.release>17</maven.compiler.release>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.eclipse.jdt</groupId>
+                    <artifactId>ecj</artifactId>
+                    <version>3.39.0</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <finalName>SimplestJavaIDE-web</finalName>
+            </build>
+        </profile>
+    </profiles>
 </project>
