@@ -12,7 +12,7 @@ import simplestJavaIDEpackage.ErrorPopupWindow;
  *
  * @author Daniel Trageser
  */
-public class Runner extends Thread {
+public class Runner extends Thread implements ProgramRunner {
   private final List<String> commands;
   private final CommandListener listener;
   private Process process;

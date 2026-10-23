@@ -45,7 +45,10 @@ import simplestJavaIDEpackage.Library.CodeStructure.GeneratedProgram.MethodLocat
 import simplestJavaIDEpackage.Library.Commands.CommandListener;
 import simplestJavaIDEpackage.Library.Commands.CompilerHints;
 import simplestJavaIDEpackage.Library.Commands.JavaCompilerService;
+import simplestJavaIDEpackage.Library.Commands.InJvmProgramRunner;
+import simplestJavaIDEpackage.Library.Commands.ProgramRunner;
 import simplestJavaIDEpackage.Library.Commands.Runner;
+import simplestJavaIDEpackage.Platform;
 import simplestJavaIDEpackage.Library.Debug.DebugSession;
 import simplestJavaIDEpackage.Library.Debug.TraceStep;
 
@@ -88,7 +91,7 @@ public class TerminalPanel extends JPanel implements CommandListener {
   private Style hintStyle;
   private Style inputStyle;
   private Timer flushTimer;
-  private Runner runner;
+  private ProgramRunner runner;
   private JTextField userInputTextField;
   private JButton saveButton;
   private JButton runButton;
@@ -614,12 +617,19 @@ public class TerminalPanel extends JPanel implements CommandListener {
       runner.kill();
     }
     enqueue("▶ Programm gestartet\n", systemStyle);
-    String javaExecutable =
-        System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-    List<String> commandValues =
-        Arrays.asList(
-            javaExecutable, "-cp", codingFile.generateClassPath(), codingFile.entryClassName());
-    runner = new Runner(this, commandValues);
+    if (Platform.WEB) {
+      // No subprocess under CheerpJ — run the compiled class in this JVM.
+      runner =
+          new InJvmProgramRunner(
+              this, codingFile.entryClassName(), codingFile.generateClassPath());
+    } else {
+      String javaExecutable =
+          System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+      List<String> commandValues =
+          Arrays.asList(
+              javaExecutable, "-cp", codingFile.generateClassPath(), codingFile.entryClassName());
+      runner = new Runner(this, commandValues);
+    }
     stopButton.setEnabled(true);
   }
 }

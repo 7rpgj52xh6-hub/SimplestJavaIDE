@@ -98,6 +98,7 @@ public class JavaCompilerService {
     List<String> argv = new ArrayList<>(List.of(
         "-source", "1.8", "-target", "1.8",
         "-bootclasspath", RT8,
+        "-encoding", "UTF-8", // students write umlauts; match the desktop file manager
         "-proc:none", "-nowarn",
         "-d", outputDir,
         "-log", log.getAbsolutePath()));
