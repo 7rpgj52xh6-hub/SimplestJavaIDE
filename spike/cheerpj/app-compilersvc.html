@@ -1,0 +1,15 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"/>
+<title>CheerpJ — JavaCompilerService (web) Test</title>
+<script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
+<style>body{font:13px monospace;background:#111;color:#9f9;padding:10px;white-space:pre-wrap}</style>
+</head><body><h3 style="color:#ddd">Echter JavaCompilerService im Web-Modus</h3><div id="log"></div>
+<script>
+const logEl=document.getElementById("log");const t0=performance.now();
+const log=(s)=>{const l="["+((performance.now()-t0).toFixed(0))+" ms] "+s;logEl.textContent+=l+"\n";console.log(l);};
+(async function(){try{
+  await cheerpjInit({version:17});cheerpjCreateDisplay(200,60);
+  log("running probe.CompilerServiceProbe");
+  const c=await cheerpjRunMain("probe.CompilerServiceProbe","/app/probe-csp.jar:/app/SimplestJavaIDE-web.jar");
+  log("exit code = "+c+" (Ausgabe in der Browser-CONSOLE)");
+}catch(e){log("ERROR: "+(e&&e.message?e.message:e));}})();
+</script></body></html>
