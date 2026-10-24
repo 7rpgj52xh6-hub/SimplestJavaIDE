@@ -4,6 +4,7 @@ import { basicSetup } from "codemirror";
 import { java } from "@codemirror/lang-java";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { indentWithTab } from "@codemirror/commands";
+import { runJava, type Controller, type IO } from "./interpreter/run";
 
 const DEFAULT_CODE = `public static void main(String[] args){
 \tSystem.out.println("Hello World");
@@ -33,7 +34,7 @@ app.innerHTML = `
   <div class="console">
     <div class="console-bar">
       <label for="console-input">Input</label>
-      <input class="console-input" id="console-input" type="text" autocomplete="off" />
+      <input class="console-input" id="console-input" type="text" autocomplete="off" placeholder="Eingabe für das Programm…" />
       <button class="tool-btn" id="btn-send">⏎ Senden</button>
       <button class="tool-btn" id="btn-clear">Clear</button>
     </div>
@@ -61,31 +62,88 @@ function append(text: string, kind: OutKind = "output"): void {
   outputEl.appendChild(span);
   outputEl.scrollTop = outputEl.scrollHeight;
 }
+function clearConsole(): void { outputEl.textContent = ""; }
 
-function clearConsole(): void {
-  outputEl.textContent = "";
+// ---- stdin plumbing ------------------------------------------------------
+let inputQueue: string[] = [];
+let inputWaiters: Array<(line: string | null) => void> = [];
+
+const io: IO = {
+  print: (text) => append(text, "output"),
+  readLine: () =>
+    new Promise<string | null>((resolve) => {
+      const queued = inputQueue.shift();
+      if (queued !== undefined) resolve(queued);
+      else inputWaiters.push(resolve);
+    }),
+};
+
+function deliverInput(line: string): void {
+  const waiter = inputWaiters.shift();
+  if (waiter) waiter(line);
+  else inputQueue.push(line);
 }
 
-// ---- run (interpreter is wired up in the next step) ----------------------
+// ---- run / stop ----------------------------------------------------------
 const btnRun = document.querySelector<HTMLButtonElement>("#btn-run")!;
 const btnStop = document.querySelector<HTMLButtonElement>("#btn-stop")!;
+let running = false;
+const ctrl: Controller = { stopped: false };
 
-function runProgram(): void {
-  clearConsole();
-  append("▶ Programm gestartet\n", "system");
-  append("Der Java-Interpreter wird gerade gebaut – im nächsten Schritt läuft dein Code hier wirklich.\n", "hint");
-  append("✓ Programm beendet\n", "system");
+function setRunning(on: boolean): void {
+  running = on;
+  btnRun.disabled = on;
+  btnStop.disabled = !on;
 }
 
-btnRun.addEventListener("click", runProgram);
-btnStop.addEventListener("click", () => append("■ Gestoppt\n", "system"));
+async function runProgram(): Promise<void> {
+  if (running) return;
+  clearConsole();
+  inputQueue = [];
+  inputWaiters = [];
+  ctrl.stopped = false;
+  setRunning(true);
+  const source = editor.state.doc.toString();
+  try {
+    const outcome = await runJava(source, io, ctrl, () => append("▶ Programm gestartet\n", "system"));
+    switch (outcome.status) {
+      case "ok":
+        append("\n✓ Programm beendet\n", "system");
+        break;
+      case "stopped":
+        append("\n■ Programm gestoppt\n", "system");
+        break;
+      case "compileError":
+        append(`Fehler in Zeile ${outcome.line}: ${outcome.message}\n`, "error");
+        break;
+      case "runtimeError":
+        append((outcome.line !== null ? `Fehler in Zeile ${outcome.line}: ` : "Fehler: ") + outcome.message + "\n", "error");
+        break;
+    }
+  } finally {
+    setRunning(false);
+    // release any program still blocked on input
+    inputWaiters.forEach((w) => w(null));
+    inputWaiters = [];
+  }
+}
+
+function stopProgram(): void {
+  ctrl.stopped = true;
+  inputWaiters.forEach((w) => w(null)); // unblock a program waiting on input
+  inputWaiters = [];
+}
+
+btnRun.addEventListener("click", () => void runProgram());
+btnStop.addEventListener("click", stopProgram);
 
 // ---- input ---------------------------------------------------------------
 function sendInput(): void {
   const text = inputEl.value;
-  if (text.length === 0) return;
-  append("> " + text + "\n", "input");
   inputEl.value = "";
+  if (!running) return;
+  append("> " + text + "\n", "input");
+  deliverInput(text);
 }
 document.querySelector<HTMLButtonElement>("#btn-send")!.addEventListener("click", sendInput);
 inputEl.addEventListener("keydown", (e) => { if (e.key === "Enter") sendInput(); });
@@ -99,15 +157,9 @@ function applyZoom(delta: number): void {
 document.querySelector<HTMLButtonElement>("#btn-zoom-in")!.addEventListener("click", () => applyZoom(1));
 document.querySelector<HTMLButtonElement>("#btn-zoom-out")!.addEventListener("click", () => applyZoom(-1));
 
-// ---- placeholders for not-yet-built features -----------------------------
-document.querySelector<HTMLButtonElement>("#btn-save")!.addEventListener("click", () => {
-  append("(Speichern folgt)\n", "hint");
-});
-document.querySelector<HTMLButtonElement>("#btn-imports")!.addEventListener("click", () => {
-  append("(Imports-Dialog folgt)\n", "hint");
-});
-document.querySelector<HTMLButtonElement>("#btn-help")!.addEventListener("click", () => {
-  append("(Hilfe folgt)\n", "hint");
-});
+// ---- not-yet-built features ---------------------------------------------
+document.querySelector<HTMLButtonElement>("#btn-save")!.addEventListener("click", () => append("(Speichern folgt)\n", "hint"));
+document.querySelector<HTMLButtonElement>("#btn-imports")!.addEventListener("click", () => append("(Imports-Dialog folgt)\n", "hint"));
+document.querySelector<HTMLButtonElement>("#btn-help")!.addEventListener("click", () => append("(Hilfe folgt)\n", "hint"));
 
 export {};
