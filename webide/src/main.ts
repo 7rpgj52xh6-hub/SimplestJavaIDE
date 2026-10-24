@@ -13,6 +13,7 @@ import { ParseError } from "./interpreter/errors";
 import { javaCompletions } from "./completion";
 import { loadProject, saveProject } from "./storage";
 import { showHelp } from "./help";
+import { showImports } from "./imports";
 
 const DEFAULT_CODE = `public static void main(String[] args){
 \tSystem.out.println("Hello World");
@@ -38,8 +39,7 @@ app.innerHTML = `
     <button class="tool-btn" id="btn-help"><span class="ic">❔</span>Hilfe</button>
   </div>
   <div class="tabs">
-    <div class="tab active" id="tab-main">Main Method</div>
-    <div class="tab-add" id="tab-add" title="Neue Methode">+</div>
+    <div class="tab active">Programm.java</div>
   </div>
   <div class="editor-wrap" id="editor">
     <div class="debug-panel" id="debug-panel">
@@ -308,7 +308,7 @@ btnStepEnd.addEventListener("click", () => { debugRunToEnd = true; editor.dispat
 // ---- toolbar buttons -----------------------------------------------------
 document.querySelector<HTMLButtonElement>("#btn-save")!.addEventListener("click", saveNow);
 document.querySelector<HTMLButtonElement>("#btn-help")!.addEventListener("click", showHelp);
-document.querySelector<HTMLButtonElement>("#btn-imports")!.addEventListener("click", () => append("(Imports-Dialog folgt)\n", "hint"));
+document.querySelector<HTMLButtonElement>("#btn-imports")!.addEventListener("click", () => showImports(editor));
 
 setSaved();
 

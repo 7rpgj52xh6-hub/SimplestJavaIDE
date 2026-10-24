@@ -172,6 +172,11 @@ body {
 .modal .muted { color: var(--text-muted); font-size: 13px; margin-top: 16px; }
 .modal-actions { display: flex; justify-content: flex-end; margin-top: 16px; }
 .modal-actions .tool-btn { border: 1px solid var(--border); }
+.imports-quick { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.imports-quick .tool-btn { border: 1px solid var(--border); }
+.imports-custom { display: flex; gap: 8px; margin-top: 8px; }
+.imports-custom .console-input { flex: 1; }
+.imports-custom .tool-btn { border: 1px solid var(--border); }
 
 /* error marker underline tweak */
 .cm-lintRange-error { text-decoration-color: var(--error); }

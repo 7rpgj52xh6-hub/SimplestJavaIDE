@@ -34,6 +34,8 @@ class Parser {
     const classes: ClassDecl[] = [];
     while (!this.atEnd()) {
       if (this.match(";")) continue;
+      // import/package lines are accepted but ignored (names resolve without them)
+      if (this.is("import") || this.is("package")) { while (!this.atEnd() && !this.is(";")) this.next(); this.match(";"); continue; }
       if (this.isClassAhead()) classes.push(this.parseClass());
       else methods.push(this.parseMethod());
     }
