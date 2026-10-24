@@ -48,7 +48,9 @@ export function display(x: JValue): string {
     case "null": return "null";
     case "double": return displayDouble(x.v);
     case "array": return "[" + x.v.map(display).join(", ") + "]";
-    case "object": return x.cls + "@object";
+    case "object":
+      if (x.cls === "ArrayList") return "[" + (x.native as { list: JValue[] }).list.map(display).join(", ") + "]";
+      return x.cls + "@object";
   }
 }
 

@@ -73,6 +73,17 @@ async function main_() {
   await expectStatus("unknown-var", main(`System.out.println(y);`), "runtimeError");
   await expectStatus("no-main", `static int f(){ return 1; }`, "runtimeError");
 
+  // ---- newer features ----
+  await expectOut("cast-int", main(`double d=3.9; int x=(int)d; System.out.println(x);`), "3\n");
+  await expectOut("cast-char", main(`int a=65; char c=(char)a; System.out.println(c);`), "A\n");
+  await expectOut("arraylist", main(`ArrayList<Integer> l=new ArrayList<>(); l.add(1); l.add(2); l.add(3); System.out.println(l.size() + " " + l.get(1) + " " + l);`), "3 2 [1, 2, 3]\n");
+  await expectOut("list-foreach", main(`ArrayList<String> l=new ArrayList<>(); l.add("a"); l.add("b"); String r=""; for(String s : l) r += s; System.out.println(r);`), "ab\n");
+  await expectOut("printf", main(`System.out.printf("%d + %d = %d%n", 2, 3, 2+3);`), "2 + 3 = 5\n");
+  await expectOut("format-f", main(`System.out.println(String.format("%.2f", 3.14159));`), "3.14\n");
+  await expectOut("character", main(`System.out.println(Character.isDigit('5') + " " + Character.toUpperCase('a'));`), "true A\n");
+  await expectOut("string-split", main(`String[] parts = "a,b,c".split(","); System.out.println(parts.length + " " + parts[1]);`), "3 b\n");
+  await expectOut("random-bounded", main(`Random r=new Random(); System.out.println(r.nextInt(1));`), "0\n");
+
   console.log(`\n${pass} passed, ${fail} failed`);
   if (fail > 0) process.exitCode = 1;
 }

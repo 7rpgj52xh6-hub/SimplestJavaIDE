@@ -20,6 +20,7 @@ export type Expr =
   | Update
   | Assign
   | Ternary
+  | Cast
   | Call
   | FieldAccess
   | IndexAccess
@@ -35,6 +36,7 @@ export interface Unary { kind: "unary"; op: string; operand: Expr; pos: Pos; }
 export interface Update { kind: "update"; op: "++" | "--"; operand: Expr; prefix: boolean; pos: Pos; }
 export interface Assign { kind: "assign"; target: Expr; op: string; value: Expr; pos: Pos; }
 export interface Ternary { kind: "ternary"; cond: Expr; then: Expr; otherwise: Expr; pos: Pos; }
+export interface Cast { kind: "cast"; type: JType; expr: Expr; pos: Pos; }
 export interface Call { kind: "call"; callee: Expr; args: Expr[]; pos: Pos; }
 export interface FieldAccess { kind: "field"; object: Expr; name: string; pos: Pos; }
 export interface IndexAccess { kind: "index"; array: Expr; index: Expr; pos: Pos; }

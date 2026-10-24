@@ -113,8 +113,11 @@ export class Interpreter {
       }
       case "foreach": {
         const iter = await this.evalExpr(stmt.iterable, env);
-        if (iter.t !== "array") throw new RuntimeError("Mit for-each kann man nur über Arrays/Listen gehen.", stmt.pos);
-        for (const item of iter.v) {
+        const items = iter.t === "array" ? iter.v
+          : (iter.t === "object" && iter.cls === "ArrayList") ? (iter.native as { list: JValue[] }).list
+            : null;
+        if (!items) throw new RuntimeError("Mit for-each kann man nur über Arrays oder Listen gehen.", stmt.pos);
+        for (const item of items) {
           await this.checkpoint(stmt.pos);
           const loopEnv = new Environment(env);
           loopEnv.define(stmt.name, item);
@@ -166,6 +169,7 @@ export class Interpreter {
       case "bin": return this.binary(expr.op, await this.evalExpr(expr.left, env), await this.evalExpr(expr.right, env), expr.pos);
       case "unary": return this.unary(expr.op, await this.evalExpr(expr.operand, env), expr.pos);
       case "ternary": return asBoolean(await this.condition(expr.cond, env)) ? this.evalExpr(expr.then, env) : this.evalExpr(expr.otherwise, env);
+      case "cast": return this.cast(expr.type.base, await this.evalExpr(expr.expr, env));
       case "assign": return this.assign(expr.target, expr.op, expr.value, env);
       case "update": return this.update(expr.operand, expr.op, expr.prefix, env, expr.pos);
       case "index": {
@@ -251,6 +255,16 @@ export class Interpreter {
     }
   }
 
+  private cast(base: string, v: JValue): JValue {
+    switch (base) {
+      case "int": case "short": case "byte": return jint(Math.trunc(num(v)));
+      case "long": return jlong(Math.trunc(num(v)));
+      case "double": case "float": return jdouble(num(v));
+      case "char": return jchar(Math.trunc(num(v)) & 0xffff);
+      default: return v; // reference casts are a no-op in the teaching interpreter
+    }
+  }
+
   private async assign(target: Expr, op: string, valueExpr: Expr, env: Environment): Promise<JValue> {
     let value = await this.evalExpr(valueExpr, env);
     if (op !== "=") {
@@ -300,6 +314,8 @@ export class Interpreter {
 
   private async newObject(expr: { type: { base: string }; args: Expr[]; pos: Pos }, env: Environment): Promise<JValue> {
     if (expr.type.base === "Scanner") return { t: "object", cls: "Scanner", native: { buffer: [], io: this.io } as ScannerState };
+    if (expr.type.base === "ArrayList" || expr.type.base === "LinkedList") return { t: "object", cls: "ArrayList", native: { list: [] as JValue[] } };
+    if (expr.type.base === "Random") return { t: "object", cls: "Random", native: {} };
     if (expr.type.base === "String") {
       const a = expr.args[0] ? await this.evalExpr(expr.args[0], env) : jstr("");
       return jstr(a.t === "array" ? a.v.map((c) => String.fromCodePoint(num(c))).join("") : display(a));
@@ -362,6 +378,11 @@ export class Interpreter {
       this.io.print(path.endsWith("println") ? text + "\n" : text);
       return NULL;
     }
+    if (path === "System.out.printf" || path === "System.out.format") {
+      const pa = await this.args(argExprs, env);
+      this.io.print(formatJava(str(pa[0]), pa.slice(1)));
+      return NULL;
+    }
     const cls = segs[0]!, fn = segs[segs.length - 1]!;
     const a = await this.args(argExprs, env);
     if (cls === "Math") return this.mathCall(fn, a, pos);
@@ -375,6 +396,8 @@ export class Interpreter {
     if (cls === "Long" && fn === "parseLong") return jlong(parseIntStrict(str(a[0]), pos));
     if (cls === "Boolean" && fn === "parseBoolean") return jbool(str(a[0]).trim().toLowerCase() === "true");
     if (cls === "String" && fn === "valueOf") return jstr(display(a[0]!));
+    if (cls === "String" && fn === "format") return jstr(formatJava(str(a[0]), a.slice(1)));
+    if (cls === "Character") return this.characterCall(fn, a, pos);
     if (cls === "Arrays") return this.arraysCall(fn, a, pos);
     throw new RuntimeError(`'${path}(...)' wird (noch) nicht unterstützt.`, pos);
   }
@@ -418,6 +441,8 @@ export class Interpreter {
     const a = await this.args(argExprs, env);
     if (recv.t === "String") return this.stringMethod(recv.v, name, a, pos);
     if (recv.t === "object" && recv.cls === "Scanner") return this.scannerMethod(recv.native as ScannerState, name, pos);
+    if (recv.t === "object" && recv.cls === "ArrayList") return this.listMethod(recv.native as { list: JValue[] }, name, a, pos);
+    if (recv.t === "object" && recv.cls === "Random") return this.randomMethod(name, a);
     if (recv.t === "array" && name === "length") return jint(recv.v.length);
     throw new RuntimeError(`Die Methode '${name}' gibt es für diesen Datentyp nicht.`, pos);
   }
@@ -461,6 +486,52 @@ export class Interpreter {
       case "hasNext": case "hasNextLine": case "hasNextInt": return jbool(true);
       case "close": return NULL;
       default: throw new RuntimeError(`Die Scanner-Methode '${name}' gibt es nicht.`, pos);
+    }
+  }
+
+  private listMethod(st: { list: JValue[] }, name: string, a: JValue[], pos: Pos): JValue {
+    const list = st.list;
+    switch (name) {
+      case "add":
+        if (a.length === 2) { list.splice(num(a[0]!), 0, a[1]!); return NULL; }
+        list.push(a[0]!); return jbool(true);
+      case "get": { const i = num(a[0]!); if (i < 0 || i >= list.length) throw new RuntimeError(`get(${i}) ist außerhalb (Größe ${list.length}).`, pos); return list[i]!; }
+      case "set": { const i = num(a[0]!); const old = list[i]!; list[i] = a[1]!; return old; }
+      case "remove": { const i = num(a[0]!); if (i < 0 || i >= list.length) throw new RuntimeError(`remove(${i}) ist außerhalb (Größe ${list.length}).`, pos); return list.splice(i, 1)[0]!; }
+      case "size": return jint(list.length);
+      case "isEmpty": return jbool(list.length === 0);
+      case "clear": list.length = 0; return NULL;
+      case "contains": return jbool(list.some((x) => valueEquals(x, a[0]!)));
+      case "indexOf": return jint(list.findIndex((x) => valueEquals(x, a[0]!)));
+      case "toString": return jstr("[" + list.map(display).join(", ") + "]");
+      default: throw new RuntimeError(`Die Listen-Methode '${name}' gibt es (noch) nicht.`, pos);
+    }
+  }
+
+  private randomMethod(name: string, a: JValue[]): JValue {
+    switch (name) {
+      case "nextInt": return a.length ? jint(Math.floor(Math.random() * num(a[0]!))) : jint(Math.floor((Math.random() * 2 - 1) * 2147483647));
+      case "nextDouble": return jdouble(Math.random());
+      case "nextBoolean": return jbool(Math.random() < 0.5);
+      case "nextLong": return jlong(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER));
+      default: throw new RuntimeError(`Die Random-Methode '${name}' gibt es nicht.`, null);
+    }
+  }
+
+  private characterCall(fn: string, a: JValue[], pos: Pos): JValue {
+    const code = num(a[0]!);
+    const ch = String.fromCodePoint(code);
+    switch (fn) {
+      case "isDigit": return jbool(/\d/.test(ch));
+      case "isLetter": return jbool(/\p{L}/u.test(ch));
+      case "isLetterOrDigit": return jbool(/[\p{L}\p{N}]/u.test(ch));
+      case "isWhitespace": return jbool(/\s/.test(ch));
+      case "isUpperCase": return jbool(ch !== ch.toLowerCase() && ch === ch.toUpperCase());
+      case "isLowerCase": return jbool(ch !== ch.toUpperCase() && ch === ch.toLowerCase());
+      case "toUpperCase": return jchar(ch.toUpperCase().codePointAt(0)!);
+      case "toLowerCase": return jchar(ch.toLowerCase().codePointAt(0)!);
+      case "getNumericValue": return jint(/\d/.test(ch) ? code - 48 : -1);
+      default: throw new RuntimeError(`Character.${fn}(...) ist nicht bekannt.`, pos);
     }
   }
 
@@ -509,4 +580,35 @@ async function nextToken(st: ScannerState, pos: Pos): Promise<string> {
     for (const tok of line.split(/\s+/)) if (tok.length > 0) st.buffer.push(tok);
   }
   return st.buffer.shift()!;
+}
+
+function valueEquals(a: JValue, b: JValue): boolean {
+  if (a.t === "null" || b.t === "null") return a.t === "null" && b.t === "null";
+  if (isNumeric(a) && isNumeric(b)) return num(a) === num(b);
+  if (a.t === "boolean" && b.t === "boolean") return a.v === b.v;
+  if (a.t === "String" && b.t === "String") return a.v === b.v;
+  return a === b;
+}
+
+/** A small subset of Java's printf/String.format: %d %s %f %.Nf %c %b %x %o, width, %n, %%. */
+function formatJava(fmt: string, args: JValue[]): string {
+  let i = 0;
+  return fmt.replace(/%%|%n|%(-)?(\d+)?(?:\.(\d+))?([dsfcbxo])/g, (m, minus, width, prec, conv) => {
+    if (m === "%%") return "%";
+    if (m === "%n") return "\n";
+    const arg = args[i++]!;
+    let s: string;
+    switch (conv) {
+      case "d": s = String(Math.trunc(num(arg))); break;
+      case "f": s = num(arg).toFixed(prec !== undefined ? parseInt(prec, 10) : 6); break;
+      case "s": s = display(arg); break;
+      case "c": s = String.fromCodePoint(num(arg)); break;
+      case "b": s = String(arg.t === "boolean" ? arg.v : arg.t !== "null"); break;
+      case "x": s = Math.trunc(num(arg)).toString(16); break;
+      case "o": s = Math.trunc(num(arg)).toString(8); break;
+      default: s = display(arg);
+    }
+    if (width) { const w = parseInt(width, 10); s = minus ? s.padEnd(w) : s.padStart(w); }
+    return s;
+  });
 }

@@ -292,6 +292,17 @@ class Parser {
   }
 
   private parseUnary(): Expr {
+    // primitive cast: (int) x, (double) x, (char) x, (long) x …
+    if (this.is("(")) {
+      const p1 = this.peek(1);
+      if (p1.kind === "keyword" && PRIMITIVES.has(p1.value) && p1.value !== "void") {
+        const pos = this.pos();
+        this.next(); // (
+        const type = this.parseType();
+        this.expect(")", "Beim Umwandeln (Cast) fehlt ')'.");
+        return { kind: "cast", type, expr: this.parseUnary(), pos };
+      }
+    }
     const t = this.peek();
     if (t.kind === "punct" && (t.value === "!" || t.value === "-" || t.value === "+" || t.value === "~")) {
       this.next();
