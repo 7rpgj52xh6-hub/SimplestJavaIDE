@@ -101,6 +101,14 @@ async function main_() {
     main(`Zaehler a = new Zaehler(); Zaehler b = new Zaehler(); a.hoch(); a.hoch(); b.hoch(); System.out.println(a.wert() + " " + b.wert());`),
     "2 1\n");
 
+  // ---- extended library ----
+  await expectOut("string-join", main(`System.out.println(String.join("-", "a", "b", "c"));`), "a-b-c\n");
+  await expectOut("int-binary", main(`System.out.println(Integer.toBinaryString(5) + " " + Integer.toHexString(255));`), "101 ff\n");
+  await expectOut("math-floormod", main(`System.out.println(Math.floorMod(-3, 5) + " " + Math.floorDiv(-3, 5));`), "2 -1\n");
+  await expectOut("collections-sort", main(`ArrayList<Integer> l = new ArrayList<>(); l.add(3); l.add(1); l.add(2); Collections.sort(l); System.out.println(l);`), "[1, 2, 3]\n");
+  await expectOut("string-replaceall", main(`System.out.println("a1b2".replaceAll("[0-9]", "#"));`), "a#b#\n");
+  await expectOut("arrays-aslist", main(`System.out.println(Arrays.asList(1, 2, 3));`), "[1, 2, 3]\n");
+
   console.log(`\n${pass} passed, ${fail} failed`);
   if (fail > 0) process.exitCode = 1;
 }

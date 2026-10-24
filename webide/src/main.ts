@@ -16,7 +16,8 @@ import { showHelp } from "./help";
 import { showImports } from "./imports";
 
 const DEFAULT_CODE = `public static void main(String[] args){
-\tSystem.out.println("Hello World");
+\t// Schreibe hier deinen Code und klicke oben auf Run ▶
+\tSystem.out.println("Hallo Welt");
 }`;
 
 type OutKind = "output" | "error" | "system" | "hint" | "input";
@@ -24,19 +25,21 @@ type OutKind = "output" | "error" | "system" | "hint" | "input";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 app.innerHTML = `
   <div class="toolbar">
-    <button class="tool-btn run" id="btn-run"><span class="ic">▶</span>Run</button>
-    <button class="tool-btn stop" id="btn-stop" disabled><span class="ic">■</span>Stop</button>
+    <div class="brand"><span class="brand-badge">sJ</span><span class="brand-name">SimplestJavaIDE</span></div>
     <span class="tool-sep"></span>
-    <button class="tool-btn" id="btn-save"><span class="ic">💾</span>Speichern</button>
-    <button class="tool-btn" id="btn-imports"><span class="ic">⬇</span>Imports</button>
-    <button class="tool-btn" id="btn-debug"><span class="ic">🐞</span>Debug</button>
-    <button class="tool-btn" id="btn-step" style="display:none"><span class="ic">▶</span>Weiter</button>
-    <button class="tool-btn" id="btn-stepend" style="display:none"><span class="ic">▶▶</span>Bis Ende</button>
+    <button class="tool-btn run" id="btn-run" title="Ausführen (F5 / Strg+Enter)"><svg class="ic" viewBox="0 0 16 16"><path d="M4 3l9 5-9 5z" fill="currentColor"/></svg>Run</button>
+    <button class="tool-btn stop" id="btn-stop" disabled title="Stoppen"><svg class="ic" viewBox="0 0 16 16"><rect x="4" y="4" width="8" height="8" rx="1.5" fill="currentColor"/></svg>Stop</button>
     <span class="tool-sep"></span>
-    <button class="tool-btn" id="btn-zoom-out"><span class="ic">🔍−</span></button>
-    <button class="tool-btn" id="btn-zoom-in"><span class="ic">🔍+</span></button>
+    <button class="tool-btn" id="btn-save" title="Speichern (Strg/Cmd+S)"><svg class="ic" viewBox="0 0 16 16"><path d="M3 2.5h8l2.5 2.5v8.5H3z" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="5" y="2.5" width="4.5" height="3.3" fill="currentColor"/><rect x="5" y="8.5" width="6" height="4.5" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>Speichern</button>
+    <button class="tool-btn" id="btn-imports" title="Imports"><svg class="ic" viewBox="0 0 16 16"><path d="M8 2v7m0 0l-3-3m3 3l3-3M3 13h10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Imports</button>
+    <button class="tool-btn" id="btn-debug" title="Debuggen (Schritt für Schritt)"><svg class="ic" viewBox="0 0 16 16"><ellipse cx="8" cy="9" rx="3.3" ry="4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.2V3M5 6L3.2 4.2m7.8 1.8L12.8 4.2M4.9 9H2.3m11.4 0h-2.6M5.2 12l-1.8 1.8m9.4-1.8l-1.8 1.8" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Debug</button>
+    <button class="tool-btn" id="btn-step" style="display:none" title="Einen Schritt weiter"><svg class="ic" viewBox="0 0 16 16"><path d="M4 3l9 5-9 5z" fill="currentColor"/></svg>Weiter</button>
+    <button class="tool-btn" id="btn-stepend" style="display:none" title="Bis zum Ende laufen"><svg class="ic" viewBox="0 0 16 16"><path d="M3 3l5 5-5 5zM9 3l5 5-5 5z" fill="currentColor"/></svg>Bis Ende</button>
+    <span class="tool-sep"></span>
+    <button class="tool-btn icon-only" id="btn-zoom-out" title="Schrift kleiner"><svg class="ic" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M9.7 9.7L14 14M4.6 6.5h3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+    <button class="tool-btn icon-only" id="btn-zoom-in" title="Schrift größer"><svg class="ic" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M9.7 9.7L14 14M4.6 6.5h3.8M6.5 4.6v3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
     <span class="spacer"></span>
-    <button class="tool-btn" id="btn-help"><span class="ic">❔</span>Hilfe</button>
+    <button class="tool-btn" id="btn-help" title="Hilfe"><svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M6.2 6.2c0-1 .8-1.8 1.9-1.8s1.8.7 1.8 1.7c0 1.4-1.7 1.4-1.7 2.8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8.1" cy="11.2" r=".85" fill="currentColor"/></svg>Hilfe</button>
   </div>
   <div class="tabs">
     <div class="tab active">Programm.java</div>

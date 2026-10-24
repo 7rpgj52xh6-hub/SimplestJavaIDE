@@ -29,7 +29,7 @@ class Environment {
   entries(): [string, JValue][] { return [...this.vars]; }
 }
 
-const STATIC_CLASSES = new Set(["System", "Math", "Integer", "Double", "Long", "Boolean", "Character", "String", "Arrays"]);
+const STATIC_CLASSES = new Set(["System", "Math", "Integer", "Double", "Long", "Boolean", "Character", "String", "Arrays", "Collections"]);
 
 interface ScannerState { buffer: string[]; io: IO; }
 interface JObject { fields: Map<string, JValue>; }
@@ -476,14 +476,36 @@ export class Interpreter {
       if (fn === "toString" || fn === "valueOf") return fn === "valueOf" ? jint(num(a[0]!)) : jstr(String(Math.trunc(num(a[0]!))));
       if (fn === "max") return jint(Math.max(num(a[0]!), num(a[1]!)));
       if (fn === "min") return jint(Math.min(num(a[0]!), num(a[1]!)));
+      if (fn === "toBinaryString") return jstr((num(a[0]!) >>> 0).toString(2));
+      if (fn === "toHexString") return jstr((num(a[0]!) >>> 0).toString(16));
+      if (fn === "toOctalString") return jstr((num(a[0]!) >>> 0).toString(8));
+      if (fn === "compare") return jint(Math.sign(num(a[0]!) - num(a[1]!)));
     }
     if (cls === "Double" && (fn === "parseDouble" || fn === "valueOf")) return jdouble(parseFloatStrict(str(a[0]), pos));
+    if (cls === "Double" && fn === "isNaN") return jbool(Number.isNaN(num(a[0]!)));
+    if (cls === "Double" && fn === "isInfinite") return jbool(num(a[0]!) === Infinity || num(a[0]!) === -Infinity);
     if (cls === "Long" && fn === "parseLong") return jlong(parseIntStrict(str(a[0]), pos));
     if (cls === "Boolean" && fn === "parseBoolean") return jbool(str(a[0]).trim().toLowerCase() === "true");
     if (cls === "String" && fn === "valueOf") return jstr(display(a[0]!));
     if (cls === "String" && fn === "format") return jstr(formatJava(str(a[0]), a.slice(1)));
+    if (cls === "String" && fn === "join") {
+      const second = a[1];
+      const parts = second && second.t === "array" ? second.v
+        : second && second.t === "object" && second.cls === "ArrayList" ? (second.native as { list: JValue[] }).list
+          : a.slice(1);
+      return jstr(parts.map(display).join(str(a[0])));
+    }
     if (cls === "Character") return this.characterCall(fn, a, pos);
+    if (cls === "Arrays" && fn === "asList") return { t: "object", cls: "ArrayList", native: { list: [...a] } };
     if (cls === "Arrays") return this.arraysCall(fn, a, pos);
+    if (cls === "Collections" && fn === "sort") {
+      const arr = a[0];
+      if (arr && arr.t === "object" && arr.cls === "ArrayList") {
+        (arr.native as { list: JValue[] }).list.sort((p, q) => isNumeric(p) && isNumeric(q) ? num(p) - num(q) : display(p).localeCompare(display(q)));
+        return NULL;
+      }
+      throw new RuntimeError("Collections.sort(...) braucht eine Liste.", pos);
+    }
     throw new RuntimeError(`'${path}(...)' wird (noch) nicht unterstützt.`, pos);
   }
 
@@ -507,6 +529,9 @@ export class Interpreter {
       case "exp": return jdouble(Math.exp(x));
       case "cbrt": return jdouble(Math.cbrt(x));
       case "signum": return jdouble(Math.sign(x));
+      case "hypot": return jdouble(Math.hypot(x, y));
+      case "floorDiv": return jint(Math.floor(x / y));
+      case "floorMod": return jint(((x % y) + y) % y);
       case "toRadians": return jdouble(x * Math.PI / 180);
       case "toDegrees": return jdouble(x * 180 / Math.PI);
       default: throw new RuntimeError(`Math.${fn}(...) ist nicht bekannt.`, pos);
@@ -557,6 +582,10 @@ export class Interpreter {
       case "equals": return jbool(a[0]!.t === "String" && a[0]!.v === s);
       case "equalsIgnoreCase": return jbool(a[0]!.t === "String" && a[0]!.v.toLowerCase() === s.toLowerCase());
       case "compareTo": return jint(s < str(a[0]) ? -1 : s > str(a[0]) ? 1 : 0);
+      case "compareToIgnoreCase": { const o = str(a[0]).toLowerCase(); const l = s.toLowerCase(); return jint(l < o ? -1 : l > o ? 1 : 0); }
+      case "matches": return jbool(new RegExp("^(?:" + str(a[0]) + ")$").test(s));
+      case "replaceAll": return jstr(s.replace(new RegExp(str(a[0]), "g"), str(a[1])));
+      case "replaceFirst": return jstr(s.replace(new RegExp(str(a[0])), str(a[1])));
       case "toUpperCase": return jstr(s.toUpperCase());
       case "toLowerCase": return jstr(s.toLowerCase());
       case "trim": case "strip": return jstr(s.trim());
