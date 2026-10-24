@@ -175,3 +175,29 @@ body {
 
 /* error marker underline tweak */
 .cm-lintRange-error { text-decoration-color: var(--error); }
+
+/* ---- debugger ---- */
+.editor-wrap { position: relative; }
+.debug-panel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 230px;
+  max-height: 65%;
+  overflow: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  z-index: 6;
+  display: none;
+  box-shadow: 0 6px 20px #0007;
+}
+.debug-panel.active { display: block; }
+.debug-panel-title { color: var(--accent); font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+#debug-vars { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 12px; }
+#debug-vars td { padding: 2px 4px; vertical-align: top; }
+.dv-name { color: var(--hint); white-space: nowrap; }
+.dv-val { color: var(--text); word-break: break-all; }
+.dv-empty { color: var(--text-muted); }
+.cm-debug-line { background: #35502f !important; }

@@ -2,6 +2,7 @@ import { ParseError, RuntimeError, StopSignal } from "./errors";
 import { Interpreter } from "./interpreter";
 import type { Controller, IO } from "./io";
 import { parseProgram } from "./parser";
+import type { DebugHook } from "./io";
 
 export type RunOutcome =
   | { status: "ok" }
@@ -9,11 +10,12 @@ export type RunOutcome =
   | { status: "compileError"; message: string; line: number }
   | { status: "runtimeError"; message: string; line: number | null };
 
-export type { Controller, IO };
+export type { Controller, DebugHook, IO };
 
 /** Parse and run the given Java source; program output goes through `io`.
- *  `onStart` runs after a successful parse, just before execution begins. */
-export async function runJava(source: string, io: IO, ctrl: Controller, onStart?: () => void): Promise<RunOutcome> {
+ *  `onStart` runs after a successful parse, just before execution begins.
+ *  Pass `dbg` to step through the program (debugger). */
+export async function runJava(source: string, io: IO, ctrl: Controller, onStart?: () => void, dbg: DebugHook | null = null): Promise<RunOutcome> {
   let program;
   try {
     program = parseProgram(source);
@@ -23,7 +25,7 @@ export async function runJava(source: string, io: IO, ctrl: Controller, onStart?
   }
 
   onStart?.();
-  const interpreter = new Interpreter(program, io, ctrl);
+  const interpreter = new Interpreter(program, io, ctrl, dbg);
   try {
     await interpreter.run();
     return ctrl.stopped ? { status: "stopped" } : { status: "ok" };

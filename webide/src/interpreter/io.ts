@@ -10,3 +10,14 @@ export interface IO {
 export interface Controller {
   stopped: boolean;
 }
+
+/** One visible variable while stepping through the program. */
+export interface DebugVar {
+  name: string;
+  value: string;
+}
+
+/** The debugger pauses before each statement; onStep resolves when the user steps on. */
+export interface DebugHook {
+  onStep(line: number, vars: DebugVar[]): Promise<void>;
+}

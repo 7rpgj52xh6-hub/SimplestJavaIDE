@@ -1,12 +1,13 @@
 import "./style.css";
-import { EditorView, keymap } from "@codemirror/view";
+import { Decoration, EditorView, keymap, type DecorationSet } from "@codemirror/view";
+import { StateEffect, StateField } from "@codemirror/state";
 import { basicSetup } from "codemirror";
 import { java } from "@codemirror/lang-java";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { indentWithTab } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
 import { linter, type Diagnostic } from "@codemirror/lint";
-import { runJava, type Controller, type IO } from "./interpreter/run";
+import { runJava, type Controller, type DebugHook, type IO } from "./interpreter/run";
 import { parseProgram } from "./interpreter/parser";
 import { ParseError } from "./interpreter/errors";
 import { javaCompletions } from "./completion";
@@ -27,6 +28,9 @@ app.innerHTML = `
     <span class="tool-sep"></span>
     <button class="tool-btn" id="btn-save"><span class="ic">💾</span>Speichern</button>
     <button class="tool-btn" id="btn-imports"><span class="ic">⬇</span>Imports</button>
+    <button class="tool-btn" id="btn-debug"><span class="ic">🐞</span>Debug</button>
+    <button class="tool-btn" id="btn-step" style="display:none"><span class="ic">▶</span>Weiter</button>
+    <button class="tool-btn" id="btn-stepend" style="display:none"><span class="ic">▶▶</span>Bis Ende</button>
     <span class="tool-sep"></span>
     <button class="tool-btn" id="btn-zoom-out"><span class="ic">🔍−</span></button>
     <button class="tool-btn" id="btn-zoom-in"><span class="ic">🔍+</span></button>
@@ -37,7 +41,12 @@ app.innerHTML = `
     <div class="tab active" id="tab-main">Main Method</div>
     <div class="tab-add" id="tab-add" title="Neue Methode">+</div>
   </div>
-  <div class="editor-wrap" id="editor"></div>
+  <div class="editor-wrap" id="editor">
+    <div class="debug-panel" id="debug-panel">
+      <div class="debug-panel-title">Variablen</div>
+      <table id="debug-vars"></table>
+    </div>
+  </div>
   <div class="console">
     <div class="console-bar">
       <label for="console-input">Input</label>
@@ -65,6 +74,27 @@ const javaLinter = linter((view): Diagnostic[] => {
   }
 }, { delay: 400 });
 
+// ---- debugger: current-line highlight -----------------------------------
+const setDebugLine = StateEffect.define<number | null>();
+const debugLineField = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update(deco, tr) {
+    deco = deco.map(tr.changes);
+    for (const e of tr.effects) {
+      if (e.is(setDebugLine)) {
+        if (e.value == null) { deco = Decoration.none; }
+        else {
+          const n = Math.min(Math.max(1, e.value), tr.state.doc.lines);
+          const line = tr.state.doc.line(n);
+          deco = Decoration.set([Decoration.line({ class: "cm-debug-line" }).range(line.from)]);
+        }
+      }
+    }
+    return deco;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
+
 // ---- editor --------------------------------------------------------------
 let fontSize = 14;
 const saved = loadProject();
@@ -82,6 +112,7 @@ const editor = new EditorView({
     oneDark,
     autocompletion({ override: [javaCompletions] }),
     javaLinter,
+    debugLineField,
     EditorView.updateListener.of((u) => { if (u.docChanged) onEdited(); }),
   ],
   parent: document.querySelector<HTMLDivElement>("#editor")!,
@@ -142,6 +173,8 @@ const btnRun = document.querySelector<HTMLButtonElement>("#btn-run")!;
 const btnStop = document.querySelector<HTMLButtonElement>("#btn-stop")!;
 let running = false;
 const ctrl: Controller = { stopped: false };
+let debugResolve: (() => void) | null = null;
+let debugRunToEnd = false;
 
 function setRunning(on: boolean): void {
   running = on;
@@ -175,6 +208,8 @@ async function runProgram(): Promise<void> {
 
 function stopProgram(): void {
   ctrl.stopped = true;
+  debugRunToEnd = true;
+  debugResolve?.();
   inputWaiters.forEach((w) => w(null));
   inputWaiters = [];
 }
@@ -201,6 +236,74 @@ function applyZoom(delta: number): void {
 }
 document.querySelector<HTMLButtonElement>("#btn-zoom-in")!.addEventListener("click", () => applyZoom(1));
 document.querySelector<HTMLButtonElement>("#btn-zoom-out")!.addEventListener("click", () => applyZoom(-1));
+
+// ---- debugger ------------------------------------------------------------
+const btnDebug = document.querySelector<HTMLButtonElement>("#btn-debug")!;
+const btnStep = document.querySelector<HTMLButtonElement>("#btn-step")!;
+const btnStepEnd = document.querySelector<HTMLButtonElement>("#btn-stepend")!;
+const debugPanel = document.querySelector<HTMLDivElement>("#debug-panel")!;
+const debugVars = document.querySelector<HTMLTableElement>("#debug-vars")!;
+
+const debugHook: DebugHook = {
+  onStep: (line, vars) =>
+    new Promise<void>((resolve) => {
+      if (debugRunToEnd || ctrl.stopped) { resolve(); return; }
+      editor.dispatch({ effects: setDebugLine.of(line) });
+      renderVars(vars);
+      debugResolve = () => { debugResolve = null; resolve(); };
+    }),
+};
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>]/g, (c) => (c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;"));
+}
+function renderVars(vars: { name: string; value: string }[]): void {
+  debugVars.innerHTML = vars.length
+    ? vars.map((v) => `<tr><td class="dv-name">${escapeHtml(v.name)}</td><td class="dv-val">${escapeHtml(v.value)}</td></tr>`).join("")
+    : `<tr><td class="dv-empty">(noch keine Variablen)</td></tr>`;
+}
+function setDebugUI(on: boolean): void {
+  btnStep.style.display = on ? "" : "none";
+  btnStepEnd.style.display = on ? "" : "none";
+  btnDebug.style.display = on ? "none" : "";
+  debugPanel.classList.toggle("active", on);
+}
+
+async function debugProgram(): Promise<void> {
+  if (running) return;
+  saveNow();
+  clearConsole();
+  inputQueue = [];
+  inputWaiters = [];
+  ctrl.stopped = false;
+  debugRunToEnd = false;
+  setRunning(true);
+  setDebugUI(true);
+  renderVars([]);
+  try {
+    const outcome = await runJava(
+      editor.state.doc.toString(), io, ctrl,
+      () => append('▶ Debugger gestartet – mit „Weiter" Schritt für Schritt.\n', "system"),
+      debugHook,
+    );
+    switch (outcome.status) {
+      case "ok": append("\n✓ Programm beendet\n", "system"); break;
+      case "stopped": append("\n■ Programm gestoppt\n", "system"); break;
+      case "compileError": append(`Fehler in Zeile ${outcome.line}: ${outcome.message}\n`, "error"); break;
+      case "runtimeError": append((outcome.line !== null ? `Fehler in Zeile ${outcome.line}: ` : "Fehler: ") + outcome.message + "\n", "error"); break;
+    }
+  } finally {
+    setRunning(false);
+    setDebugUI(false);
+    editor.dispatch({ effects: setDebugLine.of(null) });
+    debugResolve = null;
+    inputWaiters.forEach((w) => w(null));
+    inputWaiters = [];
+  }
+}
+btnDebug.addEventListener("click", () => void debugProgram());
+btnStep.addEventListener("click", () => debugResolve?.());
+btnStepEnd.addEventListener("click", () => { debugRunToEnd = true; editor.dispatch({ effects: setDebugLine.of(null) }); debugResolve?.(); });
 
 // ---- toolbar buttons -----------------------------------------------------
 document.querySelector<HTMLButtonElement>("#btn-save")!.addEventListener("click", saveNow);

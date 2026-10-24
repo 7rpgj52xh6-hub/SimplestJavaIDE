@@ -2,7 +2,7 @@ import type {
   Block, ClassDecl, Expr, MethodDecl, Pos, Program, Stmt,
 } from "./ast";
 import { RuntimeError, StopSignal } from "./errors";
-import type { Controller, IO } from "./io";
+import type { Controller, DebugHook, DebugVar, IO } from "./io";
 import {
   asBoolean, coerceTo, defaultValue, display, isNumeric, jbool, jchar,
   jdouble, jint, jlong, jstr, NULL, num, type JValue,
@@ -26,6 +26,7 @@ class Environment {
     if (this.vars.has(name)) { this.vars.set(name, value); return true; }
     return this.parent?.assign(name, value) ?? false;
   }
+  entries(): [string, JValue][] { return [...this.vars]; }
 }
 
 const STATIC_CLASSES = new Set(["System", "Math", "Integer", "Double", "Long", "Boolean", "Character", "String", "Arrays"]);
@@ -39,7 +40,7 @@ export class Interpreter {
   private steps = 0;
   private readonly maxSteps = 80_000_000;
 
-  constructor(program: Program, private io: IO, private ctrl: Controller) {
+  constructor(program: Program, private io: IO, private ctrl: Controller, private dbg: DebugHook | null = null) {
     for (const m of program.methods) this.methods.set(m.name, m);
     for (const c of program.classes) this.classes.set(c.name, c);
   }
@@ -79,6 +80,9 @@ export class Interpreter {
 
   private async execStmt(stmt: Stmt, env: Environment): Promise<void> {
     await this.checkpoint(stmt.pos);
+    if (this.dbg && stmt.kind !== "block" && stmt.kind !== "empty") {
+      await this.dbg.onStep(stmt.pos.line, this.collectVars(env));
+    }
     switch (stmt.kind) {
       case "block": return this.execBlock(stmt, env);
       case "empty": return;
@@ -628,6 +632,17 @@ export class Interpreter {
       case "getNumericValue": return jint(/\d/.test(ch) ? code - 48 : -1);
       default: throw new RuntimeError(`Character.${fn}(...) ist nicht bekannt.`, pos);
     }
+  }
+
+  private collectVars(env: Environment): DebugVar[] {
+    const seen = new Map<string, JValue>();
+    const chain: Environment[] = [];
+    let e: Environment | null = env;
+    while (e) { chain.push(e); e = e.parent; }
+    for (let i = chain.length - 1; i >= 0; i--) for (const [k, v] of chain[i]!.entries()) if (k !== "this") seen.set(k, v);
+    const self = env.get("this");
+    if (self && self.t === "object") for (const [k, v] of (self.native as JObject).fields) if (!seen.has(k)) seen.set("this." + k, v);
+    return [...seen].map(([name, v]) => ({ name, value: display(v) }));
   }
 
   // ---- cooperative scheduling: keeps the UI alive + lets Stop interrupt ----
