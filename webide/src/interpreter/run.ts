@@ -14,16 +14,16 @@ export type { Controller, IO };
 /** Parse and run the given Java source; program output goes through `io`.
  *  `onStart` runs after a successful parse, just before execution begins. */
 export async function runJava(source: string, io: IO, ctrl: Controller, onStart?: () => void): Promise<RunOutcome> {
-  let methods;
+  let program;
   try {
-    methods = parseProgram(source);
+    program = parseProgram(source);
   } catch (e) {
     if (e instanceof ParseError) return { status: "compileError", message: e.message, line: e.pos.line };
     throw e;
   }
 
   onStart?.();
-  const interpreter = new Interpreter(methods, io, ctrl);
+  const interpreter = new Interpreter(program, io, ctrl);
   try {
     await interpreter.run();
     return ctrl.stopped ? { status: "stopped" } : { status: "ok" };

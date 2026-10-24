@@ -84,6 +84,23 @@ async function main_() {
   await expectOut("string-split", main(`String[] parts = "a,b,c".split(","); System.out.println(parts.length + " " + parts[1]);`), "3 b\n");
   await expectOut("random-bounded", main(`Random r=new Random(); System.out.println(r.nextInt(1));`), "0\n");
 
+  // ---- classes / objects ----
+  await expectOut("class-konto",
+    `public class Konto {\n  double stand;\n  Konto(double start){ this.stand = start; }\n  void einzahlen(double b){ this.stand = this.stand + b; }\n  double getStand(){ return this.stand; }\n}\n` +
+    main(`Konto k = new Konto(100); k.einzahlen(50); System.out.println(k.getStand());`),
+    "150.0\n");
+  await expectOut("class-fields-bare",
+    `class Punkt {\n  int x;\n  int y;\n  Punkt(int x, int y){ this.x = x; this.y = y; }\n  int summe(){ return x + y; }\n}\n` +
+    main(`Punkt p = new Punkt(3, 4); System.out.println(p.summe() + " " + p.x);`),
+    "7 3\n");
+  await expectOut("class-only-main",
+    `public class Haupt {\n  public static void main(String[] args){\n    int[] a = {5,3,8}; int max = a[0];\n    for (int x : a) if (x > max) max = x;\n    System.out.println("Max: " + max);\n  }\n}`,
+    "Max: 8\n");
+  await expectOut("class-two-objects",
+    `class Zaehler { int n = 0; void hoch(){ n++; } int wert(){ return n; } }\n` +
+    main(`Zaehler a = new Zaehler(); Zaehler b = new Zaehler(); a.hoch(); a.hoch(); b.hoch(); System.out.println(a.wert() + " " + b.wert());`),
+    "2 1\n");
+
   console.log(`\n${pass} passed, ${fail} failed`);
   if (fail > 0) process.exitCode = 1;
 }

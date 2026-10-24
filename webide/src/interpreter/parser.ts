@@ -1,5 +1,5 @@
 import type {
-  Block, Expr, JType, MethodDecl, Param, Pos, Stmt, VarDeclarator,
+  Block, ClassDecl, Expr, FieldDecl, JType, MethodDecl, Param, Pos, Program, Stmt, VarDeclarator,
 } from "./ast";
 import { ParseError } from "./errors";
 import { KEYWORDS, tokenize, type Token } from "./lexer";
@@ -8,7 +8,7 @@ const PRIMITIVES = new Set(["int", "double", "boolean", "char", "long", "float",
 const MODIFIERS = new Set(["public", "private", "protected", "static", "final", "abstract"]);
 const ASSIGN_OPS = new Set(["=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>="]);
 
-export function parseProgram(source: string): MethodDecl[] {
+export function parseProgram(source: string): Program {
   return new Parser(tokenize(source)).parseProgram();
 }
 
@@ -29,16 +29,74 @@ class Parser {
   private pos(): Pos { return this.peek().pos; }
 
   // ---- program & methods --------------------------------------------------
-  parseProgram(): MethodDecl[] {
+  parseProgram(): Program {
     const methods: MethodDecl[] = [];
+    const classes: ClassDecl[] = [];
     while (!this.atEnd()) {
       if (this.match(";")) continue;
-      methods.push(this.parseMethod());
+      if (this.isClassAhead()) classes.push(this.parseClass());
+      else methods.push(this.parseMethod());
     }
-    if (methods.length === 0) {
-      throw new ParseError("Hier fehlt eine Methode, z. B. public static void main(String[] args){ … }.", this.pos());
+    if (methods.length === 0 && classes.length === 0) {
+      throw new ParseError("Hier fehlt Code, z. B. public static void main(String[] args){ … }.", this.pos());
     }
-    return methods;
+    return { methods, classes };
+  }
+
+  private isClassAhead(): boolean {
+    let o = 0;
+    while (this.peek(o).kind === "keyword" && MODIFIERS.has(this.peek(o).value)) o++;
+    return this.peek(o).kind === "keyword" && this.peek(o).value === "class";
+  }
+
+  private parseClass(): ClassDecl {
+    const pos = this.pos();
+    while (this.peek().kind === "keyword" && MODIFIERS.has(this.peek().value)) this.next();
+    this.expect("class", "Hier wird 'class' erwartet.");
+    const name = this.expectName("Hier wird ein Klassenname erwartet.").value;
+    if (this.peek().kind === "name" && this.peek().value === "extends") { this.next(); this.parseType(); }
+    if (this.peek().kind === "name" && this.peek().value === "implements") { this.next(); do { this.parseType(); } while (this.match(",")); }
+    this.expect("{", "Nach dem Klassennamen wird '{' erwartet.");
+    const fields: FieldDecl[] = [];
+    const methods: MethodDecl[] = [];
+    const ctors: MethodDecl[] = [];
+    while (!this.is("}") && !this.atEnd()) {
+      if (this.match(";")) continue;
+      this.parseMember(name, fields, methods, ctors);
+    }
+    this.expect("}", "Eine '}' der Klasse fehlt.");
+    return { name, fields, methods, ctors, pos };
+  }
+
+  private parseMember(className: string, fields: FieldDecl[], methods: MethodDecl[], ctors: MethodDecl[]): void {
+    const pos = this.pos();
+    let isStatic = false;
+    while (this.peek().kind === "keyword" && MODIFIERS.has(this.peek().value)) { if (this.next().value === "static") isStatic = true; }
+    // constructor:  ClassName(...) { ... }
+    if (this.peek().kind === "name" && this.peek().value === className && this.isNext("(", 1)) {
+      const cname = this.next().value;
+      this.expect("(");
+      const params = this.parseParams();
+      this.expect(")");
+      ctors.push({ name: cname, returnType: { base: "void", dims: 0 }, params, isStatic: false, body: this.parseBlock(), pos });
+      return;
+    }
+    const type = this.parseType();
+    const memberName = this.expectName("Hier wird ein Name (Feld oder Methode) erwartet.").value;
+    if (this.is("(")) {
+      this.next();
+      const params = this.parseParams();
+      this.expect(")");
+      methods.push({ name: memberName, returnType: type, params, isStatic, body: this.parseBlock(), pos });
+      return;
+    }
+    // field(s)
+    fields.push({ type, name: memberName, init: this.match("=") ? this.parseVarInit() : null, isStatic, pos });
+    while (this.match(",")) {
+      const n = this.expectName("Hier wird ein Feldname erwartet.").value;
+      fields.push({ type, name: n, init: this.match("=") ? this.parseVarInit() : null, isStatic, pos });
+    }
+    this.expect(";", "Hinter dem Feld fehlt ein ';'.");
   }
 
   private parseMethod(): MethodDecl {
@@ -50,6 +108,13 @@ class Parser {
     const returnType = this.parseType();
     const name = this.expectName("Hier wird ein Methodenname erwartet.").value;
     this.expect("(", "Nach dem Methodennamen wird '(' erwartet.");
+    const params = this.parseParams();
+    this.expect(")", "Hier wird ')' erwartet.");
+    const body = this.parseBlock();
+    return { name, returnType, params, isStatic, body, pos };
+  }
+
+  private parseParams(): Param[] {
     const params: Param[] = [];
     if (!this.is(")")) {
       do {
@@ -59,9 +124,7 @@ class Parser {
         params.push({ type: t, name: pn });
       } while (this.match(","));
     }
-    this.expect(")", "Hier wird ')' erwartet.");
-    const body = this.parseBlock();
-    return { name, returnType, params, isStatic, body, pos };
+    return params;
   }
 
   private expectName(msg: string): Token {

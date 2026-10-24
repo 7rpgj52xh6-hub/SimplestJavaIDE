@@ -1,5 +1,5 @@
 import type {
-  Block, Expr, MethodDecl, Pos, Stmt,
+  Block, ClassDecl, Expr, MethodDecl, Pos, Program, Stmt,
 } from "./ast";
 import { RuntimeError, StopSignal } from "./errors";
 import type { Controller, IO } from "./io";
@@ -31,18 +31,32 @@ class Environment {
 const STATIC_CLASSES = new Set(["System", "Math", "Integer", "Double", "Long", "Boolean", "Character", "String", "Arrays"]);
 
 interface ScannerState { buffer: string[]; io: IO; }
+interface JObject { fields: Map<string, JValue>; }
 
 export class Interpreter {
   private methods = new Map<string, MethodDecl>();
+  private classes = new Map<string, ClassDecl>();
   private steps = 0;
   private readonly maxSteps = 80_000_000;
 
-  constructor(methods: MethodDecl[], private io: IO, private ctrl: Controller) {
-    for (const m of methods) this.methods.set(m.name, m);
+  constructor(program: Program, private io: IO, private ctrl: Controller) {
+    for (const m of program.methods) this.methods.set(m.name, m);
+    for (const c of program.classes) this.classes.set(c.name, c);
   }
 
   async run(): Promise<void> {
-    const main = this.methods.get("main");
+    let main = this.methods.get("main");
+    if (!main) {
+      // class-mode: find a class with a main method and expose its methods by name
+      for (const c of this.classes.values()) {
+        const m = c.methods.find((mm) => mm.name === "main");
+        if (m) {
+          main = m;
+          for (const cm of c.methods) if (!this.methods.has(cm.name)) this.methods.set(cm.name, cm);
+          break;
+        }
+      }
+    }
     if (!main) {
       throw new RuntimeError(
         "Es gibt keine main-Methode. Dein Programm braucht\n    public static void main(String[] args)\num starten zu können.", null);
@@ -153,8 +167,13 @@ export class Interpreter {
       case "lit": return this.literal(expr.value, expr.type);
       case "name": {
         const v = env.get(expr.name);
-        if (v === undefined) throw new RuntimeError(`Die Variable '${expr.name}' ist hier nicht bekannt. Tippfehler oder nicht deklariert?`, expr.pos);
-        return v;
+        if (v !== undefined) return v;
+        const self = env.get("this");
+        if (self && self.t === "object") {
+          const f = (self.native as JObject).fields;
+          if (f.has(expr.name)) return f.get(expr.name)!;
+        }
+        throw new RuntimeError(`Die Variable '${expr.name}' ist hier nicht bekannt. Tippfehler oder nicht deklariert?`, expr.pos);
       }
       case "arrayinit": {
         const elems: JValue[] = [];
@@ -272,8 +291,13 @@ export class Interpreter {
       value = this.binary(op.slice(0, -1), current, value, target.pos);
     }
     if (target.kind === "name") {
-      if (!env.assign(target.name, value)) throw new RuntimeError(`Die Variable '${target.name}' ist nicht bekannt.`, target.pos);
-      return value;
+      if (env.assign(target.name, value)) return value;
+      const self = env.get("this");
+      if (self && self.t === "object") {
+        const f = (self.native as JObject).fields;
+        if (f.has(target.name)) { f.set(target.name, value); return value; }
+      }
+      throw new RuntimeError(`Die Variable '${target.name}' ist nicht bekannt.`, target.pos);
     }
     if (target.kind === "index") {
       const arr = await this.evalExpr(target.array, env);
@@ -283,18 +307,38 @@ export class Interpreter {
       arr.v[i] = arr.elem && arr.elem !== "Object" ? coerceTo(arr.elem, value) : value;
       return value;
     }
-    throw new RuntimeError("Dieser Zuweisung fehlt ein gültiges Ziel (Variable/Array).", target.pos);
+    if (target.kind === "field") {
+      const obj = await this.evalExpr(target.object, env);
+      if (obj.t === "object" && this.classes.has(obj.cls)) {
+        (obj.native as JObject).fields.set(target.name, value);
+        return value;
+      }
+      throw new RuntimeError(`'${target.name}' kann hier nicht gesetzt werden.`, target.pos);
+    }
+    throw new RuntimeError("Dieser Zuweisung fehlt ein gültiges Ziel (Variable/Array/Feld).", target.pos);
   }
 
   private async update(target: Expr, op: "++" | "--", prefix: boolean, env: Environment, pos: Pos): Promise<JValue> {
     const current = await this.evalExpr(target, env);
     const delta = op === "++" ? 1 : -1;
     const next = current.t === "double" ? jdouble(num(current) + delta) : current.t === "long" ? jlong(num(current) + delta) : current.t === "char" ? jchar(num(current) + delta) : jint(num(current) + delta);
-    if (target.kind === "name") env.assign(target.name, next);
-    else if (target.kind === "index") {
+    if (target.kind === "name") {
+      if (!env.assign(target.name, next)) {
+        const self = env.get("this");
+        if (self && self.t === "object" && (self.native as JObject).fields.has(target.name)) {
+          (self.native as JObject).fields.set(target.name, next);
+        } else {
+          throw new RuntimeError(`Die Variable '${target.name}' ist nicht bekannt.`, pos);
+        }
+      }
+    } else if (target.kind === "index") {
       const arr = await this.evalExpr(target.array, env);
       const i = num(await this.evalExpr(target.index, env));
       if (arr.t === "array") arr.v[i] = next;
+    } else if (target.kind === "field") {
+      const obj = await this.evalExpr(target.object, env);
+      if (obj.t === "object") (obj.native as JObject).fields.set(target.name, next);
+      else throw new RuntimeError("++/-- braucht eine Variable.", pos);
     } else throw new RuntimeError("++/-- braucht eine Variable.", pos);
     return prefix ? next : current;
   }
@@ -320,6 +364,31 @@ export class Interpreter {
       const a = expr.args[0] ? await this.evalExpr(expr.args[0], env) : jstr("");
       return jstr(a.t === "array" ? a.v.map((c) => String.fromCodePoint(num(c))).join("") : display(a));
     }
+    const cls = this.classes.get(expr.type.base);
+    if (cls) {
+      const fields = new Map<string, JValue>();
+      const obj: JValue = { t: "object", cls: expr.type.base, native: { fields } as JObject };
+      for (const f of cls.fields) fields.set(f.name, defaultValue(f.type.base, f.type.dims));
+      const fenv = new Environment(null);
+      fenv.define("this", obj);
+      for (const f of cls.fields) {
+        if (!f.init) continue;
+        let val = await this.evalInit(f.init, f.type.base, f.type.dims, fenv);
+        if (f.type.base !== "var" && f.type.dims === 0) val = coerceTo(f.type.base, val);
+        fields.set(f.name, val);
+      }
+      const argv = await this.args(expr.args, env);
+      const ctor = cls.ctors.find((c) => c.params.length === argv.length) ?? null;
+      if (ctor) {
+        const cenv = new Environment(null);
+        cenv.define("this", obj);
+        for (let k = 0; k < ctor.params.length; k++) cenv.define(ctor.params[k]!.name, coerceTo(ctor.params[k]!.type.base, argv[k]!));
+        try { await this.execBlock(ctor.body, cenv); } catch (e) { if (!(e instanceof ReturnSignal)) throw e; }
+      } else if (cls.ctors.length > 0) {
+        throw new RuntimeError(`Kein passender Konstruktor für '${expr.type.base}' mit ${argv.length} Argument(en).`, expr.pos);
+      }
+      return obj;
+    }
     throw new RuntimeError(`'new ${expr.type.base}(...)' wird (noch) nicht unterstützt.`, expr.pos);
   }
 
@@ -332,6 +401,11 @@ export class Interpreter {
     }
     const obj = await this.evalExpr(expr.object, env);
     if (obj.t === "array" && expr.name === "length") return jint(obj.v.length);
+    if (obj.t === "object" && this.classes.has(obj.cls)) {
+      const f = (obj.native as JObject).fields;
+      if (f.has(expr.name)) return f.get(expr.name)!;
+      throw new RuntimeError(`Das Feld '${expr.name}' gibt es in '${obj.cls}' nicht.`, expr.pos);
+    }
     throw new RuntimeError(`'${expr.name}' gibt es hier nicht.`, expr.pos);
   }
 
@@ -350,6 +424,13 @@ export class Interpreter {
   }
 
   private async userCall(name: string, argExprs: Expr[], env: Environment, pos: Pos): Promise<JValue> {
+    const self = env.get("this");
+    if (self && self.t === "object") {
+      const cls = this.classes.get(self.cls);
+      if (cls && cls.methods.some((mm) => mm.name === name)) {
+        return this.callMethodOn(self, name, await this.args(argExprs, env), pos);
+      }
+    }
     const m = this.methods.get(name);
     if (!m) throw new RuntimeError(`Die Methode '${name}' gibt es nicht. Tippfehler?`, pos);
     if (m.params.length !== argExprs.length) {
@@ -443,8 +524,22 @@ export class Interpreter {
     if (recv.t === "object" && recv.cls === "Scanner") return this.scannerMethod(recv.native as ScannerState, name, pos);
     if (recv.t === "object" && recv.cls === "ArrayList") return this.listMethod(recv.native as { list: JValue[] }, name, a, pos);
     if (recv.t === "object" && recv.cls === "Random") return this.randomMethod(name, a);
+    if (recv.t === "object" && this.classes.has(recv.cls)) return this.callMethodOn(recv, name, a, pos);
     if (recv.t === "array" && name === "length") return jint(recv.v.length);
     throw new RuntimeError(`Die Methode '${name}' gibt es für diesen Datentyp nicht.`, pos);
+  }
+
+  private async callMethodOn(recv: JValue, name: string, args: JValue[], pos: Pos): Promise<JValue> {
+    if (recv.t !== "object") throw new RuntimeError("Kein Objekt.", pos);
+    const cls = this.classes.get(recv.cls)!;
+    const m = cls.methods.find((mm) => mm.name === name && mm.params.length === args.length)
+      ?? cls.methods.find((mm) => mm.name === name);
+    if (!m) throw new RuntimeError(`Die Methode '${name}' gibt es in '${recv.cls}' nicht.`, pos);
+    const env = new Environment(null);
+    env.define("this", recv);
+    for (let k = 0; k < m.params.length; k++) env.define(m.params[k]!.name, coerceTo(m.params[k]!.type.base, args[k] ?? NULL));
+    try { await this.execBlock(m.body, env); } catch (e) { if (e instanceof ReturnSignal) return e.value; throw e; }
+    return NULL;
   }
 
   private stringMethod(s: string, name: string, a: JValue[], pos: Pos): JValue {

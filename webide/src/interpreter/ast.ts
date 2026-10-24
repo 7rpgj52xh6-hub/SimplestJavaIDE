@@ -73,7 +73,7 @@ export interface ContinueStmt { kind: "continue"; pos: Pos; }
 export interface ReturnStmt { kind: "return"; value: Expr | null; pos: Pos; }
 export interface EmptyStmt { kind: "empty"; pos: Pos; }
 
-// ---- methods --------------------------------------------------------------
+// ---- methods & classes ----------------------------------------------------
 export interface Param { type: JType; name: string; }
 export interface MethodDecl {
   name: string;
@@ -83,3 +83,15 @@ export interface MethodDecl {
   body: Block;
   pos: Pos;
 }
+
+export interface FieldDecl { type: JType; name: string; init: Expr | null; isStatic: boolean; pos: Pos; }
+export interface ClassDecl {
+  name: string;
+  fields: FieldDecl[];
+  methods: MethodDecl[];
+  ctors: MethodDecl[];
+  pos: Pos;
+}
+
+/** A whole program: free-standing methods (the "no classes" mode) and/or classes. */
+export interface Program { methods: MethodDecl[]; classes: ClassDecl[]; }
