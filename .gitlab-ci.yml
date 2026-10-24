@@ -1,0 +1,17 @@
+# GitLab Pages: builds the browser-native IDE (webide/) and publishes it.
+# Needs a runner with Docker (node:20). GitLab serves the `public/` artifact.
+pages:
+  image: node:20
+  stage: deploy
+  script:
+    - cd webide
+    - npm ci
+    - npm run build
+    - cd ..
+    - rm -rf public
+    - mv webide/dist public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "claude/webide" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
